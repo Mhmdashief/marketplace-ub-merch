@@ -180,7 +180,7 @@ export default function Navbar() {
                             </div>
 
                             {[
-                                { name: 'Services', href: '/services' },
+                                { name: 'Service', href: '/services' },
                                 { name: 'News', href: '/news' },
                                 { name: 'About Us', href: '/about' },
                                 { name: 'Contact', href: '/contact' },
