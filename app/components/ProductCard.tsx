@@ -1,7 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { ShoppingCart } from 'lucide-react';
+import Link from 'next/link';
+import { ShoppingCart, Heart, ArrowUpRight } from 'lucide-react';
 import { useState } from 'react';
 
 interface ProductCardProps {
@@ -13,15 +14,8 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ id, name, price, category, image }: ProductCardProps) {
-    const [isAdding, setIsAdding] = useState(false);
-
-    const handleAddToCart = () => {
-        setIsAdding(true);
-        setTimeout(() => {
-            setIsAdding(false);
-            console.log('Added to cart:', id);
-        }, 600);
-    };
+    const [isHovered, setIsHovered] = useState(false);
+    const [isLiked, setIsLiked] = useState(false);
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('id-ID', {
@@ -32,57 +26,81 @@ export default function ProductCard({ id, name, price, category, image }: Produc
     };
 
     return (
-        <div className="group bg-white rounded-xl border border-gray-200 hover:border-black hover:shadow-2xl transition-all duration-300 overflow-hidden">
-            {/* Image Container */}
-            <div className="relative aspect-square overflow-hidden bg-gray-50">
+        <div
+            className="group relative flex flex-col transition-all duration-500"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            {/* Image Stage */}
+            <div className="relative aspect-[3/4] overflow-hidden rounded-[2rem] bg-[#F9F9F9] transition-all duration-700 group-hover:rounded-[1rem] group-hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)]">
                 <Image
                     src={image}
                     alt={name}
                     fill
                     sizes="(max-width: 768px) 50vw, 25vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
+                    className="object-cover transition-transform duration-1000 group-hover:scale-110"
                 />
 
-                {/* Category Badge */}
-                <div className="absolute top-3 left-3 px-3 py-1.5 bg-black/90 backdrop-blur-sm rounded-lg">
-                    <span className="text-xs font-medium text-white uppercase tracking-wide">{category}</span>
+                {/* Status/Category Overlay */}
+                <div className="absolute top-6 left-6 flex flex-col gap-2">
+                    <Link
+                        href={`/merchandise?category=${encodeURIComponent(category)}`}
+                        className="px-3 py-1 bg-white/90 backdrop-blur-xl text-[8px] font-black uppercase tracking-[0.2em] text-black rounded-lg shadow-sm border border-white/50 w-fit hover:bg-black hover:text-white transition-all"
+                    >
+                        {category}
+                    </Link>
                 </div>
 
-                {/* Quick View Overlay */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <button className="px-6 py-3 bg-white text-black rounded-lg font-semibold transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 hover:bg-gray-100">
-                        Lihat Detail
+                {/* Engagement Actions */}
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        setIsLiked(!isLiked);
+                    }}
+                    className={`absolute top-6 right-6 p-3.5 rounded-2xl backdrop-blur-xl transition-all duration-500 ${isLiked
+                        ? 'bg-red-500 text-white shadow-xl shadow-red-200'
+                        : 'bg-white/80 text-gray-900 border border-white/50 opacity-0 group-hover:opacity-100'
+                        }`}
+                >
+                    <Heart className={`w-4 h-4 ${isLiked ? 'fill-current text-white' : ''}`} />
+                </button>
+
+                {/* Primary Action Button */}
+                <div className="absolute inset-x-6 bottom-6 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                    <button className="w-full py-5 bg-black text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl shadow-2xl hover:bg-ub-navy transition-all flex items-center justify-center gap-3 active:scale-95">
+                        <ShoppingCart className="w-3 h-3" />
+                        Quick Purchase
                     </button>
                 </div>
             </div>
 
-            {/* Product Info */}
-            <div className="p-5 space-y-4">
-                {/* Product Name */}
-                <h3 className="font-semibold text-gray-900 line-clamp-2 min-h-[3rem] text-base">
+            {/* Content Stage */}
+            <div className="mt-8 px-2 flex flex-col flex-1">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 bg-ub-gold rounded-full" />
+                        <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">In Stock</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-ub-gold">
+                        <span className="text-[10px] font-black">4.9</span>
+                    </div>
+                </div>
+
+                <h3 className="text-lg font-bold text-gray-900 leading-tight group-hover:text-ub-navy transition-colors mb-4 line-clamp-1">
                     {name}
                 </h3>
 
-                {/* Price */}
-                <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-black">
-                        {formatPrice(price)}
-                    </span>
+                <div className="mt-auto flex items-end justify-between pt-4 border-t border-gray-50">
+                    <div className="flex flex-col">
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Market Price</span>
+                        <span className="text-xl font-black text-black tracking-tighter italic">
+                            {formatPrice(price)}
+                        </span>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-2xl group-hover:bg-black group-hover:text-white transition-all transform group-hover:rotate-45">
+                        <ArrowUpRight className="w-4 h-4" />
+                    </div>
                 </div>
-
-                {/* Add to Cart Button */}
-                <button
-                    onClick={handleAddToCart}
-                    disabled={isAdding}
-                    className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${isAdding
-                            ? 'bg-black text-white'
-                            : 'bg-gray-900 hover:bg-black text-white'
-                        }`}
-                >
-                    <ShoppingCart className={`w-5 h-5 ${isAdding ? 'animate-bounce' : ''}`} />
-                    <span>{isAdding ? 'Ditambahkan!' : 'Tambah ke Keranjang'}</span>
-                </button>
             </div>
         </div>
     );

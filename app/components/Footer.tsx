@@ -1,7 +1,7 @@
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from 'lucide-react';
+import { Instagram, Mail, Phone, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-
+import { FaTiktok, FaWhatsapp, FaFacebookF } from 'react-icons/fa6';
 export default function Footer() {
     const currentYear = new Date().getFullYear();
 
@@ -56,15 +56,11 @@ export default function Footer() {
                         <h3 className="font-bold text-lg mb-6 text-white">Customer Service</h3>
                         <ul className="space-y-3">
                             <li>
-                                <Link href="/contact" className="text-gray-400 hover:text-white transition-colors text-sm">
+                                <Link href="https://wa.me/6282126667575" className="text-gray-400 hover:text-white transition-colors text-sm">
                                     Hubungi Kami
                                 </Link>
                             </li>
-                            <li>
-                                <Link href="/shipping" className="text-gray-400 hover:text-white transition-colors text-sm">
-                                    Pengiriman
-                                </Link>
-                            </li>
+
                             <li>
                                 <Link href="/returns" className="text-gray-400 hover:text-white transition-colors text-sm">
                                     Pengembalian
@@ -80,27 +76,97 @@ export default function Footer() {
 
                     {/* Contact Info */}
                     <div>
-                        <h3 className="font-bold text-lg mb-6 text-white">Kontak</h3>
+                        <h3 className="font-bold text-lg mb-6 text-white">Contact</h3>
                         <ul className="space-y-4">
                             <li className="flex items-start space-x-3">
                                 <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
                                 <span className="text-gray-400 text-sm leading-relaxed">
-                                    Jl. Veteran, Malang, Jawa Timur 65145
+                                    <a href="https://www.google.com/maps/place/UB+Merchandise+and+Creative+(UB+Merch)/@-7.9536039,112.6160368,17z/data=!3m1!4b1!4m6!3m5!1s0x2e78836e862eafbf:0x1919d544dfddb2d7!8m2!3d-7.9536039!4d112.6160368!16s%2Fg%2F11kqg2bkj7?entry=ttu&g_ep=EgoyMDI2MDEyMS4wIKXMDSoKLDEwMDc5MjA3MUgBUAM%3D"
+                                        className="hover:text-white transition-colors"
+                                    >Gedung Utara Asrama Mahasiswa,GOR Pertamina Universitas Brawijaya Jl. Veteran No.Depan, Ketawanggede, Lowokwaru, Malang City, East Java 65145
+                                    </a>
                                 </span>
                             </li>
                             <li className="flex items-center space-x-3">
                                 <Phone className="w-5 h-5 text-gray-400 flex-shrink-0" />
                                 <span className="text-gray-400 text-sm">
-                                    +62 341 551611
+                                    +62 82126667575
                                 </span>
                             </li>
                             <li className="flex items-center space-x-3">
                                 <Mail className="w-5 h-5 text-gray-400 flex-shrink-0" />
                                 <span className="text-gray-400 text-sm">
-                                    merch@ub.ac.id
+                                    <a
+                                        href="mailto:hello@ubmerch.id"
+                                        className="hover:text-white transition-colors duration-200"
+                                    >
+                                        hello@ubmerch.id
+                                    </a>
+                                    <br />
+
+                                    <a
+                                        href="mailto:marketing@ubmerch.id"
+                                        className="hover:text-white transition-colors duration-200"
+                                    >
+                                        marketing@ubmerch.id
+                                    </a>
+                                    <br />
+
+                                    <a
+                                        href="mailto:ubmerch@ub.ac.id"
+                                        className="hover:text-white transition-colors duration-200"
+                                    >
+                                        ubmerch@ub.ac.id
+                                    </a>
                                 </span>
                             </li>
                         </ul>
+                    </div>
+                </div>
+
+                {/* Marketplace Shortcuts Section */}
+                <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-3xl p-8 mb-12 border border-white/5 relative overflow-hidden group/marketplace">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(59,130,246,0.1),transparent)] opacity-0 group-hover/marketplace:opacity-100 transition-opacity duration-1000"></div>
+
+                    <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
+                        <div className="text-center lg:text-left">
+                            <h3 className="text-2xl font-bold text-white mb-2">Tersedia di Marketplace</h3>
+                            <p className="text-gray-400">Belanja koleksi pilihan kami lebih mudah & aman di platform favorit Anda</p>
+                        </div>
+
+                        <div className="flex flex-wrap justify-center gap-6">
+                            <Link
+                                href="https://shopee.co.id/ubmerchandise"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group/shopee flex items-center justify-center bg-white h-20 px-10 rounded-2xl transition-all duration-500 hover:scale-105 hover:shadow-[0_0_40px_rgba(238,77,45,0.25)] relative overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-orange-50 group-hover/shopee:bg-white transition-colors"></div>
+                                <Image
+                                    src="/images/reusable/shopee.png"
+                                    alt="Shopee UB Merch"
+                                    width={160}
+                                    height={60}
+                                    className="h-10 w-auto object-contain relative z-10 transition-transform duration-500 group-hover/shopee:scale-110"
+                                />
+                            </Link>
+
+                            <Link
+                                href="https://www.tokopedia.com/ubmerchandise/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group/tokopedia flex items-center justify-center bg-white h-20 px-10 rounded-2xl transition-all duration-500 hover:scale-105 hover:shadow-[0_0_40px_rgba(3,172,14,0.25)] relative overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-green-50 group-hover/tokopedia:bg-white transition-colors"></div>
+                                <Image
+                                    src="/images/reusable/tokopedia.png"
+                                    alt="Tokopedia UB Merch"
+                                    width={160}
+                                    height={60}
+                                    className="h-10 w-auto object-contain relative z-10 transition-transform duration-500 group-hover/tokopedia:scale-110"
+                                />
+                            </Link>
+                        </div>
                     </div>
                 </div>
 
@@ -111,38 +177,54 @@ export default function Footer() {
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                     {/* Copyright */}
                     <p className="text-gray-500 text-sm text-center md:text-left">
-                        © {currentYear} UB Merch. All rights reserved. Universitas Brawijaya.
+                        © {currentYear} UB Merchandise. All rights reserved.
                     </p>
 
                     {/* Social Media */}
                     <div className="flex items-center space-x-4">
                         <a
-                            href="https://facebook.com/ubofficial"
+                            href="https://www.instagram.com/ubmerch.id/"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="w-10 h-10 rounded-full bg-gray-800 hover:bg-white hover:text-black flex items-center justify-center transition-all hover:scale-110"
-                        >
-                            <Facebook className="w-5 h-5" />
-                        </a>
-                        <a
-                            href="https://instagram.com/ubofficial"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-10 h-10 rounded-full bg-gray-800 hover:bg-white hover:text-black flex items-center justify-center transition-all hover:scale-110"
+                            aria-label="Instagram"
                         >
                             <Instagram className="w-5 h-5" />
                         </a>
                         <a
-                            href="https://twitter.com/ubofficial"
+                            href="https://www.facebook.com/ubmerch.official"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="w-10 h-10 rounded-full bg-gray-800 hover:bg-white hover:text-black flex items-center justify-center transition-all hover:scale-110"
+                            aria-label="Facebook"
                         >
-                            <Twitter className="w-5 h-5" />
+                            <FaFacebookF className="w-5 h-5" />
                         </a>
+                        <a
+                            href="https://www.tiktok.com/@ubmerch.id"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-10 h-10 rounded-full bg-gray-800 hover:bg-white hover:text-black flex items-center justify-center transition-all hover:scale-110"
+                            aria-label="TikTok"
+                        >
+                            <FaTiktok className="w-5 h-5" />
+                        </a>
+
+                        <a
+                            href="https://wa.me/6282126667575"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-10 h-10 rounded-full bg-gray-800 hover:bg-white hover:text-black flex items-center justify-center transition-all hover:scale-110"
+                            aria-label="WhatsApp"
+                        >
+                            <FaWhatsapp className="w-5 h-5" />
+                        </a>
+
+
                     </div>
                 </div>
             </div>
         </footer>
     );
 }
+

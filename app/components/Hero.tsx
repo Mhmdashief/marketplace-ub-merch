@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { FaLongArrowAltRight } from "react-icons/fa";
 
 export default function Hero() {
     return (
@@ -36,19 +37,11 @@ export default function Hero() {
                     {/* CTA Buttons */}
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
                         <Link
-                            href="#products"
+                            href="/merchandise"
                             className="group w-full sm:w-auto px-8 py-4 bg-white hover:bg-gray-100 text-black font-semibold rounded-full transition-all transform hover:scale-105 shadow-2xl hover:shadow-white/20 flex items-center justify-center gap-2"
                         >
                             <span>Belanja Sekarang</span>
-                            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                            </svg>
-                        </Link>
-                        <Link
-                            href="#categories"
-                            className="w-full sm:w-auto px-8 py-4 bg-transparent hover:bg-white/10 text-white font-semibold rounded-full transition-all backdrop-blur-sm border-2 border-white/30 hover:border-white/50"
-                        >
-                            Lihat Kategori
+                            <FaLongArrowAltRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
 
