@@ -4,8 +4,6 @@ import { useState, useMemo, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import { Search, Grid3x3, LayoutGrid, Heart, ShoppingCart } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 
 // All products data - FIXED UNIQUE IDs
 const allProducts = [
@@ -175,7 +173,6 @@ function MerchandiseContent() {
 
     return (
         <div className="min-h-screen bg-white flex flex-col">
-            <Navbar />
 
             {/* Ultra Premium Hero Section */}
             <header className="relative pt-32 pb-24 overflow-hidden bg-[#050505]">
@@ -373,7 +370,6 @@ function MerchandiseContent() {
                 </div>
             </main>
 
-            <Footer />
         </div>
     );
 }

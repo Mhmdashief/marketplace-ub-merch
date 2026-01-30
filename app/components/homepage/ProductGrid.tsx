@@ -1,8 +1,8 @@
 'use client';
 
 import { Suspense, useState, useMemo } from 'react';
-import ProductCard from './ProductCard';
-import ProductSkeleton from './ProductSkeleton';
+import ProductCard from '../shared/ProductCard';
+import ProductSkeleton from '../shared/ProductSkeleton';
 import Link from 'next/link';
 
 // Product data using actual assets
