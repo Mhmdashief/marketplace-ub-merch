@@ -34,7 +34,7 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/products" className="text-gray-400 hover:text-white transition-colors text-sm">
+                                <Link href="/merchandise" className="text-gray-400 hover:text-white transition-colors text-sm">
                                     Semua Produk
                                 </Link>
                             </li>
@@ -43,11 +43,7 @@ export default function Footer() {
                                     FAQ
                                 </Link>
                             </li>
-                            <li>
-                                <Link href="/terms" className="text-gray-400 hover:text-white transition-colors text-sm">
-                                    Syarat & Ketentuan
-                                </Link>
-                            </li>
+
                         </ul>
                     </div>
 

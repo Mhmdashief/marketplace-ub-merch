@@ -38,7 +38,7 @@ export default function HeroSection() {
                         transition={{ duration: 0.8 }}
                         className="space-y-8"
                     >
-                        <h1 className="text-6xl md:text-8xl font-black text-white leading-none tracking-tighter">
+                        <h1 className="text-5xl sm:text-6xl md:text-8xl font-black text-white leading-none tracking-tighter">
                             Pusat Koleksi Otentik <br />
                             <span className="text-gradient-gold bg-gradient-to-r from-ub-gold via-yellow-400 to-ub-light-gold bg-clip-text text-transparent">
                                 Bumi Brawijaya

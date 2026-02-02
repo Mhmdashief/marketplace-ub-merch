@@ -1,72 +1,139 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { LucideIcon } from 'lucide-react';
+import {
+    ArrowRight,
+    Palette,
+    Package,
+    Sparkles,
+    PenTool,
+    Video,
+    Camera,
+    Calendar,
+    Globe,
+    Check
+} from 'lucide-react';
 
 interface ServiceCardProps {
-    icon: LucideIcon;
+    iconName: string;
     title: string;
     description: string;
     features: string[];
-    color: string;
+    gradient: string;
     index: number;
+    className?: string; // For bento grid spans
 }
 
-export default function ServiceCard({
-    icon: Icon,
-    title,
-    description,
-    features,
-    color,
-    index
-}: ServiceCardProps) {
+// Icon mapping
+const iconMap: Record<string, any> = {
+    'Palette': Palette,
+    'Package': Package,
+    'Sparkles': Sparkles,
+    'PenTool': PenTool,
+    'Video': Video,
+    'Camera': Camera,
+    'Calendar': Calendar,
+    'Globe': Globe,
+    'Check': Check,
+};
+
+export default function ServiceCard({ iconName, title, description, features, gradient, index, className = '' }: ServiceCardProps) {
+    const Icon = iconMap[iconName] || Sparkles;
+
+    // Deteksi apakah ini kartu besar (wide) untuk menerapkan Dark Theme
+    const isWide = className?.includes('col-span-2');
+
     return (
         <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: index * 0.1 }}
-            className="group relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-ub-gold overflow-hidden"
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+            className={`group relative flex flex-col justify-between overflow-hidden rounded-[2.5rem] transition-all duration-500 ${className}
+                ${isWide
+                    ? 'bg-ub-navy text-white shadow-2xl hover:shadow-ub-gold/20'
+                    : 'bg-white text-gray-900 border border-gray-100 hover:border-transparent hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]'
+                }
+            `}
         >
-            {/* Background Gradient Effect */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
+            {/* --- Background Effects --- */}
 
-            {/* Content */}
-            <div className="relative z-10">
-                {/* Icon */}
-                <div className={`w-20 h-20 bg-gradient-to-br ${color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-lg`}>
-                    <Icon className="w-10 h-10 text-white" />
+            {/* 1. Gradient Orb Background */}
+            <div className={`absolute -top-20 -right-20 w-64 h-64 rounded-full bg-gradient-to-br ${gradient} blur-[100px] transition-all duration-700 opacity-40 group-hover:opacity-60 group-hover:scale-125`} />
+
+            {/* 2. Bottom Glow for Grid Consistency */}
+            <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`} />
+
+            {/* --- Content --- */}
+            <div className="relative z-10 p-8 md:p-10 flex flex-col h-full">
+
+                {/* Header: Number & Icon */}
+                <div className="flex justify-between items-start mb-8">
+                    <div className={`
+                        flex items-center justify-center w-14 h-14 rounded-2xl backdrop-blur-md border transition-all duration-500
+                        ${isWide
+                            ? 'bg-white/10 border-white/10 group-hover:bg-white/20'
+                            : 'bg-gray-50 border-gray-100 group-hover:bg-white group-hover:shadow-lg'
+                        }
+                    `}>
+                        <Icon className={`w-7 h-7 transition-colors duration-300 ${isWide ? 'text-white' : 'text-gray-900'}`} strokeWidth={1.5} />
+                    </div>
+
+                    <span className={`font-mono text-xl font-bold tracking-tighter opacity-20 ${isWide ? 'text-white' : 'text-gray-900'}`}>
+                        0{index + 1}
+                    </span>
                 </div>
 
-                {/* Title */}
-                <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-ub-navy transition-colors">
-                    {title}
-                </h3>
+                {/* Main Content */}
+                <div className="flex-grow">
+                    <h3 className={`text-3xl md:text-4xl font-black mb-4 leading-tight tracking-tight ${isWide ? 'text-white' : 'text-gray-900'}`}>
+                        {title}
+                    </h3>
 
-                {/* Description */}
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                    {description}
-                </p>
+                    <p className={`text-lg leading-relaxed mb-8 font-medium ${isWide ? 'text-gray-300' : 'text-gray-500'}`}>
+                        {description}
+                    </p>
 
-                {/* Features List */}
-                <ul className="space-y-3">
-                    {features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                            <svg
-                                className={`w-5 h-5 mt-0.5 flex-shrink-0 bg-gradient-to-br ${color} rounded-full p-1`}
-                                fill="white"
-                                viewBox="0 0 20 20"
-                            >
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                            <span className="text-gray-700">{feature}</span>
-                        </li>
-                    ))}
-                </ul>
+                    {/* Features - Styled Differently based on Variant */}
+                    <div className="border-t border-dashed border-opacity-20 border-gray-500 pt-6">
+                        <ul className={`grid gap-3 ${isWide ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                            {features.slice(0, 4).map((feature, idx) => (
+                                <li key={idx} className="flex items-center gap-3">
+                                    <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${gradient}`} />
+                                    <span className={`text-sm font-semibold tracking-wide ${isWide ? 'text-gray-300' : 'text-gray-600'}`}>
+                                        {feature}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+
+                {/* Footer Action - Order Button */}
+                <div className="mt-8 pt-2">
+                    <a
+                        href={`https://wa.me/6282126667575?text=Halo%20UB%20Merch,%20saya%20tertarik%20dengan%20layanan%20${encodeURIComponent(title)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`
+                            group/btn w-full flex items-center justify-center gap-3 py-4 rounded-xl font-bold tracking-wide transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]
+                            ${isWide
+                                ? 'bg-white text-ub-navy hover:bg-gray-100 shadow-lg shadow-black/20'
+                                : 'bg-ub-navy text-white hover:bg-ub-dark-navy shadow-lg shadow-ub-navy/20'
+                            }
+                        `}
+                    >
+                        Order Now
+                        <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                    </a>
+                </div>
             </div>
 
-            {/* Decorative Corner */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-ub-gold/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            {/* --- Artistic Elements --- */}
+            {/* Giant Outlined Text/Number overlay for modern feel */}
+            <div className={`absolute -bottom-4 -left-4 text-[120px] font-black leading-none opacity-[0.03] select-none pointer-events-none transition-transform duration-700 group-hover:translate-x-4 ${isWide ? 'text-white' : 'text-black'}`}>
+                {index + 1}
+            </div>
         </motion.div>
     );
 }

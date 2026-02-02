@@ -9,6 +9,7 @@ export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isMerchandiseOpen, setIsMerchandiseOpen] = useState(false);
+    const [isMobileMerchOpen, setIsMobileMerchOpen] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const handleMouseEnter = () => {
@@ -176,16 +177,33 @@ export default function Navbar() {
                         {/* Mobile Navigation Links */}
                         <div className="space-y-1">
                             <div className="space-y-1">
-                                <div className="font-semibold text-gray-400 text-[10px] uppercase tracking-wider px-4 py-2">Merchandise</div>
-                                {merchandiseCategories.map((category) => (
+                                <button
+                                    onClick={() => setIsMobileMerchOpen(!isMobileMerchOpen)}
+                                    className="w-full flex items-center justify-between px-4 py-2.5 text-left text-gray-700 hover:bg-ub-gold/5 rounded-xl transition-all duration-200 group"
+                                >
+                                    <span className="font-semibold text-gray-500 text-[10px] uppercase tracking-wider group-hover:text-ub-navy transition-colors">Merchandise</span>
+                                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isMobileMerchOpen ? 'rotate-180 text-ub-navy' : ''}`} />
+                                </button>
+
+                                <div className={`space-y-1 pl-4 overflow-hidden transition-all duration-300 ${isMobileMerchOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                    {merchandiseCategories.map((category) => (
+                                        <Link
+                                            key={category.name}
+                                            href={category.href}
+                                            className="block px-4 py-2 text-sm text-gray-600 hover:text-ub-navy hover:bg-gray-50 rounded-lg transition-all duration-200 border-l-2 border-transparent hover:border-ub-gold"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            {category.name}
+                                        </Link>
+                                    ))}
                                     <Link
-                                        key={category.name}
-                                        href={category.href}
-                                        className="block px-8 py-2.5 text-gray-700 hover:bg-ub-gold/5 hover:text-ub-navy rounded-xl transition-all duration-200"
+                                        href="/merchandise"
+                                        className="block px-4 py-2 text-xs font-bold text-ub-navy hover:underline mt-2"
+                                        onClick={() => setIsMenuOpen(false)}
                                     >
-                                        {category.name}
+                                        View All Collection →
                                     </Link>
-                                ))}
+                                </div>
                             </div>
 
                             {[
