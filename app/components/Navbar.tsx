@@ -1,7 +1,7 @@
 'use client';
 
 import { Search, ShoppingCart, User, Menu, X, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -9,6 +9,22 @@ export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isMerchandiseOpen, setIsMerchandiseOpen] = useState(false);
+    const [isMobileMerchOpen, setIsMobileMerchOpen] = useState(false);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const handleMouseEnter = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
+        setIsMerchandiseOpen(true);
+    };
+
+    const handleMouseLeave = () => {
+        timeoutRef.current = setTimeout(() => {
+            setIsMerchandiseOpen(false);
+        }, 500); // 0.5 second delay
+    };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -16,28 +32,24 @@ export default function Navbar() {
     };
 
     const merchandiseCategories = [
-        { name: 'Ready Stock', href: '/ready-stock' },
-        { name: 'Custom Design', href: '/custom-design' },
-        { name: 'Keychain', href: '/keychain' },
-        { name: 'Sticker', href: '/sticker' },
-        { name: 'Tote Bag', href: '/tote-bag' },
-        { name: 'T-shirt', href: '/t-shirt' },
-        { name: 'Tumbler', href: '/tumbler' },
-        { name: 'Hoodie', href: '/hoodie' },
-        { name: 'Sweater', href: '/sweater' },
-        { name: 'Varsity', href: '/varsity' },
-        { name: 'Polo', href: '/polo' },
-        { name: 'Long Sleeve', href: '/long-sleeve' },
-        { name: 'Baseball', href: '/baseball' },
-        { name: 'Best Seller', href: '/best-seller' }
-
+        { name: 'Tote Bag & Slempang', href: '/merchandise?category=Tote%20Bag%20%26%20Slempang' },
+        { name: 'T-shirt', href: '/merchandise?category=T-shirt' },
+        { name: 'Tumbler', href: '/merchandise?category=Tumbler' },
+        { name: 'Crewneck & Hoodie', href: '/merchandise?category=Crewneck%20%26%20Hoodie' },
+        { name: 'Varsity', href: '/merchandise?category=Varsity' },
+        { name: 'Polo', href: '/merchandise?category=Polo' },
+        { name: 'Leather Jacket', href: '/merchandise?category=Leather%20Jacket' },
+        { name: 'Leather Product', href: '/merchandise?category=Leather%20Product' },
+        { name: 'T-Shirt Colourful', href: '/merchandise?category=T-Shirt%20Colourful' },
+        { name: 'Vest', href: '/merchandise?category=Vest' },
+        { name: 'Sepatu', href: '/merchandise?category=Sepatu' },
+        { name: 'Topi', href: '/merchandise?category=Topi' }
     ];
 
     return (
         <nav className="sticky top-0 z-50 backdrop-blur-glass bg-white/95 border-b border-gray-200 shadow-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
-                    {/* Logo */}
                     <Link href="/" className="flex items-center space-x-3 flex-shrink-0">
                         <Image
                             src="/images/reusable/Logo Ub Merch.png"
@@ -54,19 +66,17 @@ export default function Navbar() {
                         {/* Merchandise Dropdown */}
                         <div className="relative group/merch">
                             <button
-                                onMouseEnter={() => setIsMerchandiseOpen(true)}
-                                onMouseLeave={() => setIsMerchandiseOpen(false)}
+                                onMouseEnter={handleMouseEnter}
+                                onMouseLeave={handleMouseLeave}
                                 className="flex items-center space-x-1 text-gray-700 hover:text-ub-navy font-medium transition-all duration-300 py-2 relative after:content-[''] after:absolute after:bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-ub-gold after:transition-all after:duration-300 group-hover/merch:after:w-full"
                             >
                                 <span>Merchandise</span>
                                 <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isMerchandiseOpen ? 'rotate-180 text-ub-navy' : ''}`} />
                             </button>
-
-                            {/* Dropdown Menu (Mega Menu Style) */}
                             {isMerchandiseOpen && (
                                 <div
-                                    onMouseEnter={() => setIsMerchandiseOpen(true)}
-                                    onMouseLeave={() => setIsMerchandiseOpen(false)}
+                                    onMouseEnter={handleMouseEnter}
+                                    onMouseLeave={handleMouseLeave}
                                     className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[480px] bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 animate-fade-in ring-1 ring-black/5"
                                 >
                                     <div className="grid grid-cols-2 gap-x-4 gap-y-1">
@@ -167,16 +177,33 @@ export default function Navbar() {
                         {/* Mobile Navigation Links */}
                         <div className="space-y-1">
                             <div className="space-y-1">
-                                <div className="font-semibold text-gray-400 text-[10px] uppercase tracking-wider px-4 py-2">Merchandise</div>
-                                {merchandiseCategories.map((category) => (
+                                <button
+                                    onClick={() => setIsMobileMerchOpen(!isMobileMerchOpen)}
+                                    className="w-full flex items-center justify-between px-4 py-2.5 text-left text-gray-700 hover:bg-ub-gold/5 rounded-xl transition-all duration-200 group"
+                                >
+                                    <span className="font-semibold text-gray-500 text-[10px] uppercase tracking-wider group-hover:text-ub-navy transition-colors">Merchandise</span>
+                                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isMobileMerchOpen ? 'rotate-180 text-ub-navy' : ''}`} />
+                                </button>
+
+                                <div className={`space-y-1 pl-4 overflow-hidden transition-all duration-300 ${isMobileMerchOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                    {merchandiseCategories.map((category) => (
+                                        <Link
+                                            key={category.name}
+                                            href={category.href}
+                                            className="block px-4 py-2 text-sm text-gray-600 hover:text-ub-navy hover:bg-gray-50 rounded-lg transition-all duration-200 border-l-2 border-transparent hover:border-ub-gold"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            {category.name}
+                                        </Link>
+                                    ))}
                                     <Link
-                                        key={category.name}
-                                        href={category.href}
-                                        className="block px-8 py-2.5 text-gray-700 hover:bg-ub-gold/5 hover:text-ub-navy rounded-xl transition-all duration-200"
+                                        href="/merchandise"
+                                        className="block px-4 py-2 text-xs font-bold text-ub-navy hover:underline mt-2"
+                                        onClick={() => setIsMenuOpen(false)}
                                     >
-                                        {category.name}
+                                        View All Collection →
                                     </Link>
-                                ))}
+                                </div>
                             </div>
 
                             {[
