@@ -46,18 +46,13 @@ export default function HeroSection() {
                         </h1>
 
                         <p className="text-xl md:text-lg text-gray-300 max-w-2xl leading-relaxed font-medium">
-                            UB Merch & Creative adalah unit bisnis Badan Usaha Non Akademik Universitas Brawijaya (BUNA UB) bidang produk merchandise resmi Universitas Brawijaya dengan kualitas dan pelayanan terbaik.
+                            UB Merch & Creative adalah unit bisnis PT Brawijaya Multi Usaha (BMU) di bidang produk merchandise resmi Universitas Brawijaya dengan kualitas dan pelayanan terbaik.
                         </p>
 
                         <div className="flex items-center gap-8 pt-8 border-t border-white/10">
                             <div>
-                                <p className="text-3xl font-black text-white">1967</p>
+                                <p className="text-3xl font-black text-white">1963</p>
                                 <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">ESTABLISHED</p>
-                            </div>
-                            <div className="w-[1px] h-12 bg-white/10" />
-                            <div>
-                                <p className="text-3xl font-black text-white">50K+</p>
-                                <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">LEGACY PIECES</p>
                             </div>
                         </div>
                     </motion.div>

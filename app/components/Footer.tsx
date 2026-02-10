@@ -2,6 +2,7 @@ import { Instagram, Mail, Phone, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaTiktok, FaWhatsapp, FaFacebookF } from 'react-icons/fa6';
+
 export default function Footer() {
     const currentYear = new Date().getFullYear();
 

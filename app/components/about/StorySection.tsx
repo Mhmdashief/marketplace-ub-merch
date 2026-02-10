@@ -10,19 +10,19 @@ export default function StorySection() {
         {
             title: 'About Us',
             subtitle: 'THE BEGINNING',
-            description: 'Awal mulanya UB Merch & Creative yang telah didirikan pada tahun 2019 adalah hasil inisiasi kerjasama antara BUNA UB, Mahasiswa, dan Alumni UB. Kemudian, secara resmi tercantum dalam Peraturan Rektor Universitas Brawijaya Nomor 66 Tahun 2020 tentang Struktur Organisasi dan Tata Kerja Badan Usaha Non Akademik. Beberapa produk yang dijual merupakan produk merchandise dan souvenir seperti t-shirt, hoodie, jaket, tas, tumbler, mug dan produk lainnya. Sedangkan untuk produk kreatif, melayani pembuatan berbagai macam jasa seperti pembuatan video profil, virtual tour, dokumentasi, foto produk, desain logo, branding dan jasa lainnya.',
+            description: 'Awal mulanya UB Merch & Creative yang telah didirikan pada tahun 2019 adalah hasil inisiasi kerjasama antara BUNA UB (sekarang di bawah PT Brawijaya Multi Usaha), Mahasiswa, dan Alumni UB. Kemudian, secara resmi tercantum dalam Peraturan Rektor Universitas Brawijaya Nomor 66 Tahun 2020 tentang Struktur Organisasi dan Tata Kerja Badan Usaha Non Akademik. Beberapa produk yang dijual merupakan produk merchandise dan souvenir seperti t-shirt, hoodie, jaket, tas, tumbler, mug dan produk lainnya. Sedangkan untuk produk kreatif, melayani pembuatan berbagai macam jasa seperti pembuatan video profil, virtual tour, dokumentasi, foto produk, desain logo, branding dan jasa lainnya.',
             align: 'left'
         },
         {
-            title: 'Visi & Misi',
+            title: 'Our Goals',
             subtitle: 'OUR DIRECTION',
             type: 'vision-mission',
             vision: {
-                title: 'VISI',
+                title: 'Our Goals',
                 content: 'Menjadi role model unit bisnis Badan Usaha Non Akademik Universitas Brawijaya (BUNA UB) yang kreatif, profesional, mandiri, dan berorientasi strategi jangka panjang.'
             },
             mission: {
-                title: 'MISI',
+                title: 'Our Values',
                 items: [
                     {
                         icon: 'service',

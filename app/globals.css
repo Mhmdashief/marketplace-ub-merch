@@ -129,3 +129,30 @@ html {
       #f3f4f6 100%);
   background-size: 1000px 100%;
 }
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 60s linear infinite;
+  will-change: transform;
+}
+
+.group:hover .animate-marquee {
+  animation-play-state: paused;
+}
+
+.mask-fade-edges {
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.mask-fade-edges-small {
+  mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+}
