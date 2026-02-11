@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import ServicesContent from '../components/services/ServicesContent';
+import ServicesContent from '@/components/services/ServicesContent';
 
 export const metadata: Metadata = {
     title: 'Layanan Kreatif Profesional - UB Merchandise',

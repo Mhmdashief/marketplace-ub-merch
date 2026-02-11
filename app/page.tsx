@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
-import Hero from './components/homepage/Hero';
-import FeaturedProducts from './components/homepage/FeaturedProducts';
-import NewArrivals from './components/homepage/NewArrivals';
-import BestSellers from './components/homepage/BestSellers';
-import ProductShowcase from './components/homepage/ProductShowcase';
-import ProductGrid from './components/homepage/ProductGrid';
+import {
+  Hero,
+  FeaturedProducts,
+  NewArrivals,
+  BestSellers,
+  ProductShowcase,
+  ProductGrid
+} from '@/components/homepage';
 
 export const metadata: Metadata = {
   title: 'UB Merchandise - Official Store Universitas Brawijaya',

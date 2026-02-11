@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import HeroSection from '../components/about/HeroSection';
-import StorySection from '../components/about/StorySection';
-import PartnerSection from '../components/about/PartnerSection';
+import HeroSection from '@/components/about/HeroSection';
+import StorySection from '@/components/about/StorySection';
+import PartnerSection from '@/components/about/PartnerSection';
 
 export const metadata: Metadata = {
     title: 'Tentang Kami - UB Merchandise',

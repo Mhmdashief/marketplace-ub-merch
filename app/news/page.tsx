@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Calendar, ArrowRight, Heart, Share2 } from 'lucide-react';
-import NewsHero from '../components/news/NewsHero';
+import NewsHero from '@/components/news/NewsHero';
 
 const csrActivities = [
     {

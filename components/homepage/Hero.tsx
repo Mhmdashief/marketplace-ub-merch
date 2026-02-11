@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { FaLongArrowAltRight } from "react-icons/fa";
+import { FaLongArrowAltRight, FaStar } from "react-icons/fa";
 
 export default function Hero() {
     return (
@@ -46,29 +46,29 @@ export default function Hero() {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-3 gap-8 pt-16 max-w-4xl mx-auto">
-                        <div className="text-center group">
-                            <div className="text-4xl sm:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">
-                                500+
-                            </div>
-                            <div className="text-sm sm:text-base text-gray-400 uppercase tracking-wider">
-                                Produk
-                            </div>
-                        </div>
-                        <div className="text-center border-x border-white/10 group">
-                            <div className="text-4xl sm:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">
-                                10K+
-                            </div>
-                            <div className="text-sm sm:text-base text-gray-400 uppercase tracking-wider">
-                                Pelanggan
-                            </div>
-                        </div>
-                        <div className="text-center group">
-                            <div className="text-4xl sm:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">
-                                4.9
-                            </div>
-                            <div className="text-sm sm:text-base text-gray-400 uppercase tracking-wider">
-                                Rating
+
+                    <div className="pt-16 flex justify-center">
+                        <div className="relative group cursor-default">
+                            {/* Glow Effect */}
+                            <div className="absolute -inset-6 bg-gradient-to-r from-yellow-500/0 via-yellow-500/10 to-yellow-500/0 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+                            <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl px-8 py-6 flex flex-col items-center transform transition-all duration-300 hover:scale-105 hover:bg-white/10 hover:border-white/20">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="text-5xl sm:text-6xl font-bold text-white tracking-tight">
+                                        5.0
+                                    </span>
+                                    <FaStar className="w-8 h-8 text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] animate-pulse" />
+                                </div>
+                                <div className="flex flex-col items-center gap-1">
+                                    <div className="flex gap-1 mb-1">
+                                        {[...Array(5)].map((_, i) => (
+                                            <FaStar key={i} className={`w-3 h-3 ${i < 5 ? 'text-yellow-400' : 'text-gray-600'}`} />
+                                        ))}
+                                    </div>
+                                    <span className="text-sm font-medium text-gray-300 uppercase tracking-[0.2em] group-hover:text-white transition-colors">
+                                        Average Rating
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
