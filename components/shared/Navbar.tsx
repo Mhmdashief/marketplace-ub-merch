@@ -1,16 +1,20 @@
 'use client';
 
-import { Search, ShoppingCart, User, Menu, X, ChevronDown } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { Search, ShoppingCart, User, Menu, X, ChevronDown, LogOut, Settings, Package, UserPlus } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSession, signOut } from 'next-auth/react';
 
 export default function Navbar() {
+    const { data: session, status } = useSession();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isMerchandiseOpen, setIsMerchandiseOpen] = useState(false);
     const [isMobileMerchOpen, setIsMobileMerchOpen] = useState(false);
+    const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const userDropdownRef = useRef<HTMLDivElement>(null);
 
     const handleMouseEnter = () => {
         if (timeoutRef.current) {
@@ -23,12 +27,29 @@ export default function Navbar() {
     const handleMouseLeave = () => {
         timeoutRef.current = setTimeout(() => {
             setIsMerchandiseOpen(false);
-        }, 500); // 0.5 second delay
+        }, 500);
     };
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+                setIsUserDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         console.log('Searching for:', searchQuery);
+    };
+
+    const handleLogout = async () => {
+        await signOut({ callbackUrl: '/' });
     };
 
     const merchandiseCategories = [
@@ -61,9 +82,7 @@ export default function Navbar() {
                         />
                     </Link>
 
-                    {/* Desktop Navigation Menu */}
                     <div className="hidden lg:flex items-center space-x-8 flex-1 justify-center">
-                        {/* Merchandise Dropdown */}
                         <div className="relative group/merch">
                             <button
                                 onMouseEnter={handleMouseEnter}
@@ -138,10 +157,97 @@ export default function Navbar() {
                             </span>
                         </button>
 
-                        {/* User Icon */}
-                        <button className="group relative p-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 hover:scale-110 active:scale-95">
-                            <User className="w-6 h-6 text-gray-700 group-hover:text-ub-navy transition-colors" />
-                        </button>
+                        {/* User Authentication */}
+                        {status === 'loading' ? (
+                            <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
+                        ) : session ? (
+                            <div className="relative" ref={userDropdownRef}>
+                                <button
+                                    onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                                    className="group relative p-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center space-x-2"
+                                >
+                                    {session.user.image ? (
+                                        <Image
+                                            src={session.user.image}
+                                            alt={session.user.name || 'User'}
+                                            width={24}
+                                            height={24}
+                                            className="rounded-full"
+                                        />
+                                    ) : (
+                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-ub-navy to-ub-gold flex items-center justify-center">
+                                            <span className="text-white text-xs font-bold">
+                                                {session.user.name?.charAt(0).toUpperCase() || 'U'}
+                                            </span>
+                                        </div>
+                                    )}
+                                </button>
+
+                                {/* User Dropdown */}
+                                {isUserDropdownOpen && (
+                                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 p-2 animate-fade-in ring-1 ring-black/5 z-50">
+                                        <div className="px-4 py-3 border-b border-gray-100">
+                                            <p className="text-sm font-semibold text-gray-900">
+                                                {session.user.name || 'User'}
+                                            </p>
+                                            <p className="text-xs text-gray-500 truncate">
+                                                {session.user.email}
+                                            </p>
+                                        </div>
+                                        <div className="py-1">
+                                            <Link
+                                                href="/profile"
+                                                className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200"
+                                                onClick={() => setIsUserDropdownOpen(false)}
+                                            >
+                                                <User className="w-4 h-4" />
+                                                <span>My Profile</span>
+                                            </Link>
+                                            <Link
+                                                href="/orders"
+                                                className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200"
+                                                onClick={() => setIsUserDropdownOpen(false)}
+                                            >
+                                                <Package className="w-4 h-4" />
+                                                <span>My Orders</span>
+                                            </Link>
+                                            <Link
+                                                href="/settings"
+                                                className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200"
+                                                onClick={() => setIsUserDropdownOpen(false)}
+                                            >
+                                                <Settings className="w-4 h-4" />
+                                                <span>Settings</span>
+                                            </Link>
+                                        </div>
+                                        <div className="pt-1 border-t border-gray-100">
+                                            <button
+                                                onClick={handleLogout}
+                                                className="flex items-center space-x-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                                            >
+                                                <LogOut className="w-4 h-4" />
+                                                <span>Logout</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="flex items-center space-x-3">
+                                <Link
+                                    href="/auth/login"
+                                    className="px-5 py-2 bg-ub-navy text-white rounded-full hover:bg-ub-navy/90 transition-all duration-300 font-medium text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                                >
+                                    Login
+                                </Link>
+                                <Link
+                                    href="/auth/register"
+                                    className="px-5 py-2 bg-ub-navy text-white rounded-full hover:bg-ub-navy/90 transition-all duration-300 font-medium text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                                >
+                                    Register
+                                </Link>
+                            </div>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -233,13 +339,92 @@ export default function Navbar() {
                                 </div>
                                 <span className="text-xs font-medium text-gray-600 group-hover:text-ub-navy">Cart</span>
                             </button>
-                            <button className="group flex flex-col items-center space-y-1.5 transition-all active:scale-90">
-                                <div className="p-2 rounded-xl group-hover:bg-ub-gold/10 transition-colors">
-                                    <User className="w-6 h-6 text-gray-700 group-hover:text-ub-navy transition-colors" />
+
+                            {status === 'loading' ? (
+                                <div className="w-12 h-12 rounded-full bg-gray-200 animate-pulse"></div>
+                            ) : session ? (
+                                <div className="flex flex-col items-center space-y-1.5">
+                                    <div className="p-2 rounded-xl hover:bg-ub-gold/10 transition-colors">
+                                        {session.user.image ? (
+                                            <Image
+                                                src={session.user.image}
+                                                alt={session.user.name || 'User'}
+                                                width={24}
+                                                height={24}
+                                                className="rounded-full"
+                                            />
+                                        ) : (
+                                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-ub-navy to-ub-gold flex items-center justify-center">
+                                                <span className="text-white text-xs font-bold">
+                                                    {session.user.name?.charAt(0).toUpperCase() || 'U'}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <span className="text-xs font-medium text-gray-600">{session.user.name?.split(' ')[0] || 'User'}</span>
                                 </div>
-                                <span className="text-xs font-medium text-gray-600 group-hover:text-ub-navy">Profile</span>
-                            </button>
+                            ) : (
+                                <>
+                                    <Link
+                                        href="/auth/login"
+                                        className="flex flex-col items-center space-y-1.5 transition-all active:scale-90"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        <div className="p-2 rounded-xl bg-gray-50 group-hover:bg-ub-navy/5 transition-colors">
+                                            <User className="w-6 h-6 text-ub-navy" />
+                                        </div>
+                                        <span className="text-xs font-medium text-ub-navy">Login</span>
+                                    </Link>
+                                    <Link
+                                        href="/auth/register"
+                                        className="flex flex-col items-center space-y-1.5 transition-all active:scale-90"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        <div className="p-2 rounded-xl bg-ub-navy group-hover:bg-ub-navy/90 transition-colors">
+                                            <UserPlus className="w-6 h-6 text-white" />
+                                        </div>
+                                        <span className="text-xs font-medium text-ub-navy">Register</span>
+                                    </Link>
+                                </>
+                            )}
                         </div>
+
+                        {/* Mobile User Menu (when logged in) */}
+                        {session && (
+                            <div className="pt-4 border-t border-gray-100 space-y-1">
+                                <Link
+                                    href="/profile"
+                                    className="flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-ub-gold/5 hover:text-ub-navy rounded-xl transition-all duration-200"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    <User className="w-5 h-5" />
+                                    <span className="font-medium">My Profile</span>
+                                </Link>
+                                <Link
+                                    href="/orders"
+                                    className="flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-ub-gold/5 hover:text-ub-navy rounded-xl transition-all duration-200"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    <Package className="w-5 h-5" />
+                                    <span className="font-medium">My Orders</span>
+                                </Link>
+                                <Link
+                                    href="/settings"
+                                    className="flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-ub-gold/5 hover:text-ub-navy rounded-xl transition-all duration-200"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    <Settings className="w-5 h-5" />
+                                    <span className="font-medium">Settings</span>
+                                </Link>
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center space-x-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
+                                >
+                                    <LogOut className="w-5 h-5" />
+                                    <span className="font-medium">Logout</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
