@@ -13,6 +13,7 @@ datasource db {
 enum Role {
   USER
   ADMIN
+  SUPER_ADMIN
 }
 
 model User {
@@ -23,12 +24,19 @@ model User {
   image         String?
   password      String?   
   role          Role      @default(USER)
+  status        UserStatus @default(ACTIVE)
   accounts      Account[]
   sessions      Session[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   @@map("users")
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
 }
 
 model Account {
@@ -82,3 +90,5 @@ model PasswordResetToken {
   @@index([email])
   @@map("password_reset_tokens")
 }
+
+
