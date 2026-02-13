@@ -4,13 +4,15 @@ import { NextResponse } from "next/server";
 
 const { auth } = NextAuth(authConfig);
 
-const ADMIN_ROLES = ["ADMIN", "SUPERADMIN"];
+const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
 
 export default auth((req) => {
     const { pathname } = req.nextUrl;
     const isLoggedIn = !!req.auth;
     const userRole = req.auth?.user?.role;
     const userStatus = req.auth?.user?.status;
+
+    console.log("Middleware Debug:", { pathname, isLoggedIn, userRole, userStatus });
 
     // 🔐 Proteksi route admin
     if (pathname.startsWith("/admin")) {

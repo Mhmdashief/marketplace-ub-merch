@@ -10,7 +10,9 @@ export default function Footer() {
     const currentYear = new Date().getFullYear();
     const pathname = usePathname();
     const isAuthPage = pathname?.startsWith('/auth');
-    if (isAuthPage) return null;
+    const isAdminPage = pathname?.startsWith('/admin');
+
+    if (isAuthPage || isAdminPage) return null;
 
     return (
         <footer className="bg-black text-white">

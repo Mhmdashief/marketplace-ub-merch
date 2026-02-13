@@ -1,7 +1,6 @@
-// components/admin/AdminNavbar.tsx
 "use client";
 
-import { Bell, Search, Menu, LogOut } from "lucide-react";
+import { Search, Menu, LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 
@@ -30,34 +29,8 @@ export default function AdminNavbar({ user }: AdminNavbarProps) {
             </button>
             <div className="flex flex-1 justify-between px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-1">
-                    <form className="flex w-full md:ml-0" action="#" method="GET">
-                        <label htmlFor="search-field" className="sr-only">
-                            Search
-                        </label>
-                        <div className="relative w-full text-gray-400 focus-within:text-gray-600">
-                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center">
-                                <Search className="h-5 w-5" />
-                            </div>
-                            <input
-                                id="search-field"
-                                className="block h-full w-full border-transparent py-2 pl-8 pr-3 text-gray-900 placeholder-gray-500 focus:border-transparent focus:placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
-                                placeholder="Search..."
-                                type="search"
-                                name="search"
-                            />
-                        </div>
-                    </form>
                 </div>
                 <div className="ml-4 flex items-center gap-4">
-                    {/* Notifications */}
-                    <button
-                        type="button"
-                        className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    >
-                        <span className="sr-only">View notifications</span>
-                        <Bell className="h-6 w-6" />
-                    </button>
-
                     {/* Profile dropdown */}
                     <div className="relative flex items-center gap-3">
                         <div className="text-right hidden sm:block">

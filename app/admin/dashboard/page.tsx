@@ -1,9 +1,10 @@
-// app/admin/dashboard/page.tsx
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import StatsCard from "@/components/admin/StatsCard";
 import RecentOrders from "@/components/admin/RecentOrders";
-import { Package, ShoppingCart, Users, TrendingUp } from "lucide-react";
+import RevenueChart from "@/components/admin/RevenueChart";
+import { Package, ShoppingCart, Users, TrendingUp, Calendar, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export default async function AdminDashboard() {
     const session = await auth();
@@ -11,15 +12,13 @@ export default async function AdminDashboard() {
     // Fetch statistics
     const [totalUsers, totalProducts, totalOrders] = await Promise.all([
         prisma.user.count(),
-        // Nanti akan ditambahkan setelah model Product dibuat
         Promise.resolve(0),
-        // Nanti akan ditambahkan setelah model Order dibuat
         Promise.resolve(0),
     ]);
 
     const stats = [
         {
-            name: "Total Users",
+            name: "Total Customers",
             value: totalUsers.toString(),
             icon: Users,
             change: "+12%",
@@ -27,7 +26,7 @@ export default async function AdminDashboard() {
             color: "blue" as const,
         },
         {
-            name: "Total Products",
+            name: "Products Count",
             value: totalProducts.toString(),
             icon: Package,
             change: "+8%",
@@ -35,7 +34,7 @@ export default async function AdminDashboard() {
             color: "green" as const,
         },
         {
-            name: "Total Orders",
+            name: "Active Orders",
             value: totalOrders.toString(),
             icon: ShoppingCart,
             change: "+23%",
@@ -43,7 +42,7 @@ export default async function AdminDashboard() {
             color: "purple" as const,
         },
         {
-            name: "Revenue",
+            name: "Total Revenue",
             value: "Rp 0",
             icon: TrendingUp,
             change: "+15%",
@@ -53,59 +52,108 @@ export default async function AdminDashboard() {
     ];
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl shadow-xl p-8 text-white">
-                <h1 className="text-3xl font-bold mb-2">
-                    Welcome back, {session?.user?.name}! 👋
-                </h1>
-                <p className="text-blue-100">
-                    Here&apos;s what&apos;s happening with your store today.
-                </p>
+        <div className="space-y-10 animate-fade-in py-2">
+            {/* Top Toolbar */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-gray-100 pb-10">
+                <div>
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-[2px] bg-ub-gold"></div>
+                        <span className="text-[10px] font-black text-ub-gold uppercase tracking-[0.3em]">Administrator</span>
+                    </div>
+                    <h1 className="text-4xl font-black text-[#001a33] tracking-tighter uppercase italic">
+                        Analytics <span className="text-gray-200">/</span> Overview
+                    </h1>
+                </div>
+                <div className="flex items-center gap-4">
+                    <div className="hidden md:flex flex-col text-right">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Active Session</span>
+                        <span className="text-sm font-black text-[#001a33]">{session?.user?.name}</span>
+                    </div>
+                    <div className="h-12 w-[1px] bg-gray-100 hidden md:block"></div>
+                    <div className="flex items-center gap-3 px-6 py-3 bg-[#001a33] rounded-2xl shadow-xl shadow-blue-900/10 text-white group cursor-default">
+                        <Calendar className="h-4 w-4 text-ub-gold group-hover:rotate-12 transition-transform" />
+                        <span className="text-[11px] font-black uppercase tracking-widest leading-none">
+                            {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                    </div>
+                </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat) => (
                     <StatsCard key={stat.name} {...stat} />
                 ))}
             </div>
 
-            {/* Recent Activity */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {/* Recent Orders */}
-                <div className="bg-white rounded-xl shadow-md p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                        Recent Orders
-                    </h2>
-                    <RecentOrders />
+            {/* Chart & Actions */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-2">
+                    <RevenueChart />
                 </div>
 
-                {/* Quick Actions */}
-                <div className="bg-white rounded-xl shadow-md p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                        Quick Actions
-                    </h2>
-                    <div className="space-y-3">
-                        <button className="w-full text-left px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-lg transition-all duration-200 border border-blue-200">
-                            <div className="flex items-center">
-                                <Package className="h-5 w-5 text-blue-600 mr-3" />
-                                <span className="font-medium text-gray-900">Add New Product</span>
+                <div className="space-y-8">
+                    {/* Quick Actions Card */}
+                    <div className="bg-[#001a33] rounded-[32px] shadow-2xl shadow-blue-900/20 p-8 border border-white/5 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-ub-gold/10 blur-3xl rounded-full -mr-16 -mt-16"></div>
+
+                        <div className="relative z-10">
+                            <h2 className="text-sm font-black text-ub-gold mb-8 flex items-center gap-3 uppercase tracking-[0.2em]">
+                                <div className="w-2 h-2 bg-ub-gold rounded-full animate-pulse"></div>
+                                Control Center
+                            </h2>
+
+                            <div className="grid grid-cols-1 gap-4">
+                                <Link href="/admin/products" className="flex items-center justify-between p-5 bg-white/5 hover:bg-ub-gold group/btn rounded-2xl transition-all duration-500 border border-white/5 hover:border-ub-gold shadow-lg hover:shadow-ub-gold/20">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-white/10 group-hover/btn:bg-white/20 rounded-xl text-white transition-colors">
+                                            <Package className="h-5 w-5" />
+                                        </div>
+                                        <span className="font-black text-xs text-white uppercase tracking-widest group-hover/btn:scale-105 transition-transform">Products Management</span>
+                                    </div>
+                                    <ArrowRight className="h-4 w-4 text-ub-gold group-hover/btn:text-white transition-all transform group-hover/btn:translate-x-1" />
+                                </Link>
+
+                                <Link href="/admin/users" className="flex items-center justify-between p-5 bg-white/5 hover:bg-white group/btn rounded-2xl transition-all duration-500 border border-white/5 hover:border-white shadow-lg hover:shadow-white/20">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-white/10 group-hover/btn:bg-[#001a33]/10 rounded-xl text-white group-hover/btn:text-[#001a33] transition-colors">
+                                            <Users className="h-5 w-5" />
+                                        </div>
+                                        <span className="font-black text-xs text-white group-hover/btn:text-[#001a33] uppercase tracking-widest group-hover/btn:scale-105 transition-transform">Users Hub</span>
+                                    </div>
+                                    <ArrowRight className="h-4 w-4 text-white group-hover/btn:text-[#001a33] transition-all transform group-hover/btn:translate-x-1" />
+                                </Link>
+
+                                <Link href="/admin/orders" className="flex items-center justify-between p-5 bg-white/5 hover:bg-white group/btn rounded-2xl transition-all duration-500 border border-white/5 hover:border-white shadow-lg hover:shadow-white/20">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-white/10 group-hover/btn:bg-[#001a33]/10 rounded-xl text-white group-hover/btn:text-[#001a33] transition-colors">
+                                            <ShoppingCart className="h-5 w-5" />
+                                        </div>
+                                        <span className="font-black text-xs text-white group-hover/btn:text-[#001a33] uppercase tracking-widest group-hover/btn:scale-105 transition-transform">Orders Desk</span>
+                                    </div>
+                                    <ArrowRight className="h-4 w-4 text-white group-hover/btn:text-[#001a33] transition-all transform group-hover/btn:translate-x-1" />
+                                </Link>
                             </div>
-                        </button>
-                        <button className="w-full text-left px-4 py-3 bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-lg transition-all duration-200 border border-green-200">
-                            <div className="flex items-center">
-                                <Users className="h-5 w-5 text-green-600 mr-3" />
-                                <span className="font-medium text-gray-900">Manage Users</span>
-                            </div>
-                        </button>
-                        <button className="w-full text-left px-4 py-3 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-lg transition-all duration-200 border border-purple-200">
-                            <div className="flex items-center">
-                                <ShoppingCart className="h-5 w-5 text-purple-600 mr-3" />
-                                <span className="font-medium text-gray-900">View All Orders</span>
-                            </div>
-                        </button>
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Bottom Row - Recent Activity */}
+            <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 overflow-hidden group">
+                <div className="p-10 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-6 relative">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-ub-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div>
+                        <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.2em] mb-1 leading-none">Ledger Journal</h2>
+                        <h3 className="text-3xl font-black text-[#001a33] tracking-tighter italic">Recent <span className="text-ub-gold">Transactions</span></h3>
+                    </div>
+                    <Link href="/admin/orders" className="inline-flex items-center gap-3 px-8 py-4 bg-gray-50 hover:bg-[#001a33] text-[#001a33] hover:text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-500 group/link">
+                        Explore All Transactions
+                        <ArrowRight className="h-4 w-4 group-hover/link:translate-x-2 transition-transform" />
+                    </Link>
+                </div>
+                <div className="p-2">
+                    <RecentOrders />
                 </div>
             </div>
         </div>

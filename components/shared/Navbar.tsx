@@ -5,10 +5,16 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
+import { usePathname } from 'next/navigation'; // Added this import as it's used in the code
 
 export default function Navbar() {
     const { data: session, status } = useSession();
+    const pathname = usePathname();
+    const isAuthPage = pathname?.startsWith('/auth');
+    const isAdminPage = pathname?.startsWith('/admin');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    if (isAuthPage || isAdminPage) return null;
     const [searchQuery, setSearchQuery] = useState('');
     const [isMerchandiseOpen, setIsMerchandiseOpen] = useState(false);
     const [isMobileMerchOpen, setIsMobileMerchOpen] = useState(false);

@@ -1,6 +1,4 @@
-// components/admin/RecentOrders.tsx
 export default function RecentOrders() {
-    // Placeholder - akan diisi dengan data real setelah model Order dibuat
     const orders = [
         {
             id: "ORD-001",
@@ -8,6 +6,7 @@ export default function RecentOrders() {
             product: "UB Hoodie",
             amount: "Rp 250.000",
             status: "Pending",
+            date: "2024-03-20",
         },
         {
             id: "ORD-002",
@@ -15,6 +14,7 @@ export default function RecentOrders() {
             product: "UB Tote Bag",
             amount: "Rp 150.000",
             status: "Completed",
+            date: "2024-03-19",
         },
         {
             id: "ORD-003",
@@ -22,56 +22,63 @@ export default function RecentOrders() {
             product: "UB T-Shirt",
             amount: "Rp 120.000",
             status: "Processing",
+            date: "2024-03-19",
         },
     ];
 
-    const getStatusColor = (status: string) => {
+    const getStatusStyles = (status: string) => {
         switch (status) {
             case "Completed":
-                return "bg-green-100 text-green-800 border-green-200";
+                return "bg-emerald-100 text-emerald-700 font-bold";
             case "Processing":
-                return "bg-blue-100 text-blue-800 border-blue-200";
+                return "bg-blue-100 text-blue-700 font-bold";
             case "Pending":
-                return "bg-yellow-100 text-yellow-800 border-yellow-200";
+                return "bg-amber-100 text-amber-700 font-bold";
             default:
-                return "bg-gray-100 text-gray-800 border-gray-200";
+                return "bg-gray-100 text-gray-700 font-bold";
         }
     };
 
     return (
-        <div className="space-y-3">
-            {orders.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                    <p>No recent orders</p>
-                </div>
-            ) : (
-                orders.map((order) => (
-                    <div
-                        key={order.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200"
-                    >
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                                <p className="text-sm font-semibold text-gray-900">
-                                    {order.id}
-                                </p>
-                                <span
-                                    className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(
-                                        order.status
-                                    )}`}
-                                >
-                                    {order.status}
-                                </span>
-                            </div>
-                            <p className="text-sm text-gray-600 mt-1">{order.customer}</p>
-                            <p className="text-xs text-gray-500">{order.product}</p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm font-bold text-gray-900">{order.amount}</p>
-                        </div>
-                    </div>
-                ))
-            )}
+        <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+                <thead>
+                    <tr className="bg-gray-50/50">
+                        <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Order ID</th>
+                        <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Customer</th>
+                        <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Product</th>
+                        <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Amount</th>
+                        <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Status</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                    {orders.length === 0 ? (
+                        <tr>
+                            <td colSpan={5} className="px-6 py-12 text-center text-gray-500 font-medium">
+                                No recent transactions found.
+                            </td>
+                        </tr>
+                    ) : (
+                        orders.map((order) => (
+                            <tr key={order.id} className="hover:bg-gray-50/50 transition-colors group">
+                                <td className="px-6 py-4 text-sm font-black text-gray-900">{order.id}</td>
+                                <td className="px-6 py-4">
+                                    <p className="text-sm font-bold text-gray-900">{order.customer}</p>
+                                    <p className="text-xs text-gray-400">{order.date}</p>
+                                </td>
+                                <td className="px-6 py-4 text-sm font-medium text-gray-600">{order.product}</td>
+                                <td className="px-6 py-4 text-sm font-black text-gray-900">{order.amount}</td>
+                                <td className="px-6 py-4">
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] tracking-wider uppercase ${getStatusStyles(order.status)}`}>
+                                        {order.status}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))
+                    )}
+                </tbody>
+            </table>
         </div>
     );
 }
+

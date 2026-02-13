@@ -53,13 +53,16 @@ export default function AdminSidebar() {
         <>
             {/* Sidebar untuk desktop */}
             <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-                <div className="flex flex-col flex-grow bg-gradient-to-b from-blue-900 to-blue-800 pt-5 pb-4 overflow-y-auto shadow-xl">
-                    <div className="flex items-center flex-shrink-0 px-6">
-                        <h1 className="text-2xl font-bold text-white">
-                            UB Merch Admin
-                        </h1>
+                <div className="flex flex-col flex-grow bg-[#001a33] pt-5 pb-4 overflow-y-auto shadow-2xl border-r border-white/5">
+                    <div className="flex items-center flex-shrink-0 px-6 mb-10">
+                        <div className="flex flex-col">
+                            <h1 className="text-xl font-black text-white tracking-widest uppercase">
+                                UB MERCH
+                            </h1>
+                            <span className="text-[10px] text-ub-gold font-bold tracking-[0.2em] -mt-1 uppercase">Admin Panel</span>
+                        </div>
                     </div>
-                    <nav className="mt-8 flex-1 px-3 space-y-1">
+                    <nav className="flex-1 px-4 space-y-2">
                         {menuItems.map((item) => {
                             const isActive = pathname === item.href;
                             const Icon = item.icon;
@@ -68,15 +71,15 @@ export default function AdminSidebar() {
                                     key={item.name}
                                     href={item.href}
                                     className={`
-                    group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200
-                    ${isActive
-                                            ? "bg-blue-700 text-white shadow-lg"
-                                            : "text-blue-100 hover:bg-blue-700/50 hover:text-white"
+                                        group flex items-center px-4 py-3.5 text-xs font-bold rounded-2xl transition-all duration-300 uppercase tracking-wider
+                                        ${isActive
+                                            ? "bg-ub-gold text-white shadow-[0_0_20px_rgba(212,175,55,0.3)] scale-[1.02]"
+                                            : "text-gray-400 hover:text-white hover:bg-white/5"
                                         }
-                  `}
+                                    `}
                                 >
                                     <Icon
-                                        className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive ? "text-white" : "text-blue-300"
+                                        className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${isActive ? "text-white" : "text-gray-500 group-hover:text-white"
                                             }`}
                                     />
                                     {item.name}

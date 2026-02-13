@@ -19,10 +19,12 @@ export default {
                 token.id = user.id as string;
                 token.role = user.role as string || "USER";
                 token.status = user.status as string || "ACTIVE";
+                console.log("JWT Callback - Initial Sign In:", { role: token.role, status: token.status });
             }
 
             if (trigger === "update" && session) {
                 token = { ...token, ...session };
+                console.log("JWT Callback - Update:", token);
             }
 
             return token;
