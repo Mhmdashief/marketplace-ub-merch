@@ -18,7 +18,7 @@ export default async function AdminLayout({
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-[#000d1a]">
             <AdminSidebar />
             <div className="lg:pl-64">
                 <AdminNavbar user={session.user} />

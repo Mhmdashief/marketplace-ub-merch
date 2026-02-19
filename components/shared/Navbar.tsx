@@ -5,23 +5,45 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
-import { usePathname } from 'next/navigation'; // Added this import as it's used in the code
+import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
+    // 1. SEMUA HOOKS HARUS DI PALING ATAS
     const { data: session, status } = useSession();
     const pathname = usePathname();
-    const isAuthPage = pathname?.startsWith('/auth');
-    const isAdminPage = pathname?.startsWith('/admin');
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    if (isAuthPage || isAdminPage) return null;
+    // State hooks
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isMerchandiseOpen, setIsMerchandiseOpen] = useState(false);
     const [isMobileMerchOpen, setIsMobileMerchOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+
+    // Ref hooks
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const userDropdownRef = useRef<HTMLDivElement>(null);
 
+    // Effect hooks
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+                setIsUserDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    // 2. LOGIKA CONDITIONAL RETURN (Halaman Auth/Admin tidak pakai Navbar ini)
+    const isAuthPage = pathname?.startsWith('/auth');
+    const isAdminPage = pathname?.startsWith('/admin');
+
+    if (isAuthPage || isAdminPage) return null;
+
+    // 3. LOGIKA HANDLERS
     const handleMouseEnter = () => {
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
@@ -35,19 +57,6 @@ export default function Navbar() {
             setIsMerchandiseOpen(false);
         }, 500);
     };
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
-                setIsUserDropdownOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -88,6 +97,7 @@ export default function Navbar() {
                         />
                     </Link>
 
+                    {/* Desktop Navigation */}
                     <div className="hidden lg:flex items-center space-x-8 flex-1 justify-center">
                         <div className="relative group/merch">
                             <button
@@ -98,6 +108,7 @@ export default function Navbar() {
                                 <span>Merchandise</span>
                                 <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isMerchandiseOpen ? 'rotate-180 text-ub-navy' : ''}`} />
                             </button>
+
                             {isMerchandiseOpen && (
                                 <div
                                     onMouseEnter={handleMouseEnter}
@@ -143,7 +154,6 @@ export default function Navbar() {
 
                     {/* Desktop Search & Icons */}
                     <div className="hidden lg:flex items-center space-x-3">
-                        {/* Search Bar */}
                         <form onSubmit={handleSearch} className="relative group">
                             <input
                                 type="text"
@@ -155,7 +165,6 @@ export default function Navbar() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-ub-navy transition-colors" />
                         </form>
 
-                        {/* Cart Icon */}
                         <button className="group relative p-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 hover:scale-110 active:scale-95">
                             <ShoppingCart className="w-6 h-6 text-gray-700 group-hover:text-ub-navy transition-colors" />
                             <span className="absolute top-1.5 right-1.5 bg-ub-gold text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border-2 border-white shadow-sm group-hover:bg-ub-navy transition-colors">
@@ -163,7 +172,6 @@ export default function Navbar() {
                             </span>
                         </button>
 
-                        {/* User Authentication */}
                         {status === 'loading' ? (
                             <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
                         ) : session ? (
@@ -172,7 +180,7 @@ export default function Navbar() {
                                     onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                                     className="group relative p-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center space-x-2"
                                 >
-                                    {session.user.image ? (
+                                    {session.user?.image ? (
                                         <Image
                                             src={session.user.image}
                                             alt={session.user.name || 'User'}
@@ -183,45 +191,32 @@ export default function Navbar() {
                                     ) : (
                                         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-ub-navy to-ub-gold flex items-center justify-center">
                                             <span className="text-white text-xs font-bold">
-                                                {session.user.name?.charAt(0).toUpperCase() || 'U'}
+                                                {session.user?.name?.charAt(0).toUpperCase() || 'U'}
                                             </span>
                                         </div>
                                     )}
                                 </button>
 
-                                {/* User Dropdown */}
                                 {isUserDropdownOpen && (
                                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 p-2 animate-fade-in ring-1 ring-black/5 z-50">
                                         <div className="px-4 py-3 border-b border-gray-100">
                                             <p className="text-sm font-semibold text-gray-900">
-                                                {session.user.name || 'User'}
+                                                {session.user?.name || 'User'}
                                             </p>
                                             <p className="text-xs text-gray-500 truncate">
-                                                {session.user.email}
+                                                {session.user?.email}
                                             </p>
                                         </div>
                                         <div className="py-1">
-                                            <Link
-                                                href="/profile"
-                                                className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200"
-                                                onClick={() => setIsUserDropdownOpen(false)}
-                                            >
+                                            <Link href="/profile" className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200">
                                                 <User className="w-4 h-4" />
                                                 <span>My Profile</span>
                                             </Link>
-                                            <Link
-                                                href="/orders"
-                                                className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200"
-                                                onClick={() => setIsUserDropdownOpen(false)}
-                                            >
+                                            <Link href="/orders" className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200">
                                                 <Package className="w-4 h-4" />
                                                 <span>My Orders</span>
                                             </Link>
-                                            <Link
-                                                href="/settings"
-                                                className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200"
-                                                onClick={() => setIsUserDropdownOpen(false)}
-                                            >
+                                            <Link href="/settings" className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200">
                                                 <Settings className="w-4 h-4" />
                                                 <span>Settings</span>
                                             </Link>
@@ -240,16 +235,10 @@ export default function Navbar() {
                             </div>
                         ) : (
                             <div className="flex items-center space-x-3">
-                                <Link
-                                    href="/auth/login"
-                                    className="px-5 py-2 bg-ub-navy text-white rounded-full hover:bg-ub-navy/90 transition-all duration-300 font-medium text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
-                                >
+                                <Link href="/auth/login" className="px-5 py-2 bg-ub-navy text-white rounded-full hover:bg-ub-navy/90 transition-all duration-300 font-medium text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5">
                                     Login
                                 </Link>
-                                <Link
-                                    href="/auth/register"
-                                    className="px-5 py-2 bg-ub-navy text-white rounded-full hover:bg-ub-navy/90 transition-all duration-300 font-medium text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
-                                >
+                                <Link href="/auth/register" className="px-5 py-2 bg-ub-navy text-white rounded-full hover:bg-ub-navy/90 transition-all duration-300 font-medium text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5">
                                     Register
                                 </Link>
                             </div>
@@ -261,18 +250,13 @@ export default function Navbar() {
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className="lg:hidden p-2.5 hover:bg-gray-100 rounded-xl transition-all duration-300 active:scale-95"
                     >
-                        {isMenuOpen ? (
-                            <X className="w-6 h-6 text-ub-navy" />
-                        ) : (
-                            <Menu className="w-6 h-6 text-gray-700" />
-                        )}
+                        {isMenuOpen ? <X className="w-6 h-6 text-ub-navy" /> : <Menu className="w-6 h-6 text-gray-700" />}
                     </button>
                 </div>
 
-                {/* Mobile Menu */}
+                {/* Mobile Menu Content */}
                 {isMenuOpen && (
                     <div className="lg:hidden py-4 space-y-4 animate-fade-in border-t border-gray-100 px-2">
-                        {/* Mobile Search */}
                         <form onSubmit={handleSearch}>
                             <div className="relative">
                                 <input
@@ -286,151 +270,42 @@ export default function Navbar() {
                             </div>
                         </form>
 
-                        {/* Mobile Navigation Links */}
                         <div className="space-y-1">
-                            <div className="space-y-1">
-                                <button
-                                    onClick={() => setIsMobileMerchOpen(!isMobileMerchOpen)}
-                                    className="w-full flex items-center justify-between px-4 py-2.5 text-left text-gray-700 hover:bg-ub-gold/5 rounded-xl transition-all duration-200 group"
-                                >
-                                    <span className="font-semibold text-gray-500 text-[10px] uppercase tracking-wider group-hover:text-ub-navy transition-colors">Merchandise</span>
-                                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isMobileMerchOpen ? 'rotate-180 text-ub-navy' : ''}`} />
-                                </button>
+                            <button
+                                onClick={() => setIsMobileMerchOpen(!isMobileMerchOpen)}
+                                className="w-full flex items-center justify-between px-4 py-2.5 text-left text-gray-700 hover:bg-ub-gold/5 rounded-xl transition-all duration-200 group"
+                            >
+                                <span className="font-semibold text-gray-500 text-[10px] uppercase tracking-wider">Merchandise</span>
+                                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isMobileMerchOpen ? 'rotate-180 text-ub-navy' : ''}`} />
+                            </button>
 
-                                <div className={`space-y-1 pl-4 overflow-hidden transition-all duration-300 ${isMobileMerchOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                                    {merchandiseCategories.map((category) => (
-                                        <Link
-                                            key={category.name}
-                                            href={category.href}
-                                            className="block px-4 py-2 text-sm text-gray-600 hover:text-ub-navy hover:bg-gray-50 rounded-lg transition-all duration-200 border-l-2 border-transparent hover:border-ub-gold"
-                                            onClick={() => setIsMenuOpen(false)}
-                                        >
-                                            {category.name}
-                                        </Link>
-                                    ))}
+                            <div className={`space-y-1 pl-4 overflow-hidden transition-all duration-300 ${isMobileMerchOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                {merchandiseCategories.map((category) => (
                                     <Link
-                                        href="/merchandise"
-                                        className="block px-4 py-2 text-xs font-bold text-ub-navy hover:underline mt-2"
+                                        key={category.name}
+                                        href={category.href}
+                                        className="block px-4 py-2 text-sm text-gray-600 hover:text-ub-navy hover:bg-gray-50 rounded-lg transition-all duration-200 border-l-2 border-transparent hover:border-ub-gold"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
-                                        View All Collection →
+                                        {category.name}
                                     </Link>
-                                </div>
+                                ))}
+                                <Link href="/merchandise" className="block px-4 py-2 text-xs font-bold text-ub-navy hover:underline mt-2" onClick={() => setIsMenuOpen(false)}>
+                                    View All Collection →
+                                </Link>
                             </div>
 
-                            {[
-                                { name: 'Services', href: '/services' },
-                                { name: 'News', href: '/news' },
-                                { name: 'About Us', href: '/about' },
-                                { name: 'Contact', href: '/contact' },
-                            ].map((link) => (
+                            {['Services', 'News', 'About Us', 'Contact'].map((item) => (
                                 <Link
-                                    key={link.name}
-                                    href={link.href}
+                                    key={item}
+                                    href={`/${item.toLowerCase().replace(' ', '')}`}
                                     className="block px-4 py-2.5 text-gray-700 hover:bg-ub-gold/5 hover:text-ub-navy rounded-xl transition-all duration-200 font-medium"
+                                    onClick={() => setIsMenuOpen(false)}
                                 >
-                                    {link.name}
+                                    {item}
                                 </Link>
                             ))}
                         </div>
-
-                        {/* Mobile Icons */}
-                        <div className="flex items-center justify-around pt-6 border-t border-gray-100">
-                            <button className="group flex flex-col items-center space-y-1.5 transition-all active:scale-90">
-                                <div className="relative p-2 rounded-xl group-hover:bg-ub-gold/10 transition-colors">
-                                    <ShoppingCart className="w-6 h-6 text-gray-700 group-hover:text-ub-navy transition-colors" />
-                                    <span className="absolute top-1 right-1 bg-ub-gold text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border-2 border-white shadow-sm">
-                                        0
-                                    </span>
-                                </div>
-                                <span className="text-xs font-medium text-gray-600 group-hover:text-ub-navy">Cart</span>
-                            </button>
-
-                            {status === 'loading' ? (
-                                <div className="w-12 h-12 rounded-full bg-gray-200 animate-pulse"></div>
-                            ) : session ? (
-                                <div className="flex flex-col items-center space-y-1.5">
-                                    <div className="p-2 rounded-xl hover:bg-ub-gold/10 transition-colors">
-                                        {session.user.image ? (
-                                            <Image
-                                                src={session.user.image}
-                                                alt={session.user.name || 'User'}
-                                                width={24}
-                                                height={24}
-                                                className="rounded-full"
-                                            />
-                                        ) : (
-                                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-ub-navy to-ub-gold flex items-center justify-center">
-                                                <span className="text-white text-xs font-bold">
-                                                    {session.user.name?.charAt(0).toUpperCase() || 'U'}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <span className="text-xs font-medium text-gray-600">{session.user.name?.split(' ')[0] || 'User'}</span>
-                                </div>
-                            ) : (
-                                <>
-                                    <Link
-                                        href="/auth/login"
-                                        className="flex flex-col items-center space-y-1.5 transition-all active:scale-90"
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        <div className="p-2 rounded-xl bg-gray-50 group-hover:bg-ub-navy/5 transition-colors">
-                                            <User className="w-6 h-6 text-ub-navy" />
-                                        </div>
-                                        <span className="text-xs font-medium text-ub-navy">Login</span>
-                                    </Link>
-                                    <Link
-                                        href="/auth/register"
-                                        className="flex flex-col items-center space-y-1.5 transition-all active:scale-90"
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        <div className="p-2 rounded-xl bg-ub-navy group-hover:bg-ub-navy/90 transition-colors">
-                                            <UserPlus className="w-6 h-6 text-white" />
-                                        </div>
-                                        <span className="text-xs font-medium text-ub-navy">Register</span>
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-
-                        {/* Mobile User Menu (when logged in) */}
-                        {session && (
-                            <div className="pt-4 border-t border-gray-100 space-y-1">
-                                <Link
-                                    href="/profile"
-                                    className="flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-ub-gold/5 hover:text-ub-navy rounded-xl transition-all duration-200"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    <User className="w-5 h-5" />
-                                    <span className="font-medium">My Profile</span>
-                                </Link>
-                                <Link
-                                    href="/orders"
-                                    className="flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-ub-gold/5 hover:text-ub-navy rounded-xl transition-all duration-200"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    <Package className="w-5 h-5" />
-                                    <span className="font-medium">My Orders</span>
-                                </Link>
-                                <Link
-                                    href="/settings"
-                                    className="flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-ub-gold/5 hover:text-ub-navy rounded-xl transition-all duration-200"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    <Settings className="w-5 h-5" />
-                                    <span className="font-medium">Settings</span>
-                                </Link>
-                                <button
-                                    onClick={handleLogout}
-                                    className="flex items-center space-x-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
-                                >
-                                    <LogOut className="w-5 h-5" />
-                                    <span className="font-medium">Logout</span>
-                                </button>
-                            </div>
-                        )}
                     </div>
                 )}
             </div>

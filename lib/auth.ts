@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 import { z } from "zod";
 import authConfig from "./auth.config";
 
+// Schema validasi dengan Zod
 const loginSchema = z.object({
     email: z.string().email("Format email tidak valid"),
     password: z.string().min(6, "Password minimal 6 karakter"),
@@ -21,22 +22,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             name: "credentials",
             async authorize(credentials) {
                 try {
-                    const { email, password } = loginSchema.parse(credentials);
-
+                    const validatedFields = loginSchema.safeParse(credentials);
+                    if (!validatedFields.success) {
+                        return null;
+                    }
+                    const { email, password } = validatedFields.data;
                     const user = await prisma.user.findUnique({
                         where: { email },
                     });
-
                     if (!user || !user.password) return null;
-
-                    // 🔐 SECURITY BLOCK LOGIN
                     if (user.status !== "ACTIVE") {
-                        throw new Error("Akun Anda sedang diblokir atau dinonaktifkan");
+                        return null;
                     }
-
                     const isPasswordValid = await bcrypt.compare(password, user.password);
                     if (!isPasswordValid) return null;
-
                     return {
                         id: user.id,
                         email: user.email,
@@ -46,12 +45,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         status: user.status,
                     };
                 } catch (error) {
-                    console.error("Auth error:", error);
+                    console.error("Internal Auth error:", error);
                     return null;
                 }
             },
         }),
     ],
+    pages: {
+        signIn: "/auth/login",
+        error: "/auth/login",
+    },
+    debug: false,
     callbacks: {
         ...authConfig.callbacks,
         async signIn({ user, account }) {
@@ -64,7 +68,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     return false;
                 }
             }
-
             return true;
         },
     },

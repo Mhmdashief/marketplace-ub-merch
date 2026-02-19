@@ -10,7 +10,6 @@ import {
     Users,
     FolderTree,
     FileText,
-    Settings,
 } from "lucide-react";
 
 const menuItems = [
@@ -28,11 +27,6 @@ const menuItems = [
         name: "Orders",
         href: "/admin/orders",
         icon: ShoppingCart,
-    },
-    {
-        name: "Categories",
-        href: "/admin/categories",
-        icon: FolderTree,
     },
     {
         name: "Users",

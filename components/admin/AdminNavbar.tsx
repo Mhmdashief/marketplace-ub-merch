@@ -19,10 +19,10 @@ export default function AdminNavbar({ user }: AdminNavbarProps) {
     };
 
     return (
-        <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 bg-white shadow-sm">
+        <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 bg-[#001a33] shadow-lg border-b border-white/5">
             <button
                 type="button"
-                className="border-r border-gray-200 px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 lg:hidden"
+                className="border-r border-white/5 px-4 text-gray-400 hover:text-white focus:outline-none lg:hidden"
             >
                 <span className="sr-only">Open sidebar</span>
                 <Menu className="h-6 w-6" />
@@ -34,25 +34,25 @@ export default function AdminNavbar({ user }: AdminNavbarProps) {
                     {/* Profile dropdown */}
                     <div className="relative flex items-center gap-3">
                         <div className="text-right hidden sm:block">
-                            <p className="text-sm font-medium text-gray-700">{user.name}</p>
-                            <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+                            <p className="text-sm font-bold text-white uppercase tracking-wider">{user.name}</p>
+                            <p className="text-[10px] text-ub-gold font-black uppercase tracking-[0.1em]">{user.role}</p>
                         </div>
                         {user.image ? (
                             <Image
-                                className="h-10 w-10 rounded-full ring-2 ring-blue-500"
+                                className="h-10 w-10 rounded-full ring-2 ring-ub-gold"
                                 src={user.image}
                                 alt={user.name || "User"}
                                 width={40}
                                 height={40}
                             />
                         ) : (
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold ring-2 ring-blue-500">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-ub-navy to-ub-dark-navy flex items-center justify-center text-white font-bold ring-2 ring-ub-gold uppercase">
                                 {user.name?.charAt(0).toUpperCase() || "A"}
                             </div>
                         )}
                         <button
                             onClick={handleSignOut}
-                            className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                            className="p-2 text-gray-400 hover:text-rose-500 transition-colors"
                             title="Sign out"
                         >
                             <LogOut className="h-5 w-5" />
