@@ -91,4 +91,97 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
 }
 
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+
+  products  Product[]
+
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("categories")
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  name          String
+  description   String   @db.Text
+
+  regularPrice  Decimal  @db.Decimal(10,2)
+  discountPrice Decimal? @db.Decimal(10,2)
+
+  stock         Int
+  isActive      Boolean  @default(true)
+  deletedAt     DateTime?
+
+  categoryId    String
+  category      Category @relation(fields: [categoryId], references: [id])
+
+  assets        ProductAsset[]
+  flashSales    FlashSaleItem[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([deletedAt])
+  @@map("products")
+}
+
+model ProductAsset {
+  id        String   @id @default(cuid())
+  url       String
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@map("product_assets")
+}
+
+model FlashSale {
+  id        String          @id @default(cuid())
+  name      String
+  startAt   DateTime
+  endAt     DateTime
+
+  isActive  Boolean         @default(true)
+  deletedAt DateTime?
+
+  items     FlashSaleItem[]
+
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([startAt, endAt])
+  @@index([deletedAt])
+  @@map("flash_sales")
+}
+
+model FlashSaleItem {
+  id           String    @id @default(cuid())
+
+  flashSaleId  String
+  productId    String
+
+  salePrice    Decimal   @db.Decimal(10,2)
+  stock        Int?
+
+  flashSale    FlashSale @relation(fields: [flashSaleId], references: [id], onDelete: Cascade)
+  product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime  @default(now())
+
+  @@unique([flashSaleId, productId])
+  @@index([productId])
+  @@map("flash_sale_items")
+}
 

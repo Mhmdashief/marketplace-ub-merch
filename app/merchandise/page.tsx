@@ -2,94 +2,10 @@
 
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import Image from 'next/image';
-import { Search, Grid3x3, LayoutGrid, Heart, ShoppingCart } from 'lucide-react';
+import Link from 'next/link';
+import { Search, Grid3x3, LayoutGrid, Heart, ShoppingCart, ArrowRight } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-
-// All products data - FIXED UNIQUE IDs
-const allProducts = [
-    // Varsity Collection (1-2)
-    { id: 1, name: 'Varsity Jacket UB Limited Edition', price: 450000, category: 'Varsity', image: '/images/products/Varsity/1.png', rating: 4.9, sales: 245 },
-    { id: 2, name: 'Varsity Jacket UB Classic', price: 450000, category: 'Varsity', image: '/images/products/Varsity/2.png', rating: 4.8, sales: 189 },
-
-    // Sepatu Collection (3-12)
-    { id: 3, name: 'Sepatu Sneakers UB Collection', price: 385000, category: 'Sepatu', image: '/images/products/Sepatu/1.png', rating: 4.8, sales: 198 },
-    { id: 4, name: 'Sepatu Sneakers UB White Edition', price: 395000, category: 'Sepatu', image: '/images/products/Sepatu/2.png', rating: 4.7, sales: 167 },
-    { id: 5, name: 'Sepatu Sneakers Navy', price: 395000, category: 'Sepatu', image: '/images/products/Sepatu/3.png', rating: 4.6, sales: 145 },
-    { id: 6, name: 'Sepatu Sneakers UB Navy', price: 385000, category: 'Sepatu', image: '/images/products/Sepatu/4.png', rating: 4.8, sales: 178 },
-    { id: 7, name: 'Sepatu Sneakers White', price: 385000, category: 'Sepatu', image: '/images/products/Sepatu/5.png', rating: 4.9, sales: 203 },
-    { id: 8, name: 'Sepatu Sneakers UB Red', price: 395000, category: 'Sepatu', image: '/images/products/Sepatu/6.png', rating: 4.7, sales: 134 },
-    { id: 9, name: 'Sepatu Sneakers Series', price: 385000, category: 'Sepatu', image: '/images/products/Sepatu/7.png', rating: 4.8, sales: 189 },
-    { id: 10, name: 'Sepatu Sneakers UB Edition', price: 385000, category: 'Sepatu', image: '/images/products/Sepatu/8.png', rating: 4.7, sales: 156 },
-    { id: 11, name: 'Sepatu Sneakers UB Premium', price: 395000, category: 'Sepatu', image: '/images/products/Sepatu/9.png', rating: 4.8, sales: 178 },
-    { id: 12, name: 'Sepatu Sneakers UB Limited', price: 395000, category: 'Sepatu', image: '/images/products/Sepatu/10.png', rating: 4.9, sales: 192 },
-
-    // Topi Collection (13-16)
-    { id: 13, name: 'Topi Baseball UB Premium', price: 95000, category: 'Topi', image: '/images/products/Topi/1.png', rating: 4.6, sales: 234 },
-    { id: 14, name: 'Topi Baseball Classic', price: 95000, category: 'Topi', image: '/images/products/Topi/2.png', rating: 4.7, sales: 198 },
-    { id: 15, name: 'Topi Baseball UB Black', price: 95000, category: 'Topi', image: '/images/products/Topi/3.png', rating: 4.5, sales: 167 },
-    { id: 16, name: 'Topi Baseball UB Navy', price: 95000, category: 'Topi', image: '/images/products/Topi/4.png', rating: 4.6, sales: 156 },
-
-    // T-shirt Collection (17-21)
-    { id: 17, name: 'T-shirt UB Official', price: 125000, category: 'T-shirt', image: '/images/products/T-Shirt/1.png', rating: 4.7, sales: 289 },
-    { id: 18, name: 'T-shirt UB Premium', price: 135000, category: 'T-shirt', image: '/images/products/T-Shirt/2.png', rating: 4.6, sales: 234 },
-    { id: 19, name: 'T-shirt UB Classic', price: 125000, category: 'T-shirt', image: '/images/products/T-Shirt/3.png', rating: 4.8, sales: 267 },
-    { id: 20, name: 'T-shirt UB Edition', price: 125000, category: 'T-shirt', image: '/images/products/T-Shirt/4.png', rating: 4.7, sales: 245 },
-    { id: 21, name: 'T-shirt UB Limited', price: 135000, category: 'T-shirt', image: '/images/products/T-Shirt/5.png', rating: 4.8, sales: 256 },
-
-    // T-Shirt Colourful Collection (22-28)
-    { id: 22, name: 'T-Shirt Colourful UB Complete', price: 135000, category: 'T-Shirt Colourful', image: '/images/products/T-Shirt Colourful/1.png', rating: 4.7, sales: 178 },
-    { id: 23, name: 'T-Shirt Colourful UB Limited', price: 125000, category: 'T-Shirt Colourful', image: '/images/products/T-Shirt Colourful/2.png', rating: 4.6, sales: 145 },
-    { id: 24, name: 'T-Shirt Colourful UB Edition', price: 135000, category: 'T-Shirt Colourful', image: '/images/products/T-Shirt Colourful/3.png', rating: 4.8, sales: 198 },
-    { id: 25, name: 'T-Shirt Colourful UB Premium', price: 135000, category: 'T-Shirt Colourful', image: '/images/products/T-Shirt Colourful/4.png', rating: 4.7, sales: 167 },
-    { id: 26, name: 'T-Shirt Colourful UB Classic', price: 125000, category: 'T-Shirt Colourful', image: '/images/products/T-Shirt Colourful/5.png', rating: 4.8, sales: 189 },
-    { id: 27, name: 'T-Shirt Colourful UB Special', price: 135000, category: 'T-Shirt Colourful', image: '/images/products/T-Shirt Colourful/6.png', rating: 4.7, sales: 156 },
-    { id: 28, name: 'T-Shirt Colourful UB Exclusive', price: 135000, category: 'T-Shirt Colourful', image: '/images/products/T-Shirt Colourful/7.png', rating: 4.9, sales: 201 },
-
-    // Leather Product Collection (29-35)
-    { id: 29, name: 'Leather Product UB Collection', price: 135000, category: 'Leather Product', image: '/images/products/Leather Product/1.png', rating: 4.8, sales: 156 },
-    { id: 30, name: 'Leather Product Set UB Collection', price: 145000, category: 'Leather Product', image: '/images/products/Leather Product/2.png', rating: 4.7, sales: 134 },
-    { id: 31, name: 'Leather Product Bundle', price: 150000, category: 'Leather Product', image: '/images/products/Leather Product/3.png', rating: 4.9, sales: 167 },
-    { id: 32, name: 'Leather Product Premium', price: 155000, category: 'Leather Product', image: '/images/products/Leather Product/4.png', rating: 4.8, sales: 145 },
-    { id: 33, name: 'Leather Product Limited', price: 160000, category: 'Leather Product', image: '/images/products/Leather Product/5.png', rating: 4.7, sales: 128 },
-    { id: 34, name: 'Leather Product Exclusive', price: 165000, category: 'Leather Product', image: '/images/products/Leather Product/6.png', rating: 4.9, sales: 178 },
-    { id: 35, name: 'Leather Product Special', price: 170000, category: 'Leather Product', image: '/images/products/Leather Product/7.png', rating: 4.8, sales: 156 },
-
-    // Leather Jacket Collection (36-37)
-    { id: 36, name: 'Leather Jacket UB Edition', price: 555000, category: 'Leather Jacket', image: '/images/products/Leather jacket/1.png', rating: 4.9, sales: 89 },
-    { id: 37, name: 'Leather Jacket UB Premium', price: 565000, category: 'Leather Jacket', image: '/images/products/Leather jacket/8.png', rating: 4.8, sales: 76 },
-
-    // Tote Bag & Slempang Collection (38-41)
-    { id: 38, name: 'Tote Bag UB Official', price: 145000, category: 'Tote Bag & Slempang', image: '/images/products/Totebag & Slempang/1.png', rating: 4.6, sales: 198 },
-    { id: 39, name: 'Tote Bag UB Premium', price: 150000, category: 'Tote Bag & Slempang', image: '/images/products/Totebag & Slempang/2.png', rating: 4.7, sales: 178 },
-    { id: 40, name: 'Slempang UB Collection', price: 155000, category: 'Tote Bag & Slempang', image: '/images/products/Totebag & Slempang/3.png', rating: 4.5, sales: 145 },
-    { id: 41, name: 'Tote Bag UB Limited', price: 160000, category: 'Tote Bag & Slempang', image: '/images/products/Totebag & Slempang/4.png', rating: 4.8, sales: 167 },
-
-    // Crewneck & Hoodie Collection (42-48)
-    { id: 42, name: 'Crewneck & Hoodie Set', price: 220000, category: 'Crewneck & Hoodie', image: '/images/products/Crewneck & Hoodie/1.png', rating: 4.8, sales: 167 },
-    { id: 43, name: 'Crewneck UB Premium', price: 215000, category: 'Crewneck & Hoodie', image: '/images/products/Crewneck & Hoodie/2.png', rating: 4.7, sales: 156 },
-    { id: 44, name: 'Hoodie UB Classic', price: 225000, category: 'Crewneck & Hoodie', image: '/images/products/Crewneck & Hoodie/3.png', rating: 4.9, sales: 189 },
-    { id: 45, name: 'Crewneck UB Limited', price: 230000, category: 'Crewneck & Hoodie', image: '/images/products/Crewneck & Hoodie/4.png', rating: 4.8, sales: 178 },
-    { id: 46, name: 'Hoodie UB Premium', price: 235000, category: 'Crewneck & Hoodie', image: '/images/products/Crewneck & Hoodie/5.png', rating: 4.7, sales: 145 },
-    { id: 47, name: 'Crewneck UB Edition', price: 220000, category: 'Crewneck & Hoodie', image: '/images/products/Crewneck & Hoodie/6.png', rating: 4.9, sales: 198 },
-    { id: 48, name: 'Hoodie UB Exclusive', price: 240000, category: 'Crewneck & Hoodie', image: '/images/products/Crewneck & Hoodie/7.png', rating: 4.8, sales: 167 },
-
-    // Tumbler Collection (49-54)
-    { id: 49, name: 'Tumbler UB Official', price: 135000, category: 'Tumbler', image: '/images/products/Tumbler/1.png', rating: 4.6, sales: 234 },
-    { id: 50, name: 'Tumbler UB Premium', price: 145000, category: 'Tumbler', image: '/images/products/Tumbler/2.png', rating: 4.7, sales: 198 },
-    { id: 51, name: 'Tumbler UB Limited Edition', price: 140000, category: 'Tumbler', image: '/images/products/Tumbler/3.png', rating: 4.8, sales: 212 },
-    { id: 52, name: 'Tumbler UB Exclusive', price: 150000, category: 'Tumbler', image: '/images/products/Tumbler/4.png', rating: 4.7, sales: 178 },
-    { id: 53, name: 'Tumbler UB Edition', price: 155000, category: 'Tumbler', image: '/images/products/Tumbler/5.png', rating: 4.8, sales: 167 },
-    { id: 54, name: 'Tumbler UB Special', price: 160000, category: 'Tumbler', image: '/images/products/Tumbler/6.png', rating: 4.7, sales: 156 },
-
-    // Polo Collection (55-57)
-    { id: 55, name: 'Polo Shirt UB Classic', price: 165000, category: 'Polo', image: '/images/products/Polo/1.png', rating: 4.7, sales: 145 },
-    { id: 56, name: 'Polo Shirt UB Premium', price: 175000, category: 'Polo', image: '/images/products/Polo/2.png', rating: 4.8, sales: 167 },
-    { id: 57, name: 'Polo Shirt UB Limited', price: 180000, category: 'Polo', image: '/images/products/Polo/3.png', rating: 4.7, sales: 156 },
-
-    // Vest Collection (58-59)
-    { id: 58, name: 'Vest UB Official', price: 185000, category: 'Vest', image: '/images/products/Vest/1.png', rating: 4.6, sales: 123 },
-    { id: 59, name: 'Vest UB Premium', price: 195000, category: 'Vest', image: '/images/products/Vest/2.png', rating: 4.7, sales: 134 },
-];
+import { allProducts } from '@/lib/products-data';
 
 const categories = ['All', 'Varsity', 'Sepatu', 'Topi', 'T-shirt', 'T-Shirt Colourful', 'Leather Product', 'Leather Jacket', 'Tote Bag & Slempang', 'Crewneck & Hoodie', 'Tumbler', 'Polo', 'Vest'];
 
@@ -288,9 +204,10 @@ function MerchandiseContent() {
                             : 'grid-cols-2 lg:grid-cols-4'
                             }`}>
                             {filteredProducts.map(product => (
-                                <article
+                                <Link
                                     key={product.id}
-                                    className="group relative flex flex-col"
+                                    href={`/merchandise/${product.slug}`}
+                                    className="group relative flex flex-col cursor-pointer"
                                 >
                                     {/* Product Image Stage */}
                                     <div className="relative aspect-[4/5] overflow-hidden bg-[#f9f9f9] rounded-[2rem] transition-all duration-700 group-hover:rounded-[1rem] group-hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)]">
@@ -306,17 +223,20 @@ function MerchandiseContent() {
                                         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                                         <button
-                                            onClick={() => toggleLike(product.id)}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                toggleLike(product.id);
+                                            }}
                                             className={`absolute top-6 right-6 p-4 rounded-2xl backdrop-blur-xl shadow-sm transition-all duration-300 ${likedProducts.has(product.id) ? 'bg-red-500 text-white opacity-100 translate-y-0' : 'bg-white/90 text-black opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0'}`}
                                         >
                                             <Heart className={`w-4 h-4 ${likedProducts.has(product.id) ? 'fill-current' : ''}`} />
                                         </button>
 
                                         <div className="absolute inset-x-6 bottom-6 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                                            <button className="w-full py-5 bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl hover:bg-ub-navy transition-all flex items-center justify-center gap-3">
-                                                <ShoppingCart className="w-3 h-3" />
-                                                Acquire Item
-                                            </button>
+                                            <div className="w-full py-5 bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl hover:bg-ub-navy transition-all flex items-center justify-center gap-3 border border-white/10 uppercase italic">
+                                                <span>View Piece Detail</span>
+                                                <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                                            </div>
                                         </div>
 
                                         {/* Status Badge */}
@@ -349,7 +269,7 @@ function MerchandiseContent() {
                                             </span>
                                         </div>
                                     </div>
-                                </article>
+                                </Link>
                             ))}
                         </div>
                     ) : (

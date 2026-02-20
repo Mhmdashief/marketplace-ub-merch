@@ -15,11 +15,13 @@
   --gray-800: #262626;
   --gray-900: #171717;
 
-  /* UB Brand Colors (as accents) */
+  /* UB Brand Colors*/
   --ub-navy: #003366;
   --ub-gold: #D4AF37;
   --ub-light-gold: #F4E4C1;
   --ub-dark-navy: #001a33;
+  --ub-red: #FF0000;
+  --ub-blue: #0000FF;
 
   /* Theme Colors */
   --background: #ffffff;

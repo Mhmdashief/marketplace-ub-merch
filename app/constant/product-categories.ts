@@ -1,0 +1,17 @@
+export const PRODUCT_CATEGORIES = [
+    'Varsity',
+    'T-Shirt',
+    'Crewneck & Hoodie',
+    'Sweater',
+    'Leather Jacket',
+    'Topi',
+    'Tumbler',
+    'Sticker',
+    'Key Chain',
+    'Leather Product',
+    'T-Shirt Colourful',
+    'Polo',
+    'Sepatu',
+    'Vest',
+    'Totebag & Slempang',
+] as const;
