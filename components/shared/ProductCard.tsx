@@ -7,13 +7,14 @@ import { useState } from 'react';
 
 interface ProductCardProps {
     id: string;
+    slug: string;
     name: string;
     price: number;
     category: string;
     image: string;
 }
 
-export default function ProductCard({ id, name, price, category, image }: ProductCardProps) {
+export default function ProductCard({ id, slug, name, price, category, image }: ProductCardProps) {
     const [isHovered, setIsHovered] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
 
@@ -26,7 +27,8 @@ export default function ProductCard({ id, name, price, category, image }: Produc
     };
 
     return (
-        <div
+        <Link
+            href={`/merchandise/${slug}`}
             className="group relative flex flex-col transition-all duration-500"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -43,12 +45,11 @@ export default function ProductCard({ id, name, price, category, image }: Produc
 
                 {/* Status/Category Overlay */}
                 <div className="absolute top-6 left-6 flex flex-col gap-2">
-                    <Link
-                        href={`/merchandise?category=${encodeURIComponent(category)}`}
-                        className="px-3 py-1 bg-white/90 backdrop-blur-xl text-[8px] font-black uppercase tracking-[0.2em] text-black rounded-lg shadow-sm border border-white/50 w-fit hover:bg-black hover:text-white transition-all"
+                    <span
+                        className="px-3 py-1 bg-white/90 backdrop-blur-xl text-[8px] font-black uppercase tracking-[0.2em] text-black rounded-lg shadow-sm border border-white/50 w-fit"
                     >
                         {category}
-                    </Link>
+                    </span>
                 </div>
 
                 {/* Engagement Actions */}
@@ -102,6 +103,6 @@ export default function ProductCard({ id, name, price, category, image }: Produc
                     </div>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 }

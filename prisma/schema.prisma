@@ -1,7 +1,5 @@
-// prisma/schema.prisma
-
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "binary"
 }
 
@@ -10,56 +8,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  USER
-  ADMIN
-  SUPER_ADMIN
-}
-
 model User {
-  id            String    @id @default(cuid())
+  id            String     @id @default(cuid())
   name          String
-  email         String   @unique
+  email         String     @unique
   emailVerified DateTime?
   image         String?
-  password      String?   
-  role          Role      @default(USER)
+  password      String?
+  role          Role       @default(USER)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
   status        UserStatus @default(ACTIVE)
   accounts      Account[]
   sessions      Session[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
 
   @@map("users")
 }
 
-enum UserStatus {
-  ACTIVE
-  SUSPENDED
-  BANNED
-}
-
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
 }
 
-// 4. Model Session (Manajemen Sesi Database)
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -70,7 +54,6 @@ model Session {
   @@map("sessions")
 }
 
-// 5. Model VerificationToken (Fitur Lupa Password/Magic Link)
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -95,39 +78,32 @@ model Category {
   id        String    @id @default(cuid())
   name      String
   slug      String    @unique
-
-  products  Product[]
-
   isActive  Boolean   @default(true)
   deletedAt DateTime?
-
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  products  Product[]
 
   @@map("categories")
 }
 
 model Product {
-  id            String   @id @default(cuid())
-  slug          String   @unique
+  id            String          @id @default(cuid())
+  slug          String          @unique
   name          String
-  description   String   @db.Text
-
-  regularPrice  Decimal  @db.Decimal(10,2)
-  discountPrice Decimal? @db.Decimal(10,2)
-
+  description   String
+  regularPrice  Decimal         @db.Decimal(10, 2)
+  discountPrice Decimal?        @db.Decimal(10, 2)
   stock         Int
-  isActive      Boolean  @default(true)
+  isActive      Boolean         @default(true)
   deletedAt     DateTime?
-
   categoryId    String
-  category      Category @relation(fields: [categoryId], references: [id])
-
-  assets        ProductAsset[]
+  sizes         String?         // JSON: { enabled: boolean, type: 'clothing'|'inch'|'custom', values: string[] }
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
   flashSales    FlashSaleItem[]
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  assets        ProductAsset[]
+  category      Category        @relation(fields: [categoryId], references: [id])
 
   @@index([categoryId])
   @@index([deletedAt])
@@ -137,11 +113,9 @@ model Product {
 model ProductAsset {
   id        String   @id @default(cuid())
   url       String
-
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-
   createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
   @@map("product_assets")
@@ -152,14 +126,11 @@ model FlashSale {
   name      String
   startAt   DateTime
   endAt     DateTime
-
   isActive  Boolean         @default(true)
   deletedAt DateTime?
-
-  items     FlashSaleItem[]
-
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
+  items     FlashSaleItem[]
 
   @@index([startAt, endAt])
   @@index([deletedAt])
@@ -167,21 +138,28 @@ model FlashSale {
 }
 
 model FlashSaleItem {
-  id           String    @id @default(cuid())
-
-  flashSaleId  String
-  productId    String
-
-  salePrice    Decimal   @db.Decimal(10,2)
-  stock        Int?
-
-  flashSale    FlashSale @relation(fields: [flashSaleId], references: [id], onDelete: Cascade)
-  product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt    DateTime  @default(now())
+  id          String    @id @default(cuid())
+  flashSaleId String
+  productId   String
+  salePrice   Decimal   @db.Decimal(10, 2)
+  stock       Int?
+  createdAt   DateTime  @default(now())
+  flashSale   FlashSale @relation(fields: [flashSaleId], references: [id], onDelete: Cascade)
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([flashSaleId, productId])
   @@index([productId])
   @@map("flash_sale_items")
 }
 
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}

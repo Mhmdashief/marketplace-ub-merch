@@ -1,35 +1,13 @@
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Star, Plus } from 'lucide-react';
+import { getPublicProducts } from '@/app/actions/products';
 
-const featuredProducts = [
-    {
-        id: 'featured-1',
-        name: 'Varsity Jacket UB Limited Edition',
-        description: 'A masterclass in university heritage. Crafted with premium wool and authentic leather sleeves for the ultimate statement.',
-        price: 450000,
-        rating: 4.9,
-        reviews: 128,
-        image: '/images/products/Varsity/1.png',
-        badge: 'Limited Edition',
-        category: 'Apparel'
-    },
-    {
-        id: 'featured-2',
-        name: 'Sepatu Sneakers UB Collection',
-        description: 'Engineered for comfort, designed for prestige. The definitive footwear for the modern academic journey.',
-        price: 385000,
-        rating: 4.8,
-        reviews: 95,
-        image: '/images/products/Sepatu/1.png',
-        badge: 'New Arrival',
-        category: 'Footwear'
-    }
-];
+export default async function FeaturedProducts() {
+    // Ambil 2 produk terbaru dari DB yang aktif
+    const allProducts = await getPublicProducts();
+    const featuredProducts = allProducts.slice(0, 2);
 
-export default function FeaturedProducts() {
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
@@ -38,10 +16,15 @@ export default function FeaturedProducts() {
         }).format(price);
     };
 
+    // Fallback jika DB masih kosong — tampilkan skeleton/placeholder
+    if (featuredProducts.length === 0) {
+        return null;
+    }
+
     return (
         <section className="py-32 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Section Header - Ultra Clean */}
+                {/* Section Header */}
                 <div className="flex flex-col items-center text-center mb-24">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-8 h-[1px] bg-ub-gold" />
@@ -56,15 +39,14 @@ export default function FeaturedProducts() {
                     </p>
                 </div>
 
-                {/* Featured Grid - High Contrast Layout */}
+                {/* Featured Grid */}
                 <div className="grid lg:grid-cols-2 gap-16">
                     {featuredProducts.map((product, index) => (
                         <div
                             key={product.id}
-                            className={`group relative flex flex-col transition-all duration-1000 ${index % 2 === 1 ? 'lg:translate-y-20' : ''
-                                }`}
+                            className={`group relative flex flex-col transition-all duration-1000 ${index % 2 === 1 ? 'lg:translate-y-20' : ''}`}
                         >
-                            {/* Image Stage - Oversized & Bold */}
+                            {/* Image Stage */}
                             <div className="relative h-[600px] overflow-hidden rounded-[3rem] bg-[#F9F9F9] transition-all duration-1000 group-hover:shadow-[0_60px_100px_-20px_rgba(0,0,0,0.1)]">
                                 <Image
                                     src={product.image}
@@ -74,10 +56,12 @@ export default function FeaturedProducts() {
                                     className="object-cover transition-transform duration-[1.5s] group-hover:scale-110"
                                 />
 
-                                {/* Floating Masterpiece Badge */}
+                                {/* Badge */}
                                 <div className="absolute top-8 left-8">
                                     <div className="px-6 py-2.5 bg-black text-white rounded-2xl shadow-2xl">
-                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{product.badge}</span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                                            {product.discountPrice ? 'Sale' : 'Featured'}
+                                        </span>
                                     </div>
                                 </div>
 
@@ -88,14 +72,14 @@ export default function FeaturedProducts() {
                                 </div>
                             </div>
 
-                            {/* Content Stage - Minimalist Info */}
+                            {/* Content */}
                             <div className="mt-12 px-4 max-w-lg">
                                 <div className="flex items-center gap-2 mb-4">
                                     <span className="text-[10px] font-black text-ub-gold uppercase tracking-[0.2em]">{product.category}</span>
                                     <span className="h-1 w-1 bg-gray-200 rounded-full" />
                                     <div className="flex items-center gap-1">
                                         <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                                        <span className="text-xs font-bold">{product.rating}</span>
+                                        <span className="text-xs font-bold">{product.rating.toFixed(1)}</span>
                                     </div>
                                 </div>
 
@@ -103,19 +87,15 @@ export default function FeaturedProducts() {
                                     {product.name}
                                 </h3>
 
-                                <p className="text-gray-400 text-lg font-medium leading-relaxed mb-10">
-                                    {product.description}
-                                </p>
-
                                 <div className="flex items-center gap-12">
                                     <div className="flex flex-col">
                                         <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-1">Price Archive</span>
                                         <span className="text-3xl font-black text-black italic tracking-tighter">
-                                            {formatPrice(product.price)}
+                                            {formatPrice(product.discountPrice ?? product.price)}
                                         </span>
                                     </div>
                                     <Link
-                                        href={`/products/${product.id}`}
+                                        href={`/merchandise/${product.slug}`}
                                         className="group/btn relative inline-flex items-center gap-6 px-10 py-6 bg-black text-white rounded-2xl transition-all shadow-2xl hover:bg-ub-navy overflow-hidden"
                                     >
                                         <div className="relative z-10 flex items-center gap-3">

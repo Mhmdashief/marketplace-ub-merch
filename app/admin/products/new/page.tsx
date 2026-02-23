@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createProduct } from '@/app/actions/products';
+import SizeManager from '@/components/admin/SizeManager';
 
 const PRODUCT_CATEGORIES = [
     'Varsity', 'T-Shirt', 'Crewneck & Hoodie', 'Sweater',
@@ -38,6 +39,7 @@ export default function NewProductPage() {
     const [discountPrice, setDiscountPrice] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [images, setImages] = useState<File[]>([]);
+    const [sizesJson, setSizesJson] = useState<string | null>(null);
 
     // UI state
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -84,6 +86,9 @@ export default function NewProductPage() {
         formData.set('discountPrice', discountPrice || '');
         formData.set('stock', stock);
         formData.set('isActive', String(isActive));
+
+        // Include sizes
+        if (sizesJson) formData.set('sizes', sizesJson);
 
         // 🔥 INI BAGIAN PENTING
         images.forEach((file) => {
@@ -314,6 +319,12 @@ export default function NewProductPage() {
 
                 {/* RIGHT: Labels & Availability */}
                 <div className="space-y-8">
+                    {/* Size Manager */}
+                    <SizeManager
+                        baseRegularPrice={Number(regularPrice)}
+                        baseDiscountPrice={discountPrice ? Number(discountPrice) : null}
+                        onChange={setSizesJson}
+                    />
                     <div className="bg-[#001a33] rounded-[40px] shadow-2xl p-8 border border-white/5 relative overflow-hidden">
                         <h2 className="text-sm font-black text-ub-gold uppercase tracking-[0.2em] mb-8">Showcase Labels</h2>
                         <div className="space-y-3">

@@ -27,6 +27,53 @@ async function ensureCategory(categoryName: string): Promise<string> {
     return category.id;
 }
 
+// ─── LIST products untuk halaman publik (user-facing) ──────────────────────
+export async function getPublicProducts(search?: string, categorySlug?: string) {
+    const products = await prisma.product.findMany({
+        where: {
+            isActive: true,
+            deletedAt: null,
+            ...(search && {
+                OR: [
+                    { name: { contains: search, mode: 'insensitive' } },
+                ],
+            }),
+            ...(categorySlug && categorySlug !== 'all' && {
+                category: { slug: categorySlug },
+            }),
+        },
+        include: {
+            category: { select: { name: true, slug: true } },
+            assets: { select: { url: true }, take: 1 },
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+
+    return products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        price: Number(p.regularPrice),
+        discountPrice: p.discountPrice ? Number(p.discountPrice) : null,
+        stock: p.stock,
+        category: p.category.name,
+        categorySlug: p.category.slug,
+        image: p.assets[0]?.url ?? '/images/reusable/placeholder.png',
+        rating: 4.8, // placeholder, bisa dikembangkan ke tabel reviews
+        sales: 0,    // placeholder, bisa dikembangkan ke tabel orders
+    }));
+}
+
+// ─── GET semua categories aktif untuk filter publik ─────────────────────────
+export async function getPublicCategories() {
+    const categories = await prisma.category.findMany({
+        where: { isActive: true, deletedAt: null },
+        select: { name: true, slug: true },
+        orderBy: { name: 'asc' },
+    });
+    return categories;
+}
+
 // ─── LIST products (untuk tabel admin) ──────────────────────────────────────
 export async function getAdminProducts(search?: string, categoryFilter?: string) {
     const products = await prisma.product.findMany({
@@ -76,6 +123,7 @@ export async function getProductBySlug(slug: string) {
     return {
         id: product.id,
         name: product.name,
+        slug: product.slug,
         description: product.description,
         stock: product.stock,
         regularPrice: Number(product.regularPrice),
@@ -83,12 +131,11 @@ export async function getProductBySlug(slug: string) {
         category: product.category.name,
         isActive: product.isActive,
         images: product.assets.map(a => a.url),
-        // Mock fields for compatibility
+        sizes: product.sizes || null,
         rating: 4.5,
         sales: 0,
-        specs: [],
         price: Number(product.regularPrice),
-        image: product.assets[0]?.url || '',
+        image: product.assets[0]?.url || '/images/reusable/placeholder.png',
     };
 }
 
@@ -113,6 +160,7 @@ export async function getProductById(id: string) {
         category: product.category.name,
         isActive: product.isActive,
         images: product.assets.map(a => a.url),
+        sizes: product.sizes || null,
     };
 }
 
@@ -124,6 +172,7 @@ export async function updateProduct(id: string, formData: FormData) {
     const discountPrice = formData.get('discountPrice') ? Number(formData.get('discountPrice')) : null;
     const stock = Number(formData.get('stock'));
     const isActive = formData.get('isActive') === 'true';
+    const sizesJson = formData.get('sizes') as string | null;
 
     const keptImages = formData.getAll('keptImages') as string[];
     const files = formData.getAll('images') as File[];
@@ -146,9 +195,6 @@ export async function updateProduct(id: string, formData: FormData) {
         }
 
         const categoryId = await ensureCategory(categoryName);
-        // We generally don't update slug to preserve SEO, or logic to update it if needed.
-        // For now, let's keep slug as is unless name changes drastically?
-        // Better to just update other fields.
 
         await prisma.product.update({
             where: { id },
@@ -160,10 +206,13 @@ export async function updateProduct(id: string, formData: FormData) {
                 stock,
                 isActive,
                 categoryId,
+                sizes: sizesJson || null,
                 assets: {
-                    deleteMany: {
-                        url: { notIn: keptImages },
-                    },
+                    // Only delete assets not in keptImages list.
+                    // If keptImages is empty, delete ALL old assets.
+                    deleteMany: keptImages.length > 0
+                        ? { url: { notIn: keptImages } }
+                        : {},
                     create: newImageUrls.map((url) => ({ url })),
                 },
             },
@@ -171,6 +220,8 @@ export async function updateProduct(id: string, formData: FormData) {
 
         revalidatePath('/admin/products');
         revalidatePath(`/admin/products/${id}/edit`);
+        revalidatePath('/merchandise');
+        revalidatePath('/');
         return { success: true };
     } catch (err) {
         console.error('[updateProduct]', err);
@@ -178,7 +229,6 @@ export async function updateProduct(id: string, formData: FormData) {
     }
 }
 
-// ─── CREATE product baru ─────────────────────────────────────────────────────
 export async function createProduct(formData: FormData) {
     const name = formData.get('name') as string;
     const description = formData.get('description') as string;
@@ -189,6 +239,7 @@ export async function createProduct(formData: FormData) {
         : null;
     const stock = Number(formData.get('stock'));
     const isActive = formData.get('isActive') === 'true';
+    const sizesJson = formData.get('sizes') as string | null;
 
     const files = formData.getAll('images') as File[];
     const imageUrls: string[] = [];
@@ -231,6 +282,7 @@ export async function createProduct(formData: FormData) {
                 stock,
                 isActive,
                 categoryId,
+                sizes: sizesJson || null,
                 assets: {
                     create: imageUrls.map((url) => ({ url })),
                 },
@@ -238,6 +290,8 @@ export async function createProduct(formData: FormData) {
         });
 
         revalidatePath('/admin/products');
+        revalidatePath('/merchandise');
+        revalidatePath('/');
         return { success: true, productId: product.id };
     } catch (err) {
         console.error('[createProduct]', err);
@@ -252,6 +306,8 @@ export async function deleteProduct(productId: string) {
         data: { deletedAt: new Date(), isActive: false },
     });
     revalidatePath('/admin/products');
+    revalidatePath('/merchandise');
+    revalidatePath('/');
 }
 
 // ─── BULK SOFT DELETE ────────────────────────────────────────────────────────
@@ -261,6 +317,8 @@ export async function bulkDeleteProducts(productIds: string[]) {
         data: { deletedAt: new Date(), isActive: false },
     });
     revalidatePath('/admin/products');
+    revalidatePath('/merchandise');
+    revalidatePath('/');
 }
 
 // ─── TOGGLE ACTIVE status ────────────────────────────────────────────────────
@@ -270,4 +328,6 @@ export async function toggleProductStatus(productId: string, currentStatus: bool
         data: { isActive: !currentStatus },
     });
     revalidatePath('/admin/products');
+    revalidatePath('/merchandise');
+    revalidatePath('/');
 }

@@ -68,19 +68,22 @@ export default function Navbar() {
     };
 
     const merchandiseCategories = [
-        { name: 'Tote Bag & Slempang', href: '/merchandise?category=Tote%20Bag%20%26%20Slempang' },
-        { name: 'T-shirt', href: '/merchandise?category=T-shirt' },
-        { name: 'Tumbler', href: '/merchandise?category=Tumbler' },
-        { name: 'Crewneck & Hoodie', href: '/merchandise?category=Crewneck%20%26%20Hoodie' },
-        { name: 'Varsity', href: '/merchandise?category=Varsity' },
-        { name: 'Polo', href: '/merchandise?category=Polo' },
-        { name: 'Leather Jacket', href: '/merchandise?category=Leather%20Jacket' },
-        { name: 'Leather Product', href: '/merchandise?category=Leather%20Product' },
-        { name: 'T-Shirt Colourful', href: '/merchandise?category=T-Shirt%20Colourful' },
-        { name: 'Vest', href: '/merchandise?category=Vest' },
-        { name: 'Sepatu', href: '/merchandise?category=Sepatu' },
-        { name: 'Topi', href: '/merchandise?category=Topi' }
-    ];
+        { name: 'Tote Bag & Slempang', slug: 'totebag-and-slempang' },
+        { name: 'T-shirt', slug: 't-shirt' },
+        { name: 'Tumbler', slug: 'tumbler' },
+        { name: 'Crewneck & Hoodie', slug: 'crewneck-and-hoodie' },
+        { name: 'Varsity', slug: 'varsity' },
+        { name: 'Polo', slug: 'polo' },
+        { name: 'Leather Jacket', slug: 'leather-jacket' },
+        { name: 'Leather Product', slug: 'leather-product' },
+        { name: 'T-Shirt Colourful', slug: 't-shirt-colourful' },
+        { name: 'Vest', slug: 'vest' },
+        { name: 'Sepatu', slug: 'sepatu' },
+        { name: 'Topi', slug: 'topi' }
+    ].map(cat => ({
+        ...cat,
+        href: `/merchandise?category=${cat.slug}`
+    }));
 
     return (
         <nav className="sticky top-0 z-50 backdrop-blur-glass bg-white/95 border-b border-gray-200 shadow-sm">

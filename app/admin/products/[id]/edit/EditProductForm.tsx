@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { updateProduct } from '@/app/actions/products';
 import { PRODUCT_CATEGORIES } from '@/app/constant/product-categories';
+import SizeManager from '@/components/admin/SizeManager';
 
 const SHOWCASE_LABELS = [
     { name: 'Featured Product', icon: <Star className="h-4 w-4" />, color: 'ub-gold' },
@@ -29,6 +30,7 @@ interface ProductData {
     category: string;
     isActive: boolean;
     images?: string[];
+    sizes?: string | null;
 }
 
 export default function EditProductForm({ product }: { product: ProductData }) {
@@ -49,6 +51,9 @@ export default function EditProductForm({ product }: { product: ProductData }) {
     // Image state
     const [newImages, setNewImages] = useState<File[]>([]);
     const [existingImages, setExistingImages] = useState<string[]>(product.images ?? []);
+
+    // Sizes state — kept as JSON string or null
+    const [sizesJson, setSizesJson] = useState<string | null>(product.sizes ?? null);
 
     // UI state
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -99,6 +104,9 @@ export default function EditProductForm({ product }: { product: ProductData }) {
         fd.set('discountPrice', discountPrice);
         fd.set('stock', stock);
         fd.set('isActive', String(isActive));
+
+        // Include sizes JSON if set
+        if (sizesJson) fd.set('sizes', sizesJson);
 
         newImages.forEach((file) => fd.append('images', file));
         existingImages.forEach((url) => fd.append('keptImages', url));
@@ -435,6 +443,13 @@ export default function EditProductForm({ product }: { product: ProductData }) {
 
                 {/* RIGHT column */}
                 <div className="space-y-8">
+                    {/* Size Manager */}
+                    <SizeManager
+                        initialSizes={product.sizes}
+                        baseRegularPrice={Number(regularPrice) || product.regularPrice}
+                        baseDiscountPrice={discountPrice ? Number(discountPrice) : product.discountPrice}
+                        onChange={setSizesJson}
+                    />
                     {/* Showcase labels */}
                     <div className="bg-[#001a33] rounded-[40px] shadow-2xl p-8 border border-white/5">
                         <h2 className="text-sm font-black text-ub-gold uppercase tracking-[0.2em] mb-8">
