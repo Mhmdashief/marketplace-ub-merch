@@ -35,7 +35,6 @@ export async function generateMetadata({ params }: PageProps) {
         return { title: 'UB Merch' }
     }
 }
-
 export default async function ProductDetailPage({
     params,
 }: PageProps) {
