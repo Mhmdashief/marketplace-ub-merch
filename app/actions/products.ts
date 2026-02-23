@@ -195,11 +195,13 @@ export async function updateProduct(id: string, formData: FormData) {
         }
 
         const categoryId = await ensureCategory(categoryName);
+        const slug = `${slugify(name)}-${Date.now()}`;
 
         await prisma.product.update({
             where: { id },
             data: {
                 name,
+                slug,
                 description,
                 regularPrice,
                 discountPrice,

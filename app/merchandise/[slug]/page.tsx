@@ -10,9 +10,6 @@ interface PageProps {
     }>
 }
 
-/* =========================
-   METADATA
-========================= */
 export async function generateMetadata({ params }: PageProps) {
     const { slug } = await params
 
@@ -39,9 +36,6 @@ export async function generateMetadata({ params }: PageProps) {
     }
 }
 
-/* =========================
-   PAGE
-========================= */
 export default async function ProductDetailPage({
     params,
 }: PageProps) {
