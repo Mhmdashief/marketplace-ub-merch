@@ -17,7 +17,7 @@ async function ProductList() {
     }
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-16">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-10 sm:gap-y-16">
             {displayProducts.map((product) => (
                 <ProductCard
                     key={product.id}
@@ -51,23 +51,23 @@ export default async function ProductGrid() {
         <section id="products" className="py-32 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
-                <div className="flex flex-col items-center text-center mb-16">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-8 h-[1px] bg-ub-gold" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-ub-gold">Curated Archive</span>
-                        <div className="w-8 h-[1px] bg-ub-gold" />
+                <div className="flex flex-col items-center text-center mb-12 sm:mb-16">
+                    <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                        <div className="w-6 sm:w-8 h-[1px] bg-ub-gold" />
+                        <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] text-ub-gold">Curated Archive</span>
+                        <div className="w-6 sm:w-8 h-[1px] bg-ub-gold" />
                     </div>
-                    <h2 className="text-6xl font-black tracking-tighter text-black uppercase mb-10">
-                        Koleksi <span className="italic font-light text-gray-300">Pilihan</span>
+                    <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tighter text-black uppercase mb-8 sm:mb-10">
+                        Koleksi <span className="italic font-light text-gray-600">Pilihan</span>
                     </h2>
 
-                    {/* Category Quick Links — navigasi ke /merchandise dengan filter */}
-                    <div className="flex flex-wrap justify-center gap-3">
+                    {/* Category Quick Links*/}
+                    <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
                         {homeCategories.map((cat) => (
                             <Link
                                 key={cat.slug}
                                 href={cat.slug === 'all' ? '/merchandise' : `/merchandise?category=${cat.slug}`}
-                                className="px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 bg-gray-50 text-gray-400 hover:bg-black hover:text-white border border-transparent hover:border-black"
+                                className="px-4 sm:px-8 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all duration-300 bg-gray-50 text-gray-400 hover:bg-black hover:text-white border border-transparent hover:border-black"
                             >
                                 {cat.name}
                             </Link>
@@ -75,7 +75,7 @@ export default async function ProductGrid() {
                     </div>
                 </div>
 
-                {/* Product Grid dengan Suspense */}
+                {/* Product Grid */}
                 <Suspense fallback={<ProductGridSkeleton />}>
                     <ProductList />
                 </Suspense>

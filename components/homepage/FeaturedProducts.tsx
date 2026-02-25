@@ -1,10 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Star, Plus } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import { getPublicProducts } from '@/app/actions/products';
 
 export default async function FeaturedProducts() {
-    // Ambil 2 produk terbaru dari DB yang aktif
     const allProducts = await getPublicProducts();
     const featuredProducts = allProducts.slice(0, 2);
 
@@ -16,97 +15,87 @@ export default async function FeaturedProducts() {
         }).format(price);
     };
 
-    // Fallback jika DB masih kosong — tampilkan skeleton/placeholder
-    if (featuredProducts.length === 0) {
-        return null;
-    }
+    if (featuredProducts.length === 0) return null;
 
     return (
-        <section className="py-32 bg-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Section Header */}
-                <div className="flex flex-col items-center text-center mb-24">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-8 h-[1px] bg-ub-gold" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-ub-gold">Curated Masterpieces</span>
-                        <div className="w-8 h-[1px] bg-ub-gold" />
+        <section className="py-16 sm:py-24 lg:py-32 bg-white">
+            <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+
+                {/* Header*/}
+                <div className="flex flex-col items-center text-center mb-14 sm:mb-20 lg:mb-24">
+
+                    <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                        <div className="w-6 sm:w-8 h-[1px] bg-ub-gold" />
+                        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-ub-gold">
+                            Curated Masterpieces
+                        </span>
+                        <div className="w-6 sm:w-8 h-[1px] bg-ub-gold" />
                     </div>
-                    <h2 className="text-6xl sm:text-7xl font-black tracking-tighter text-black leading-none uppercase mb-6">
-                        Produk <span className="italic font-light text-gray-300">Unggulan</span>
+
+                    <h2 className="text-3xl sm:text-5xl lg:text-7xl font-black tracking-tight text-black leading-tight uppercase mb-4 sm:mb-6">
+                        Produk <span className="italic font-light text-gray-600">Unggulan</span>
                     </h2>
-                    <p className="text-gray-400 max-w-xl text-lg font-medium leading-relaxed">
+
+                    <p className="text-gray-400 max-w-md sm:max-w-xl text-sm sm:text-base lg:text-lg font-medium leading-relaxed">
                         Handpicked selections representing the pinnacle of our design philosophy.
                     </p>
                 </div>
 
-                {/* Featured Grid */}
-                <div className="grid lg:grid-cols-2 gap-16">
+                {/* Grid */}
+                <div className="grid gap-14 sm:gap-16 lg:grid-cols-2">
+
                     {featuredProducts.map((product, index) => (
                         <div
                             key={product.id}
-                            className={`group relative flex flex-col transition-all duration-1000 ${index % 2 === 1 ? 'lg:translate-y-20' : ''}`}
+                            className={`group relative flex flex-col transition-all duration-700 ${index % 2 === 1 ? 'lg:translate-y-16' : ''
+                                }`}
                         >
-                            {/* Image Stage */}
-                            <div className="relative h-[600px] overflow-hidden rounded-[3rem] bg-[#F9F9F9] transition-all duration-1000 group-hover:shadow-[0_60px_100px_-20px_rgba(0,0,0,0.1)]">
+                            {/* Image */}
+                            <div className="relative aspect-[4/5] sm:aspect-[4/5] lg:h-[600px] overflow-hidden rounded-3xl sm:rounded-[3rem] bg-[#F9F9F9] transition-all duration-700 group-hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)]">
+
                                 <Image
                                     src={product.image}
                                     alt={product.name}
                                     fill
                                     sizes="(max-width: 1024px) 100vw, 50vw"
-                                    className="object-cover transition-transform duration-[1.5s] group-hover:scale-110"
+                                    className="object-cover transition-transform duration-1000 group-hover:scale-105"
                                 />
-
-                                {/* Badge */}
-                                <div className="absolute top-8 left-8">
-                                    <div className="px-6 py-2.5 bg-black text-white rounded-2xl shadow-2xl">
-                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">
-                                            {product.discountPrice ? 'Sale' : 'Featured'}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="absolute top-8 right-8">
-                                    <div className="w-14 h-14 rounded-full bg-white/90 backdrop-blur-xl flex items-center justify-center border border-white/50 shadow-xl group-hover:rotate-90 transition-transform duration-700">
-                                        <Plus className="w-5 h-5 text-black" />
-                                    </div>
-                                </div>
                             </div>
 
                             {/* Content */}
-                            <div className="mt-12 px-4 max-w-lg">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <span className="text-[10px] font-black text-ub-gold uppercase tracking-[0.2em]">{product.category}</span>
-                                    <span className="h-1 w-1 bg-gray-200 rounded-full" />
-                                    <div className="flex items-center gap-1">
-                                        <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                                        <span className="text-xs font-bold">{product.rating.toFixed(1)}</span>
-                                    </div>
-                                </div>
-
-                                <h3 className="text-4xl font-black text-gray-900 mb-6 leading-tight tracking-tighter">
+                            <div className="mt-8 sm:mt-12 px-2 sm:px-4 max-w-xl">
+                                {/* Title */}
+                                <h3 className="text-xl sm:text-3xl lg:text-4xl font-black text-gray-900 mb-4 sm:mb-6 leading-tight tracking-tight">
                                     {product.name}
                                 </h3>
 
-                                <div className="flex items-center gap-12">
+                                {/* Price + Button */}
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 sm:gap-10">
+
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-1">Price Archive</span>
-                                        <span className="text-3xl font-black text-black italic tracking-tighter">
+                                        <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest mb-1">
+                                            Price Archive
+                                        </span>
+                                        <span className="text-xl sm:text-2xl lg:text-3xl font-black text-black italic tracking-tight">
                                             {formatPrice(product.discountPrice ?? product.price)}
                                         </span>
                                     </div>
+
                                     <Link
                                         href={`/merchandise/${product.slug}`}
-                                        className="group/btn relative inline-flex items-center gap-6 px-10 py-6 bg-black text-white rounded-2xl transition-all shadow-2xl hover:bg-ub-navy overflow-hidden"
+                                        className="group/btn inline-flex items-center justify-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-black text-white rounded-xl sm:rounded-2xl transition-all shadow-lg hover:bg-ub-navy active:scale-95 sm:hover:scale-105"
                                     >
-                                        <div className="relative z-10 flex items-center gap-3">
-                                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">View Details</span>
-                                            <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-2" />
-                                        </div>
+                                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em]">
+                                            View Details
+                                        </span>
+                                        <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
                                     </Link>
+
                                 </div>
                             </div>
                         </div>
                     ))}
+
                 </div>
             </div>
         </section>

@@ -12,7 +12,6 @@ function formatPrice(price: number) {
 }
 
 export default async function NewArrivals() {
-    // Ambil 6 produk terbaru dari DB
     const allProducts = await getPublicProducts();
     const newArrivals = allProducts.slice(0, 6);
 
@@ -36,15 +35,6 @@ export default async function NewArrivals() {
                                 Koleksi terbaru dari UB Merch Store, hadir dengan desain eksklusif dan kualitas premium.
                             </p>
                         </div>
-                    </div>
-
-                    <div className="flex items-center gap-6">
-                        <Link href="/merchandise" className="group flex items-center gap-3 text-xs font-black uppercase tracking-[0.2em] text-black">
-                            <span>View All Drops</span>
-                            <div className="p-4 rounded-full border border-gray-200 group-hover:bg-black group-hover:text-white transition-all transform group-hover:rotate-[360deg] duration-700">
-                                <Plus className="w-4 h-4" />
-                            </div>
-                        </Link>
                     </div>
                 </div>
 
@@ -102,7 +92,6 @@ export default async function NewArrivals() {
                         </Link>
                     ))}
                 </div>
-
                 <div className="mt-24 w-full h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent" />
             </div>
         </section>

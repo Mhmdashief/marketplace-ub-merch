@@ -15,7 +15,6 @@ const SHOWCASE_TAGS = ['Premium Collection', 'Comfort Fit', 'Best Value'];
 
 export default async function ProductShowcase() {
     const allProducts = await getPublicProducts();
-    // Ambil produk di posisi 2, 3, 4 agar berbeda dengan Featured (1,2) dan New Arrivals (1-6)
     const showcaseProducts = allProducts.slice(2, 5);
 
     if (showcaseProducts.length < 3) return null;
@@ -50,7 +49,7 @@ export default async function ProductShowcase() {
                         href={`/merchandise/${showcaseProducts[0].slug}`}
                         className="lg:row-span-2 group relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl overflow-hidden shadow-2xl hover:shadow-white/10 transition-all duration-500"
                     >
-                        <div className="relative h-[600px]">
+                        <div className="relative h-[500px] lg:h-[600px]">
                             <Image
                                 src={showcaseProducts[0].image}
                                 alt={showcaseProducts[0].name}
@@ -58,25 +57,25 @@ export default async function ProductShowcase() {
                                 sizes="(max-width: 1024px) 100vw, 50vw"
                                 className="object-cover group-hover:scale-105 transition-transform duration-700"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
-                            <div className="absolute inset-0 p-8 flex flex-col justify-end">
-                                <div className="mb-4">
-                                    <span className="px-4 py-2 bg-white/20 backdrop-blur-md rounded-full text-sm font-semibold">
+                            <div className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-end">
+                                <div className="mb-3 sm:mb-4">
+                                    <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 backdrop-blur-md rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider">
                                         {SHOWCASE_TAGS[0]}
                                     </span>
                                 </div>
-                                <h3 className="text-3xl sm:text-4xl font-bold mb-3">{showcaseProducts[0].name}</h3>
-                                <p className="text-gray-300 mb-6 text-lg max-w-md line-clamp-2">
+                                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black mb-2 sm:mb-3 leading-tight uppercase italic">{showcaseProducts[0].name}</h3>
+                                <p className="text-gray-300 mb-6 sm:mb-8 text-sm sm:text-lg max-w-md line-clamp-2 font-medium opacity-80 uppercase tracking-tight">
                                     {showcaseProducts[0].category} — UB Official Merchandise
                                 </p>
-                                <div className="flex items-center justify-between">
-                                    <div className="text-3xl font-bold">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="text-2xl sm:text-3xl font-black italic">
                                         {formatPrice(showcaseProducts[0].discountPrice ?? showcaseProducts[0].price)}
                                     </div>
-                                    <div className="group/btn px-6 py-3 bg-white text-black font-semibold rounded-full hover:bg-gray-100 transition-all flex items-center gap-2">
+                                    <div className="group/btn px-4 sm:px-6 py-2.5 sm:py-3.5 bg-white text-black text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-full hover:bg-gray-100 transition-all flex items-center gap-2 flex-shrink-0">
                                         <span>Lihat Detail</span>
-                                        <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+                                        <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                                     </div>
                                 </div>
                             </div>
@@ -88,7 +87,7 @@ export default async function ProductShowcase() {
                         href={`/merchandise/${showcaseProducts[1].slug}`}
                         className="group relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl overflow-hidden shadow-2xl hover:shadow-white/10 transition-all duration-500"
                     >
-                        <div className="relative h-[290px]">
+                        <div className="relative h-[250px] sm:h-[290px]">
                             <Image
                                 src={showcaseProducts[1].image}
                                 alt={showcaseProducts[1].name}
@@ -96,20 +95,20 @@ export default async function ProductShowcase() {
                                 sizes="(max-width: 1024px) 100vw, 50vw"
                                 className="object-cover group-hover:scale-105 transition-transform duration-700"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
-                            <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                                <div className="mb-3">
-                                    <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold">
+                            <div className="absolute inset-0 p-5 sm:p-6 flex flex-col justify-end">
+                                <div className="mb-2 sm:mb-3">
+                                    <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
                                         {SHOWCASE_TAGS[1]}
                                     </span>
                                 </div>
-                                <h3 className="text-2xl font-bold mb-2">{showcaseProducts[1].name}</h3>
-                                <div className="flex items-center justify-between">
-                                    <div className="text-2xl font-bold">
+                                <h3 className="text-lg sm:text-2xl font-black mb-3 sm:mb-4 uppercase italic leading-none">{showcaseProducts[1].name}</h3>
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="text-xl sm:text-2xl font-black italic">
                                         {formatPrice(showcaseProducts[1].discountPrice ?? showcaseProducts[1].price)}
                                     </div>
-                                    <div className="px-4 py-2 bg-white text-black text-sm font-semibold rounded-full hover:bg-gray-100 transition-all">
+                                    <div className="px-4 py-2 bg-white text-black text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-gray-100 transition-all flex-shrink-0">
                                         Lihat
                                     </div>
                                 </div>
@@ -122,7 +121,7 @@ export default async function ProductShowcase() {
                         href={`/merchandise/${showcaseProducts[2].slug}`}
                         className="group relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl overflow-hidden shadow-2xl hover:shadow-white/10 transition-all duration-500"
                     >
-                        <div className="relative h-[290px]">
+                        <div className="relative h-[250px] sm:h-[290px]">
                             <Image
                                 src={showcaseProducts[2].image}
                                 alt={showcaseProducts[2].name}
@@ -130,20 +129,20 @@ export default async function ProductShowcase() {
                                 sizes="(max-width: 1024px) 100vw, 50vw"
                                 className="object-cover group-hover:scale-105 transition-transform duration-700"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
-                            <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                                <div className="mb-3">
-                                    <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold">
+                            <div className="absolute inset-0 p-5 sm:p-6 flex flex-col justify-end">
+                                <div className="mb-2 sm:mb-3">
+                                    <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
                                         {SHOWCASE_TAGS[2]}
                                     </span>
                                 </div>
-                                <h3 className="text-2xl font-bold mb-2">{showcaseProducts[2].name}</h3>
-                                <div className="flex items-center justify-between">
-                                    <div className="text-2xl font-bold">
+                                <h3 className="text-lg sm:text-2xl font-black mb-3 sm:mb-4 uppercase italic leading-none">{showcaseProducts[2].name}</h3>
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="text-xl sm:text-2xl font-black italic">
                                         {formatPrice(showcaseProducts[2].discountPrice ?? showcaseProducts[2].price)}
                                     </div>
-                                    <div className="px-4 py-2 bg-white text-black text-sm font-semibold rounded-full hover:bg-gray-100 transition-all">
+                                    <div className="px-4 py-2 bg-white text-black text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-gray-100 transition-all flex-shrink-0">
                                         Lihat
                                     </div>
                                 </div>
