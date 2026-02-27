@@ -29,6 +29,7 @@ async function ensureCategory(categoryName: string): Promise<string> {
 
 // ─── LIST products untuk halaman publik (user-facing) ──────────────────────
 export async function getPublicProducts(search?: string, categorySlug?: string) {
+    const now = new Date();
     const products = await prisma.product.findMany({
         where: {
             isActive: true,
@@ -45,23 +46,54 @@ export async function getPublicProducts(search?: string, categorySlug?: string) 
         include: {
             category: { select: { name: true, slug: true } },
             assets: { select: { url: true }, take: 1 },
+            promotions: {
+                where: {
+                    promotion: {
+                        isActive: true,
+                        deletedAt: null,
+                        startAt: { lte: now },
+                        endAt: { gte: now },
+                    }
+                },
+                include: {
+                    promotion: true
+                }
+            }
         },
         orderBy: { createdAt: 'desc' },
     });
 
-    return products.map((p) => ({
-        id: p.id,
-        name: p.name,
-        slug: p.slug,
-        price: Number(p.regularPrice),
-        discountPrice: p.discountPrice ? Number(p.discountPrice) : null,
-        stock: p.stock,
-        category: p.category.name,
-        categorySlug: p.category.slug,
-        image: p.assets[0]?.url ?? '/images/reusable/placeholder.png',
-        rating: 4.8, // placeholder, bisa dikembangkan ke tabel reviews
-        sales: 0,    // placeholder, bisa dikembangkan ke tabel orders
-    }));
+    return products.map((p) => {
+        const regPrice = Number(p.regularPrice);
+        let discPrice = p.discountPrice ? Number(p.discountPrice) : null;
+
+        // Cek promo aktif (ambil yang pertama jika ada banyak, idealnya hanya 1 per produk)
+        const activePromo = p.promotions[0];
+        if (activePromo) {
+            const promoVal = Number(activePromo.discountValue);
+            if (activePromo.discountType === 'PERCENTAGE') {
+                discPrice = regPrice * (1 - promoVal / 100);
+            } else {
+                discPrice = regPrice - promoVal;
+            }
+        }
+
+        return {
+            id: p.id,
+            name: p.name,
+            slug: p.slug,
+            price: regPrice,
+            discountPrice: discPrice,
+            stock: p.stock,
+            category: p.category.name,
+            categorySlug: p.category.slug,
+            image: p.assets[0]?.url ?? '/images/reusable/placeholder.png',
+            rating: 4.8,
+            sales: 0,
+            hasPromotion: !!activePromo,
+            promoName: activePromo?.promotion.name
+        };
+    });
 }
 
 // ─── GET semua categories aktif untuk filter publik ─────────────────────────
@@ -92,6 +124,15 @@ export async function getAdminProducts(search?: string, categoryFilter?: string)
         include: {
             category: { select: { name: true } },
             assets: { select: { url: true }, take: 1 },
+            promotions: {
+                where: {
+                    promotion: {
+                        isActive: true,
+                        deletedAt: null,
+                    }
+                },
+                include: { promotion: true }
+            }
         },
         orderBy: { createdAt: 'desc' },
     });
@@ -106,19 +147,45 @@ export async function getAdminProducts(search?: string, categoryFilter?: string)
         slug: p.slug,
         image: p.assets[0]?.url ?? null,
         status: (p.isActive ? 'ACTIVE' : 'DRAFT') as 'ACTIVE' | 'DRAFT',
+        promotion: p.promotions[0]?.promotion.name ?? null,
     }));
 }
 
 export async function getProductBySlug(slug: string) {
+    const now = new Date();
     const product = await prisma.product.findUnique({
         where: { slug },
         include: {
             category: true,
             assets: true,
+            promotions: {
+                where: {
+                    promotion: {
+                        isActive: true,
+                        deletedAt: null,
+                        startAt: { lte: now },
+                        endAt: { gte: now },
+                    }
+                },
+                include: { promotion: true }
+            }
         },
     });
 
     if (!product) return null;
+
+    const regPrice = Number(product.regularPrice);
+    let discPrice = product.discountPrice ? Number(product.discountPrice) : null;
+    const activePromo = product.promotions[0];
+
+    if (activePromo) {
+        const promoVal = Number(activePromo.discountValue);
+        if (activePromo.discountType === 'PERCENTAGE') {
+            discPrice = regPrice * (1 - promoVal / 100);
+        } else {
+            discPrice = regPrice - promoVal;
+        }
+    }
 
     return {
         id: product.id,
@@ -126,16 +193,22 @@ export async function getProductBySlug(slug: string) {
         slug: product.slug,
         description: product.description,
         stock: product.stock,
-        regularPrice: Number(product.regularPrice),
-        discountPrice: product.discountPrice ? Number(product.discountPrice) : null,
+        regularPrice: regPrice,
+        discountPrice: discPrice,
         category: product.category.name,
         isActive: product.isActive,
-        images: product.assets.map(a => a.url),
+        images: product.assets.map((a: { url: string }) => a.url),
         sizes: product.sizes || null,
         rating: 4.5,
         sales: 0,
-        price: Number(product.regularPrice),
+        price: discPrice ?? regPrice,
         image: product.assets[0]?.url || '/images/reusable/placeholder.png',
+        promotion: activePromo ? {
+            name: (activePromo as any).promotion.name,
+            endAt: (activePromo as any).promotion.endAt,
+            discountValue: Number(activePromo.discountValue),
+            discountType: activePromo.discountType
+        } : null
     };
 }
 

@@ -24,9 +24,11 @@ async function ProductList() {
                     id={product.id}
                     slug={product.slug}
                     name={product.name}
-                    price={product.discountPrice ?? product.price}
+                    price={product.price}
+                    discountPrice={product.discountPrice}
                     category={product.category}
                     image={product.image}
+                    hasPromotion={product.hasPromotion}
                 />
             ))}
         </div>

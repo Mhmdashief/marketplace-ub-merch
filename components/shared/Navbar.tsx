@@ -6,11 +6,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
+import { useCart } from './ShoppingCart';
+import CartSheet from './CartSheet';
 
 export default function Navbar() {
     // 1. SEMUA HOOKS HARUS DI PALING ATAS
     const { data: session, status } = useSession();
     const pathname = usePathname();
+    const { cart, isCartOpen, setIsCartOpen } = useCart();
 
     // State hooks
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -86,7 +89,7 @@ export default function Navbar() {
     }));
 
     return (
-        <nav className="sticky top-0 z-50 backdrop-blur-glass bg-white/95 border-b border-gray-200 shadow-sm">
+        <nav className="sticky top-0 z-[60] backdrop-blur-glass bg-white/95 border-b border-gray-200 shadow-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     <Link href="/" className="flex items-center space-x-3 flex-shrink-0">
@@ -168,11 +171,16 @@ export default function Navbar() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-ub-navy transition-colors" />
                         </form>
 
-                        <button className="group relative p-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 hover:scale-110 active:scale-95">
+                        <button
+                            onClick={() => setIsCartOpen(true)}
+                            className="group relative p-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 hover:scale-110 active:scale-95"
+                        >
                             <ShoppingCart className="w-6 h-6 text-gray-700 group-hover:text-ub-navy transition-colors" />
-                            <span className="absolute top-1.5 right-1.5 bg-ub-gold text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border-2 border-white shadow-sm group-hover:bg-ub-navy transition-colors">
-                                0
-                            </span>
+                            {cart.length > 0 && (
+                                <span className="absolute top-1.5 right-1.5 bg-ub-gold text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border-2 border-white shadow-sm group-hover:bg-ub-navy transition-colors">
+                                    {cart.length}
+                                </span>
+                            )}
                         </button>
 
                         {status === 'loading' ? (
@@ -201,36 +209,47 @@ export default function Navbar() {
                                 </button>
 
                                 {isUserDropdownOpen && (
-                                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 p-2 animate-fade-in ring-1 ring-black/5 z-50">
-                                        <div className="px-4 py-3 border-b border-gray-100">
-                                            <p className="text-sm font-semibold text-gray-900">
-                                                {session.user?.name || 'User'}
+                                    <div className="absolute right-0 mt-4 w-72 bg-white rounded-3xl shadow-[0_20px_70px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden animate-in slide-in-from-top-4 duration-300 z-50">
+                                        {/* Dropdown Header */}
+                                        <div className="p-6 bg-gray-50/50 border-b border-gray-100">
+                                            <p className="text-sm font-black text-black uppercase tracking-tight truncate">
+                                                {session.user?.name || 'User Profile'}
                                             </p>
-                                            <p className="text-xs text-gray-500 truncate">
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest truncate mt-1">
                                                 {session.user?.email}
                                             </p>
                                         </div>
-                                        <div className="py-1">
-                                            <Link href="/profile" className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200">
-                                                <User className="w-4 h-4" />
-                                                <span>My Profile</span>
-                                            </Link>
-                                            <Link href="/orders" className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200">
-                                                <Package className="w-4 h-4" />
-                                                <span>My Orders</span>
-                                            </Link>
-                                            <Link href="/settings" className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200">
-                                                <Settings className="w-4 h-4" />
-                                                <span>Settings</span>
-                                            </Link>
+
+                                        {/* Menu Items */}
+                                        <div className="p-2">
+                                            {[
+                                                { icon: User, label: 'My Profile', href: '/profile' },
+                                                { icon: Package, label: 'My Orders', href: '/orders' },
+                                            ].map((item) => (
+                                                <Link
+                                                    key={item.label}
+                                                    href={item.href}
+                                                    onClick={() => setIsUserDropdownOpen(false)}
+                                                    className="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-2xl transition-all duration-200 group"
+                                                >
+                                                    <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all duration-300">
+                                                        <item.icon className="w-4 h-4" />
+                                                    </div>
+                                                    <span className="text-[11px] font-black uppercase tracking-widest">{item.label}</span>
+                                                </Link>
+                                            ))}
                                         </div>
-                                        <div className="pt-1 border-t border-gray-100">
+
+                                        {/* Logout Section */}
+                                        <div className="p-2 border-t border-gray-100 bg-gray-50/30">
                                             <button
                                                 onClick={handleLogout}
-                                                className="flex items-center space-x-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                                                className="flex items-center space-x-3 w-full px-4 py-3 text-red-500 hover:bg-red-50 rounded-2xl transition-all duration-200 group"
                                             >
-                                                <LogOut className="w-4 h-4" />
-                                                <span>Logout</span>
+                                                <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all duration-300">
+                                                    <LogOut className="w-4 h-4" />
+                                                </div>
+                                                <span className="text-[11px] font-black uppercase tracking-widest">Logout</span>
                                             </button>
                                         </div>
                                     </div>
@@ -248,13 +267,55 @@ export default function Navbar() {
                         )}
                     </div>
 
-                    {/* Mobile Menu Button */}
-                    <button
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="lg:hidden p-2.5 hover:bg-gray-100 rounded-xl transition-all duration-300 active:scale-95"
-                    >
-                        {isMenuOpen ? <X className="w-6 h-6 text-ub-navy" /> : <Menu className="w-6 h-6 text-gray-700" />}
-                    </button>
+                    {/* Mobile Navigation Icons */}
+                    <div className="flex lg:hidden items-center space-x-1">
+                        <button
+                            onClick={() => setIsCartOpen(true)}
+                            className="relative p-2.5 rounded-full hover:bg-gray-100 transition-all active:scale-95"
+                        >
+                            <ShoppingCart className="w-6 h-6 text-gray-700" />
+                            {cart.length > 0 && (
+                                <span className="absolute top-1.5 right-1.5 bg-ub-gold text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border-2 border-white shadow-sm">
+                                    {cart.length}
+                                </span>
+                            )}
+                        </button>
+
+                        <div className="p-1">
+                            {session ? (
+                                <Link href="/profile" className="flex items-center">
+                                    {session.user?.image ? (
+                                        <Image
+                                            src={session.user.image}
+                                            alt="User"
+                                            width={32}
+                                            height={32}
+                                            className="rounded-full border-2 border-white shadow-sm"
+                                        />
+                                    ) : (
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ub-navy to-ub-gold flex items-center justify-center shadow-sm">
+                                            <span className="text-white text-xs font-bold">
+                                                {session.user?.name?.charAt(0).toUpperCase() || 'U'}
+                                            </span>
+                                        </div>
+                                    )}
+                                </Link>
+                            ) : (
+                                <Link href="/auth/login" className="p-2.5 rounded-full hover:bg-gray-100 transition-all active:scale-95 flex items-center justify-center">
+                                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        <User className="w-4 h-4 text-gray-500" />
+                                    </div>
+                                </Link>
+                            )}
+                        </div>
+
+                        <button
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            className="p-2.5 hover:bg-gray-100 rounded-full transition-all duration-300 active:scale-95"
+                        >
+                            {isMenuOpen ? <X className="w-6 h-6 text-ub-navy" /> : <Menu className="w-6 h-6 text-gray-700" />}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Mobile Menu Content */}
@@ -312,6 +373,7 @@ export default function Navbar() {
                     </div>
                 )}
             </div>
+            <CartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
         </nav>
     );
 }

@@ -12,6 +12,8 @@ interface Product {
     slug: string;
     price: number;
     discountPrice: number | null;
+    hasPromotion?: boolean;
+    promoName?: string;
     stock: number;
     category: string;
     categorySlug: string;
@@ -357,9 +359,9 @@ export default function MerchandiseClient({
 
                                     {/* Product Status Badge */}
                                     <div className="absolute top-6 left-6 flex flex-col gap-2">
-                                        {product.discountPrice && (
+                                        {(product.hasPromotion || product.discountPrice) && (
                                             <span className="px-4 py-2 bg-rose-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl shadow-lg">
-                                                Special Price
+                                                {product.promoName || 'Special Price'}
                                             </span>
                                         )}
                                     </div>
