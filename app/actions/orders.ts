@@ -2,9 +2,6 @@
 
 import { prisma } from '@/lib/prisma';
 
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
 export type CreateOrderInput = {
     items: {
         productId: string;
@@ -29,9 +26,6 @@ type OrderItemPayload = {
     total: number;
 };
 
-// ─────────────────────────────────────────────
-// CREATE ORDER
-// ─────────────────────────────────────────────
 export async function createOrder(data: CreateOrderInput) {
     try {
         let totalSubtotal = 0;
@@ -55,12 +49,24 @@ export async function createOrder(data: CreateOrderInput) {
                 },
             });
 
-            if (!product) throw new Error(`Product ${item.productId} not found`);
-            if (!product.isActive || product.deletedAt) throw new Error(`Product ${product.name} is unavailable`);
+            if (!product) {
+                console.error(`[createOrder] Product not found: id="${item.productId}"`);
+                return {
+                    success: false as const,
+                    error: `Produk dengan ID "${item.productId}" tidak ditemukan. Silakan perbarui keranjang belanja Anda dan coba lagi.`,
+                    staleCart: true,
+                };
+            }
+
+            if (!product.isActive || product.deletedAt) {
+                return {
+                    success: false as const,
+                    error: `Produk "${product.name}" sedang tidak tersedia. Silakan hapus dari keranjang dan coba lagi.`,
+                };
+            }
 
             let price = Number(product.regularPrice);
 
-            // Apply size-specific pricing if applicable
             if (item.size && product.sizes) {
                 try {
                     const sizesConfig = JSON.parse(product.sizes);
@@ -69,7 +75,6 @@ export async function createOrder(data: CreateOrderInput) {
                         price = Number(sizeEntry.regularPrice);
                     }
                 } catch {
-                    // Sizes JSON parse failed — use base price
                 }
             }
 
@@ -105,11 +110,25 @@ export async function createOrder(data: CreateOrderInput) {
         const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
         const orderCode = `UB-${dateStr}-${randomStr}`;
 
+        // Verify userId actually exists in DB before linking.
+        // Session can have a stale/dangling userId (e.g. after DB reset) that
+        // would cause a FK constraint violation — treat as guest order instead.
+        let verifiedUserId: string | null = null;
+        if (data.userId) {
+            const userExists = await prisma.user.findUnique({
+                where: { id: data.userId },
+                select: { id: true },
+            });
+            verifiedUserId = userExists?.id ?? null;
+            if (!userExists) {
+                console.warn(`[createOrder] userId "${data.userId}" not found in DB — creating as guest order.`);
+            }
+        }
+
         const order = await prisma.order.create({
             data: {
                 orderCode,
-                // Link to user account if logged in
-                ...(data.userId ? { userId: data.userId } : {}),
+                ...(verifiedUserId ? { userId: verifiedUserId } : {}),
                 customerName: data.customerName,
                 customerEmail: data.customerEmail,
                 customerPhone: data.customerPhone,
@@ -117,20 +136,22 @@ export async function createOrder(data: CreateOrderInput) {
                 subtotal: totalSubtotal,
                 shippingAmount: data.shippingAmount,
                 totalAmount,
-                // paymentStatus and shippingStatus use enum defaults (PENDING) — not set manually
                 paymentMethod: `${data.courier} - ${data.courierService}`,
                 items: {
                     create: orderItems,
                 },
             },
+
         });
 
         return { success: true as const, orderId: order.id, orderCode: order.orderCode };
     } catch (error) {
-        console.error('Error creating order:', error);
-        return { success: false as const, error: 'Gagal membuat pesanan. Coba lagi.' };
+        const message = error instanceof Error ? error.message : String(error);
+        console.error('[createOrder] Unexpected error:', message);
+        return { success: false as const, error: `Gagal membuat pesanan: ${message}` };
     }
 }
+
 
 // ─────────────────────────────────────────────
 // GET MY ORDERS (by email)

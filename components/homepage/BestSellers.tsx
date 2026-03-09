@@ -1,7 +1,7 @@
 import Image from 'next/image';
-import { TrendingUp, ShoppingBag, Crown, ArrowRight } from 'lucide-react';
+import { TrendingUp, ArrowRight, Crown } from 'lucide-react';
 import Link from 'next/link';
-import { getPublicProducts } from '@/app/actions/products';
+import { getBestSellers } from '@/app/actions/products';
 
 function formatPrice(price: number) {
     return new Intl.NumberFormat('id-ID', {
@@ -12,12 +12,11 @@ function formatPrice(price: number) {
 }
 
 export default async function BestSellers() {
-    const allProducts = await getPublicProducts();
+    const rawProducts = await getBestSellers(4);
 
-    const bestSellers = allProducts.slice(0, 4).map((p, i) => ({
+    const bestSellers = rawProducts.map((p, i) => ({
         ...p,
         rank: i + 1,
-        sales: 100 + i * 30,
     }));
 
     if (bestSellers.length === 0) return null;

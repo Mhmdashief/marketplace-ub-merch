@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
     ChevronLeft,
@@ -14,11 +14,13 @@ import {
     MapPin,
     Plus,
     ChevronDown,
+    UserCheck,
 } from 'lucide-react';
 import { useCart } from '@/components/shared/ShoppingCart';
 import { createOrder } from '@/app/actions/orders';
 import { getUserAddresses } from '@/app/actions/addresses';
 import AddressManager, { type SavedAddress } from '@/components/shared/AddressManager';
+import { getProductById } from '@/app/actions/products';
 
 const SHIPPING_METHODS = [
     {
@@ -46,13 +48,50 @@ const SHIPPING_METHODS = [
 
 export default function CheckoutClient() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { data: session } = useSession();
     const { cart, totalPrice, clearCart } = useCart();
+
+    // ── Direct-purchase mode (from Buy Now on product page) ──────────────────
+    const directProductId = searchParams.get('directProductId');
+    const directQty = parseInt(searchParams.get('qty') || '1', 10);
+    const directSize = searchParams.get('size') || null;
+
+    type DirectProduct = { id: string; name: string; price: number; image: string } | null;
+    const [directProduct, setDirectProduct] = useState<DirectProduct>(null);
+    const [directProductLoading, setDirectProductLoading] = useState(!!directProductId);
+
+    useEffect(() => {
+        if (!directProductId) return;
+        setDirectProductLoading(true);
+        getProductById(directProductId).then((p) => {
+            if (p) {
+                setDirectProduct({
+                    id: p.id,
+                    name: p.name,
+                    price: Number(p.discountPrice ?? p.regularPrice),
+                    image: p.images[0] ?? '/images/reusable/placeholder.png',
+                });
+            }
+            setDirectProductLoading(false);
+        });
+    }, [directProductId]);
+
+    // Items that will be submitted in the order
+    const checkoutItems = directProductId && directProduct
+        ? [{ id: directProduct.id, name: directProduct.name, price: directProduct.price, image: directProduct.image, quantity: directQty, size: directSize }]
+        : cart;
+
+    const checkoutTotal = checkoutItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    // ────────────────────────────────────────────────────────────────────────
 
     const [isMounted, setIsMounted] = useState(false);
     const [checkoutStep, setCheckoutStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submittingMessage, setSubmittingMessage] = useState('Memproses pesanan...');
     const [createdOrderCode, setCreatedOrderCode] = useState<string | null>(null);
+    const [checkoutError, setCheckoutError] = useState<string | null>(null);
+    const [isStaleCart, setIsStaleCart] = useState(false);
 
     // Saved addresses
     const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
@@ -79,28 +118,27 @@ export default function CheckoutClient() {
         setIsMounted(true);
     }, []);
 
-    // Load saved addresses when session is ready
+    // Load saved addresses when session is ready (do NOT auto-fill form)
     useEffect(() => {
         if (session?.user?.id) {
             getUserAddresses(session.user.id).then((res) => {
                 if (res.success && res.addresses) {
                     setSavedAddresses(res.addresses);
-                    // Auto-select default address and pre-fill form
-                    const def = res.addresses.find((a) => a.isDefault);
-                    if (def) {
-                        applyAddress(def, false);
-                    }
                 }
             });
-            // Pre-fill customer info from session
-            setFormData((prev) => ({
-                ...prev,
-                name: session.user?.name || '',
-                email: session.user?.email || '',
-            }));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session]);
+
+    // Isi form dari data akun yang sedang login
+    const fillFromSession = () => {
+        if (!session?.user) return;
+        setFormData((prev) => ({
+            ...prev,
+            name: session.user?.name || '',
+            email: session.user?.email || '',
+        }));
+    };
 
     const applyAddress = (addr: SavedAddress, closePanel = true) => {
         setSelectedAddressId(addr.id);
@@ -116,9 +154,11 @@ export default function CheckoutClient() {
         if (closePanel) setShowAddressPicker(false);
     };
 
-    if (!isMounted) return null;
+    if (!isMounted || directProductLoading) return null;
 
-    if (cart.length === 0 && checkoutStep === 1) {
+    // Guard: no items to checkout
+    // In direct-purchase mode: only block if product fetch failed, not because cart is empty
+    if (checkoutItems.length === 0 && checkoutStep === 1) {
         return (
             <div className="min-h-screen pt-32 pb-20 px-4 flex flex-col items-center justify-center text-center">
                 <div className="w-24 h-24 bg-gray-50 rounded-[2.5rem] flex items-center justify-center mb-8 rotate-12">
@@ -146,21 +186,25 @@ export default function CheckoutClient() {
     const currentCourier = SHIPPING_METHODS.find((m) => m.id === formData.courier);
     const currentService = currentCourier?.services.find((s) => s.id === formData.courierService);
     const shippingPrice = currentService?.price || 0;
-    const finalTotal = totalPrice + shippingPrice;
+    const finalTotal = checkoutTotal + shippingPrice;
 
     const selectedAddress = savedAddresses.find((a) => a.id === selectedAddressId);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setSubmittingMessage('Memproses pesanan...');
+        setCheckoutError(null);
+        setIsStaleCart(false);
 
         const fullAddress = `${formData.address}${formData.notes ? ` (${formData.notes})` : ''}, ${formData.city}, ${formData.province}, ${formData.postalCode}`;
 
+        // Step 1: Buat order di database
         const result = await createOrder({
-            items: cart.map((item) => ({
+            items: checkoutItems.map((item) => ({
                 productId: item.id,
                 quantity: item.quantity,
-                size: item.size,
+                size: item.size ?? null,
             })),
             userId: session?.user?.id ?? null,
             customerName: formData.name,
@@ -172,13 +216,40 @@ export default function CheckoutClient() {
             courierService: formData.courierService,
         });
 
-        setIsSubmitting(false);
-        if (result.success) {
+        if (!result.success) {
+            setIsSubmitting(false);
+            setCheckoutError(result.error ?? 'Terjadi kesalahan.');
+            if ('staleCart' in result && result.staleCart) setIsStaleCart(true);
+            return;
+        }
+
+        // Step 2: Bersihkan cart (hanya untuk checkout cart biasa)
+        if (!directProductId) clearCart();
+
+        // Step 3: Buat Xendit invoice dan redirect ke halaman pembayaran
+        try {
+            setSubmittingMessage('Mengarahkan ke halaman pembayaran...');
+            const invoiceRes = await fetch('/api/xendit/create-invoice', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: result.orderId }),
+            });
+
+            const invoiceData = await invoiceRes.json();
+
+            if (!invoiceRes.ok || !invoiceData.invoiceUrl) {
+                throw new Error(invoiceData.error || 'Gagal membuat invoice pembayaran');
+            }
+
+            // Redirect ke halaman invoice Xendit
+            window.location.href = invoiceData.invoiceUrl;
+        } catch (err) {
+            // Jika gagal buat invoice, tetap tampilkan halaman sukses dengan info order
+            // (user masih bisa bayar nanti dari halaman Orders)
+            console.error('[checkout] Invoice creation failed:', err);
             setCreatedOrderCode(result.orderCode ?? null);
             setCheckoutStep(2);
-            clearCart();
-        } else {
-            alert(result.error);
+            setIsSubmitting(false);
         }
     };
 
@@ -206,13 +277,44 @@ export default function CheckoutClient() {
                                 </p>
                             </div>
 
+                            {/* Error banner */}
+                            {checkoutError && (
+                                <div className="bg-rose-50 border border-rose-200 rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+                                    <div className="flex-1">
+                                        <p className="text-xs font-black text-rose-600 uppercase tracking-widest mb-1">Gagal Membuat Pesanan</p>
+                                        <p className="text-sm text-rose-500 font-medium">{checkoutError}</p>
+                                    </div>
+                                    {isStaleCart && (
+                                        <button
+                                            type="button"
+                                            onClick={() => { clearCart(); setCheckoutError(null); setIsStaleCart(false); }}
+                                            className="flex-shrink-0 px-6 py-3 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-rose-700 transition-all active:scale-95"
+                                        >
+                                            Kosongkan Keranjang
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
                             <form id="checkout-form" onSubmit={handleSubmit} className="space-y-10">
 
                                 {/* ── SECTION 1: Customer Info ── */}
                                 <section className="space-y-8 p-10 bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-gray-100">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-black text-sm italic">1</div>
-                                        <h2 className="text-lg font-black uppercase italic tracking-tight">Informasi Customer</h2>
+                                    <div className="flex items-center justify-between flex-wrap gap-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-black text-sm italic">1</div>
+                                            <h2 className="text-lg font-black text-black uppercase italic tracking-tight">Informasi Customer</h2>
+                                        </div>
+                                        {session?.user && (
+                                            <button
+                                                type="button"
+                                                onClick={fillFromSession}
+                                                className="flex items-center gap-2 px-5 py-2.5 bg-gray-50 text-[10px] font-black uppercase tracking-widest text-black rounded-2xl hover:bg-black hover:text-white transition-all border border-gray-100"
+                                            >
+                                                <UserCheck className="w-3.5 h-3.5" />
+                                                Isi dari Akun Saya
+                                            </button>
+                                        )}
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
@@ -220,8 +322,8 @@ export default function CheckoutClient() {
                                             <input
                                                 required
                                                 type="text"
-                                                className="w-full px-6 py-5 bg-gray-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
-                                                placeholder="Ahmad Syaifulloh"
+                                                className="w-full px-6 py-5 bg-gray-50 border-transparent rounded-2xl text-black focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
+                                                placeholder="John Doe..."
                                                 value={formData.name}
                                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                             />
@@ -231,7 +333,7 @@ export default function CheckoutClient() {
                                             <input
                                                 required
                                                 type="email"
-                                                className="w-full px-6 py-5 bg-gray-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
+                                                className="w-full px-6 py-5 bg-gray-50 border-transparent text-black rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
                                                 placeholder="user@example.com"
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -242,8 +344,7 @@ export default function CheckoutClient() {
                                             <input
                                                 required
                                                 type="tel"
-                                                className="w-full px-6 py-5 bg-gray-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
-                                                placeholder="081234567890"
+                                                className="w-full px-6 py-5 bg-gray-50 border-transparent text-black rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
                                                 value={formData.phone}
                                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                             />
@@ -256,7 +357,7 @@ export default function CheckoutClient() {
                                     <div className="flex items-center justify-between flex-wrap gap-4">
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-black text-sm italic">2</div>
-                                            <h2 className="text-lg font-black uppercase italic tracking-tight">Alamat Pengiriman</h2>
+                                            <h2 className="text-lg font-black uppercase text-black italic tracking-tight">Alamat Pengiriman</h2>
                                         </div>
 
                                         {/* Saved address picker trigger */}
@@ -346,8 +447,8 @@ export default function CheckoutClient() {
                                             <input
                                                 required
                                                 type="text"
-                                                className="w-full px-6 py-5 bg-gray-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
-                                                placeholder="Ahmad Syaifulloh"
+                                                className="w-full px-6 py-5 bg-gray-50 border-transparent rounded-2xl text-black focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
+                                                placeholder="John Doe..."
                                                 value={formData.recipientName}
                                                 onChange={(e) => setFormData({ ...formData, recipientName: e.target.value })}
                                             />
@@ -357,7 +458,7 @@ export default function CheckoutClient() {
                                             <textarea
                                                 required
                                                 rows={2}
-                                                className="w-full px-6 py-5 bg-gray-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold resize-none"
+                                                className="w-full px-6 py-5 bg-gray-50 border-transparent text-black rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold resize-none"
                                                 placeholder="Jl. Veteran No. 10, RT 01/RW 02"
                                                 value={formData.address}
                                                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -368,7 +469,7 @@ export default function CheckoutClient() {
                                             <input
                                                 required
                                                 type="text"
-                                                className="w-full px-6 py-5 bg-gray-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
+                                                className="w-full px-6 py-5 bg-gray-50 border-transparent text-black rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
                                                 placeholder="Kota Malang"
                                                 value={formData.city}
                                                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
@@ -379,7 +480,7 @@ export default function CheckoutClient() {
                                             <input
                                                 required
                                                 type="text"
-                                                className="w-full px-6 py-5 bg-gray-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
+                                                className="w-full px-6 py-5 bg-gray-50 border-transparent text-black rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
                                                 placeholder="Jawa Timur"
                                                 value={formData.province}
                                                 onChange={(e) => setFormData({ ...formData, province: e.target.value })}
@@ -390,7 +491,7 @@ export default function CheckoutClient() {
                                             <input
                                                 required
                                                 type="text"
-                                                className="w-full px-6 py-5 bg-gray-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
+                                                className="w-full px-6 py-5 bg-gray-50 border-transparent text-black rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
                                                 placeholder="65145"
                                                 value={formData.postalCode}
                                                 onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
@@ -400,8 +501,7 @@ export default function CheckoutClient() {
                                             <label className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 px-2">Catatan (Opsional)</label>
                                             <input
                                                 type="text"
-                                                className="w-full px-6 py-5 bg-gray-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
-                                                placeholder="Pagar warna hitam"
+                                                className="w-full px-6 py-5 bg-gray-50 border-transparent text-black rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
                                                 value={formData.notes}
                                                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                                             />
@@ -413,7 +513,7 @@ export default function CheckoutClient() {
                                 <section className="space-y-8 p-10 bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-gray-100">
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-black text-sm italic">3</div>
-                                        <h2 className="text-lg font-black uppercase italic tracking-tight">Metode Pengiriman</h2>
+                                        <h2 className="text-lg font-black text-black uppercase italic tracking-tight">Metode Pengiriman</h2>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -466,12 +566,15 @@ export default function CheckoutClient() {
                             <div className="bg-black text-white p-10 rounded-[3rem] shadow-2xl relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-ub-gold/20 blur-3xl -mr-16 -mt-16 rounded-full" />
 
-                                <h3 className="text-xl font-black uppercase italic tracking-tighter mb-10 pb-6 border-b border-white/10">
+                                <h3 className="text-xl font-black uppercase italic tracking-tighter mb-10 pb-6 border-b border-white/10 flex items-center gap-3">
                                     Order Registry
+                                    {directProductId && (
+                                        <span className="text-[9px] font-black uppercase tracking-widest bg-ub-gold text-black px-2 py-1 rounded-lg">Beli Langsung</span>
+                                    )}
                                 </h3>
 
                                 <div className="space-y-8 mb-12 max-h-[380px] overflow-y-auto pr-2" style={{ scrollbarWidth: 'none' }}>
-                                    {cart.map((item) => (
+                                    {checkoutItems.map((item) => (
                                         <div key={`${item.id}-${item.size}`} className="flex gap-6 group">
                                             <div className="relative w-20 h-24 rounded-2xl overflow-hidden bg-white/5 flex-shrink-0">
                                                 <Image src={item.image} alt={item.name} fill className="object-cover" />
@@ -492,7 +595,7 @@ export default function CheckoutClient() {
                                 <div className="space-y-6 pt-6 border-t border-white/10">
                                     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
                                         <span>Merchandise</span>
-                                        <span className="text-white">{formatPrice(totalPrice)}</span>
+                                        <span className="text-white">{formatPrice(checkoutTotal)}</span>
                                     </div>
                                     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
                                         <span>Ongkir ({formData.courier})</span>
@@ -517,7 +620,10 @@ export default function CheckoutClient() {
                                     className="w-full py-6 mt-12 bg-ub-gold text-black text-[11px] font-black uppercase tracking-[0.3em] rounded-[2rem] hover:bg-white hover:scale-[1.02] transition-all flex items-center justify-center gap-4 active:scale-[0.98] disabled:opacity-50"
                                 >
                                     {isSubmitting ? (
-                                        <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">{submittingMessage}</span>
+                                        </div>
                                     ) : (
                                         <>
                                             Place Final Order
@@ -525,18 +631,6 @@ export default function CheckoutClient() {
                                         </>
                                     )}
                                 </button>
-                            </div>
-
-                            <div className="p-8 bg-gray-50 rounded-[2rem] border border-gray-100 flex items-center gap-6">
-                                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                                    <Lock className="w-6 h-6 text-emerald-500" />
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black uppercase text-black tracking-widest">Secure Handshake</p>
-                                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tight mt-1">
-                                        End-to-end encrypted order processing
-                                    </p>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -547,12 +641,12 @@ export default function CheckoutClient() {
                             <CheckCircle2 className="w-20 h-20 text-emerald-500" />
                         </div>
                         <div className="space-y-6">
-                            <h2 className="text-6xl font-black text-black tracking-tighter uppercase italic">Registry Complete</h2>
+                            <h2 className="text-6xl font-black text-black tracking-tighter uppercase italic">Order Terdaftar</h2>
                             <p className="text-[12px] font-black text-ub-gold uppercase tracking-[0.4em]">
                                 Order Reference: {createdOrderCode}
                             </p>
                             <p className="text-xl text-gray-500 font-medium max-w-lg mx-auto leading-relaxed border-l-4 border-emerald-100 pl-8">
-                                Pesanan Anda telah berhasil dicatat. Tahap berikutnya adalah integrasi payment gateway.
+                                Pesanan Anda telah dicatat. Silakan selesaikan pembayaran melalui halaman <strong>Pesanan Saya</strong>.
                             </p>
                         </div>
                         <div className="pt-12 flex flex-col sm:flex-row gap-6 w-full max-w-lg">

@@ -18,13 +18,16 @@ const PRODUCT_CATEGORIES = [
     'Polo', 'Sepatu', 'Vest', 'Totebag & Slempang',
 ];
 
+// Map showcase label names → formData key
 const SHOWCASE_LABELS = [
-    { name: 'Featured Product', icon: <Star className="h-4 w-4" />, color: 'ub-gold' },
-    { name: 'New Arrivals', icon: <Zap className="h-4 w-4" />, color: 'blue-400' },
-    { name: 'Best Sellers', icon: <TrendingUp className="h-4 w-4" />, color: 'emerald-400' },
-    { name: 'Exclusive Showcase', icon: <ShieldCheck className="h-4 w-4" />, color: 'purple-400' },
-    { name: 'Koleksi Pilihan', icon: <Heart className="h-4 w-4" />, color: 'rose-400' },
-];
+    { name: 'Featured Product', key: 'isFeatured', icon: <Star className="h-4 w-4" />, color: 'ub-gold' },
+    { name: 'New Arrivals', key: 'isNewArrival', icon: <Zap className="h-4 w-4" />, color: 'blue-400' },
+    { name: 'Best Sellers', key: 'isBestSeller', icon: <TrendingUp className="h-4 w-4" />, color: 'emerald-400' },
+    { name: 'Exclusive Showcase', key: 'isExclusiveShowcase', icon: <ShieldCheck className="h-4 w-4" />, color: 'purple-400' },
+    { name: 'Koleksi Pilihan', key: 'isKoleksiPilihan', icon: <Heart className="h-4 w-4" />, color: 'rose-400' },
+] as const;
+
+type ShowcaseKey = typeof SHOWCASE_LABELS[number]['key'];
 
 export default function NewProductPage() {
     const router = useRouter();
@@ -40,6 +43,15 @@ export default function NewProductPage() {
     const [isActive, setIsActive] = useState(true);
     const [images, setImages] = useState<File[]>([]);
     const [sizesJson, setSizesJson] = useState<string | null>(null);
+
+    // Showcase flags state
+    const [showcaseFlags, setShowcaseFlags] = useState<Record<ShowcaseKey, boolean>>({
+        isFeatured: false,
+        isNewArrival: false,
+        isBestSeller: false,
+        isExclusiveShowcase: false,
+        isKoleksiPilihan: false,
+    });
 
     // UI state
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -67,8 +79,12 @@ export default function NewProductPage() {
         setImages((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const toggleFlag = (key: ShowcaseKey) => {
+        setShowcaseFlags(prev => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const handleSubmit = async (e?: React.FormEvent) => {
+        e?.preventDefault();
         setError('');
 
         if (!name.trim()) return setError('Nama produk wajib diisi.');
@@ -87,10 +103,14 @@ export default function NewProductPage() {
         formData.set('stock', stock);
         formData.set('isActive', String(isActive));
 
+        // Showcase flags
+        (Object.keys(showcaseFlags) as ShowcaseKey[]).forEach(key => {
+            formData.set(key, String(showcaseFlags[key]));
+        });
+
         // Include sizes
         if (sizesJson) formData.set('sizes', sizesJson);
 
-        // 🔥 INI BAGIAN PENTING
         images.forEach((file) => {
             formData.append('images', file);
         });
@@ -126,7 +146,7 @@ export default function NewProductPage() {
 
                 <button
                     type="button"
-                    onClick={handleSubmit}
+                    onClick={() => handleSubmit()}
                     disabled={isPending}
                     className="inline-flex items-center gap-3 px-8 py-4 bg-ub-gold hover:bg-ub-gold/90 disabled:opacity-50 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-500 shadow-xl shadow-ub-gold/10 active:scale-95 group"
                 >
@@ -291,7 +311,7 @@ export default function NewProductPage() {
                     <div className="bg-[#001a33] rounded-[40px] shadow-2xl border border-white/5 p-8 space-y-6">
                         <div>
                             <h2 className="text-sm font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Product Assets</h2>
-                            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">Preview only — image hosting coming soon</p>
+                            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">Upload gambar produk (PNG, JPG, WEBP — maks 5MB)</p>
                         </div>
                         <div className="border-2 border-dashed border-white/5 rounded-[32px] p-12 flex flex-col items-center justify-center hover:border-ub-gold hover:bg-white/5 transition-all cursor-pointer relative group">
                             <input type="file" multiple accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} />
@@ -325,23 +345,45 @@ export default function NewProductPage() {
                         baseDiscountPrice={discountPrice ? Number(discountPrice) : null}
                         onChange={setSizesJson}
                     />
+
+                    {/* Showcase Labels */}
                     <div className="bg-[#001a33] rounded-[40px] shadow-2xl p-8 border border-white/5 relative overflow-hidden">
-                        <h2 className="text-sm font-black text-ub-gold uppercase tracking-[0.2em] mb-8">Showcase Labels</h2>
+                        <h2 className="text-sm font-black text-ub-gold uppercase tracking-[0.2em] mb-2">Showcase Labels</h2>
+                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mb-6">Tentukan di seksi mana produk ini tampil di homepage</p>
                         <div className="space-y-3">
-                            {SHOWCASE_LABELS.map(({ name: labelName, icon, color }) => (
-                                <label key={labelName} className="flex items-center justify-between p-5 bg-white/5 hover:bg-white/10 rounded-2xl cursor-pointer transition-all border border-white/5">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`p-2 bg-${color}/10 rounded-lg text-${color}`}>
-                                            {icon}
+                            {SHOWCASE_LABELS.map(({ name: labelName, key, icon }) => {
+                                const isChecked = showcaseFlags[key];
+                                return (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        onClick={() => toggleFlag(key)}
+                                        className={`w-full flex items-center justify-between p-5 rounded-2xl cursor-pointer transition-all border ${isChecked
+                                                ? 'bg-ub-gold/10 border-ub-gold/30'
+                                                : 'bg-white/5 hover:bg-white/10 border-white/5'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`p-2 rounded-lg transition-colors ${isChecked ? 'bg-ub-gold/20 text-ub-gold' : 'bg-white/5 text-gray-500'}`}>
+                                                {icon}
+                                            </div>
+                                            <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${isChecked ? 'text-white' : 'text-gray-400'}`}>
+                                                {labelName}
+                                            </span>
                                         </div>
-                                        <span className="text-[10px] font-black text-white uppercase tracking-widest">{labelName}</span>
-                                    </div>
-                                    <input type="checkbox" className={`w-5 h-5 rounded-lg border-white/20 bg-transparent text-${color} focus:ring-${color} focus:ring-offset-0 transition-all cursor-pointer`} />
-                                </label>
-                            ))}
+                                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${isChecked
+                                                ? 'bg-ub-gold border-ub-gold shadow-lg shadow-ub-gold/20'
+                                                : 'bg-white/5 border-white/10'
+                                            }`}>
+                                            {isChecked && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
+                    {/* Availability */}
                     <div className="bg-[#001a33] rounded-[40px] border border-white/5 p-8 space-y-6">
                         <h2 className="text-sm font-black text-gray-500 uppercase tracking-[0.2em]">Availability</h2>
                         <label className="flex items-center gap-3 cursor-pointer group">
@@ -361,10 +403,10 @@ export default function NewProductPage() {
                         </label>
                     </div>
 
-                    {/* Submit button (duplicate for sticky feel on mobile) */}
+                    {/* Submit button */}
                     <button
                         type="button"
-                        onClick={handleSubmit}
+                        onClick={() => handleSubmit()}
                         disabled={isPending}
                         className="w-full inline-flex items-center justify-center gap-3 px-8 py-5 bg-ub-gold hover:bg-ub-gold/90 disabled:opacity-50 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-500 shadow-xl shadow-ub-gold/10 active:scale-95"
                     >

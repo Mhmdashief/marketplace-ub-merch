@@ -1,52 +1,18 @@
-import { Suspense } from 'react';
 import Link from 'next/link';
 import ProductCard from '../shared/ProductCard';
-import ProductSkeleton from '../shared/ProductSkeleton';
-import { getPublicProducts, getPublicCategories } from '@/app/actions/products';
-
-async function ProductList() {
-    const products = await getPublicProducts();
-    const displayProducts = products.slice(0, 12);
-
-    if (displayProducts.length === 0) {
-        return (
-            <p className="col-span-4 text-center text-gray-400 py-16 font-medium">
-                Produk belum tersedia. Tambahkan dari panel admin.
-            </p>
-        );
-    }
-
-    return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-10 sm:gap-y-16">
-            {displayProducts.map((product) => (
-                <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    slug={product.slug}
-                    name={product.name}
-                    price={product.price}
-                    discountPrice={product.discountPrice}
-                    category={product.category}
-                    image={product.image}
-                    hasPromotion={product.hasPromotion}
-                />
-            ))}
-        </div>
-    );
-}
-
-function ProductGridSkeleton() {
-    return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {[...Array(8)].map((_, i) => (
-                <ProductSkeleton key={i} />
-            ))}
-        </div>
-    );
-}
+import { getKoleksiPilihanProducts, getPublicCategories } from '@/app/actions/products';
 
 export default async function ProductGrid() {
-    const categories = await getPublicCategories();
+    // Fetch produk dan kategori secara paralel
+    const [products, categories] = await Promise.all([
+        getKoleksiPilihanProducts(12),
+        getPublicCategories(),
+    ]);
+
+    // Jika tidak ada produk yang ditandai Koleksi Pilihan,
+    // sembunyikan seluruh section — sama seperti section lainnya.
+    if (products.length === 0) return null;
+
     const homeCategories = [{ name: 'All', slug: 'all' }, ...categories.slice(0, 6)];
 
     return (
@@ -63,7 +29,7 @@ export default async function ProductGrid() {
                         Koleksi <span className="italic font-light text-gray-600">Pilihan</span>
                     </h2>
 
-                    {/* Category Quick Links*/}
+                    {/* Category Quick Links */}
                     <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
                         {homeCategories.map((cat) => (
                             <Link
@@ -78,9 +44,21 @@ export default async function ProductGrid() {
                 </div>
 
                 {/* Product Grid */}
-                <Suspense fallback={<ProductGridSkeleton />}>
-                    <ProductList />
-                </Suspense>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-10 sm:gap-y-16">
+                    {products.map((product) => (
+                        <ProductCard
+                            key={product.id}
+                            id={product.id}
+                            slug={product.slug}
+                            name={product.name}
+                            price={product.price}
+                            discountPrice={product.discountPrice}
+                            category={product.category}
+                            image={product.image}
+                            hasPromotion={product.hasPromotion}
+                        />
+                    ))}
+                </div>
 
                 {/* View All Button */}
                 <div className="text-center mt-24">

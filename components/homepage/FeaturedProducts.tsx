@@ -1,11 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Star } from 'lucide-react';
-import { getPublicProducts } from '@/app/actions/products';
+import { getFeaturedProducts } from '@/app/actions/products';
 
 export default async function FeaturedProducts() {
-    const allProducts = await getPublicProducts();
-    const featuredProducts = allProducts.slice(0, 2);
+    const featuredProducts = await getFeaturedProducts(2);
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('id-ID', {

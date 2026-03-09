@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { ShoppingCart, Plus } from 'lucide-react';
 import Link from 'next/link';
-import { getPublicProducts } from '@/app/actions/products';
+import { getNewArrivals } from '@/app/actions/products';
 
 function formatPrice(price: number) {
     return new Intl.NumberFormat('id-ID', {
@@ -12,8 +12,7 @@ function formatPrice(price: number) {
 }
 
 export default async function NewArrivals() {
-    const allProducts = await getPublicProducts();
-    const newArrivals = allProducts.slice(0, 6);
+    const newArrivals = await getNewArrivals(6);
 
     if (newArrivals.length === 0) return null;
 

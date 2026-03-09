@@ -12,13 +12,16 @@ import { updateProduct } from '@/app/actions/products';
 import { PRODUCT_CATEGORIES } from '@/app/constant/product-categories';
 import SizeManager from '@/components/admin/SizeManager';
 
+// Map showcase label names → formData key
 const SHOWCASE_LABELS = [
-    { name: 'Featured Product', icon: <Star className="h-4 w-4" />, color: 'ub-gold' },
-    { name: 'New Arrivals', icon: <Zap className="h-4 w-4" />, color: 'blue-400' },
-    { name: 'Best Sellers', icon: <TrendingUp className="h-4 w-4" />, color: 'emerald-400' },
-    { name: 'Exclusive Showcase', icon: <ShieldCheck className="h-4 w-4" />, color: 'purple-400' },
-    { name: 'Koleksi Pilihan', icon: <Heart className="h-4 w-4" />, color: 'rose-400' },
-];
+    { name: 'Featured Product', key: 'isFeatured', icon: <Star className="h-4 w-4" />, color: 'ub-gold' },
+    { name: 'New Arrivals', key: 'isNewArrival', icon: <Zap className="h-4 w-4" />, color: 'blue-400' },
+    { name: 'Best Sellers', key: 'isBestSeller', icon: <TrendingUp className="h-4 w-4" />, color: 'emerald-400' },
+    { name: 'Exclusive Showcase', key: 'isExclusiveShowcase', icon: <ShieldCheck className="h-4 w-4" />, color: 'purple-400' },
+    { name: 'Koleksi Pilihan', key: 'isKoleksiPilihan', icon: <Heart className="h-4 w-4" />, color: 'rose-400' },
+] as const;
+
+type ShowcaseKey = typeof SHOWCASE_LABELS[number]['key'];
 
 interface ProductData {
     id: string;
@@ -31,6 +34,12 @@ interface ProductData {
     isActive: boolean;
     images?: string[];
     sizes?: string | null;
+    // Showcase flags
+    isFeatured?: boolean;
+    isNewArrival?: boolean;
+    isBestSeller?: boolean;
+    isExclusiveShowcase?: boolean;
+    isKoleksiPilihan?: boolean;
 }
 
 export default function EditProductForm({ product }: { product: ProductData }) {
@@ -54,6 +63,15 @@ export default function EditProductForm({ product }: { product: ProductData }) {
 
     // Sizes state — kept as JSON string or null
     const [sizesJson, setSizesJson] = useState<string | null>(product.sizes ?? null);
+
+    // Showcase flags — initialised from server data
+    const [showcaseFlags, setShowcaseFlags] = useState<Record<ShowcaseKey, boolean>>({
+        isFeatured: product.isFeatured ?? false,
+        isNewArrival: product.isNewArrival ?? false,
+        isBestSeller: product.isBestSeller ?? false,
+        isExclusiveShowcase: product.isExclusiveShowcase ?? false,
+        isKoleksiPilihan: product.isKoleksiPilihan ?? false,
+    });
 
     // UI state
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -84,8 +102,11 @@ export default function EditProductForm({ product }: { product: ProductData }) {
     const removeExistingImage = (index: number) =>
         setExistingImages((prev) => prev.filter((_, i) => i !== index));
 
-    // ── Core submit logic (no event param so it can be called from both
-    //    the native form's onSubmit AND the header/sidebar button's onClick)
+    const toggleFlag = (key: ShowcaseKey) => {
+        setShowcaseFlags(prev => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    // ── Core submit logic ──────────────────────────────────────────────────────
     const doSubmit = () => {
         setError('');
         setSuccess(false);
@@ -105,6 +126,11 @@ export default function EditProductForm({ product }: { product: ProductData }) {
         fd.set('stock', stock);
         fd.set('isActive', String(isActive));
 
+        // Showcase flags
+        (Object.keys(showcaseFlags) as ShowcaseKey[]).forEach(key => {
+            fd.set(key, String(showcaseFlags[key]));
+        });
+
         // Include sizes JSON if set
         if (sizesJson) fd.set('sizes', sizesJson);
 
@@ -122,7 +148,7 @@ export default function EditProductForm({ product }: { product: ProductData }) {
         });
     };
 
-    // Wrapper for <form onSubmit> — prevents default page reload
+    // Wrapper for <form onSubmit>
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         doSubmit();
@@ -131,7 +157,7 @@ export default function EditProductForm({ product }: { product: ProductData }) {
     return (
         <div className="space-y-10 py-6 pb-20 px-4 md:px-8 bg-[#000d1a] min-h-screen">
 
-            {/* ── Header ────────────────────────────────────────────── */}
+            {/* ── Header ──────────────────────────────────────────────── */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-white/5 pb-10">
                 <div>
                     <div className="flex items-center gap-2 mb-2">
@@ -450,31 +476,45 @@ export default function EditProductForm({ product }: { product: ProductData }) {
                         baseDiscountPrice={discountPrice ? Number(discountPrice) : product.discountPrice}
                         onChange={setSizesJson}
                     />
+
                     {/* Showcase labels */}
                     <div className="bg-[#001a33] rounded-[40px] shadow-2xl p-8 border border-white/5">
-                        <h2 className="text-sm font-black text-ub-gold uppercase tracking-[0.2em] mb-8">
+                        <h2 className="text-sm font-black text-ub-gold uppercase tracking-[0.2em] mb-2">
                             Label Showcase
                         </h2>
+                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mb-6">
+                            Tentukan di seksi mana produk ini tampil di homepage
+                        </p>
                         <div className="space-y-3">
-                            {SHOWCASE_LABELS.map(({ name: labelName, icon, color }) => (
-                                <label
-                                    key={labelName}
-                                    className="flex items-center justify-between p-5 bg-white/5 hover:bg-white/10 rounded-2xl cursor-pointer transition-all border border-white/5"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className={`p-2 bg-${color}/10 rounded-lg text-${color}`}>
-                                            {icon}
+                            {SHOWCASE_LABELS.map(({ name: labelName, key, icon }) => {
+                                const isChecked = showcaseFlags[key];
+                                return (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        onClick={() => toggleFlag(key)}
+                                        className={`w-full flex items-center justify-between p-5 rounded-2xl cursor-pointer transition-all border ${isChecked
+                                                ? 'bg-ub-gold/10 border-ub-gold/30'
+                                                : 'bg-white/5 hover:bg-white/10 border-white/5'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`p-2 rounded-lg transition-colors ${isChecked ? 'bg-ub-gold/20 text-ub-gold' : 'bg-white/5 text-gray-500'}`}>
+                                                {icon}
+                                            </div>
+                                            <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${isChecked ? 'text-white' : 'text-gray-400'}`}>
+                                                {labelName}
+                                            </span>
                                         </div>
-                                        <span className="text-[10px] font-black text-white uppercase tracking-widest">
-                                            {labelName}
-                                        </span>
-                                    </div>
-                                    <input
-                                        type="checkbox"
-                                        className="w-5 h-5 rounded-lg accent-ub-gold cursor-pointer"
-                                    />
-                                </label>
-                            ))}
+                                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${isChecked
+                                                ? 'bg-ub-gold border-ub-gold shadow-lg shadow-ub-gold/20'
+                                                : 'bg-white/5 border-white/10'
+                                            }`}>
+                                            {isChecked && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
