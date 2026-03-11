@@ -26,6 +26,33 @@ type OrderItemPayload = {
     total: number;
 };
 
+function sanitizeOrder(order: any) {
+    if (!order) return null;
+    return {
+        ...order,
+        subtotal: order.subtotal ? Number(order.subtotal) : 0,
+        discountAmount: order.discountAmount ? Number(order.discountAmount) : 0,
+        shippingAmount: order.shippingAmount ? Number(order.shippingAmount) : 0,
+        totalAmount: order.totalAmount ? Number(order.totalAmount) : 0,
+        paidAt: order.paidAt?.toISOString() || null,
+        expiredAt: order.expiredAt?.toISOString() || null,
+        createdAt: order.createdAt?.toISOString() || null,
+        updatedAt: order.updatedAt?.toISOString() || null,
+        items: (order.items || []).map((item: any) => ({
+            ...item,
+            price: Number(item.price),
+            total: Number(item.total),
+            createdAt: item.createdAt?.toISOString() || null,
+            // Jika ada objek product (misal di detail order)
+            product: item.product ? {
+                ...item.product,
+                regularPrice: item.product.regularPrice ? Number(item.product.regularPrice) : undefined,
+                discountPrice: item.product.discountPrice ? Number(item.product.discountPrice) : undefined,
+            } : undefined
+        }))
+    };
+}
+
 export async function createOrder(data: CreateOrderInput) {
     try {
         let totalSubtotal = 0;
@@ -53,7 +80,7 @@ export async function createOrder(data: CreateOrderInput) {
                 console.error(`[createOrder] Product not found: id="${item.productId}"`);
                 return {
                     success: false as const,
-                    error: `Produk dengan ID "${item.productId}" tidak ditemukan. Silakan perbarui keranjang belanja Anda dan coba lagi.`,
+                    error: `Produk dengan ID "${item.productId}" tidak ditemukan.`,
                     staleCart: true,
                 };
             }
@@ -61,7 +88,7 @@ export async function createOrder(data: CreateOrderInput) {
             if (!product.isActive || product.deletedAt) {
                 return {
                     success: false as const,
-                    error: `Produk "${product.name}" sedang tidak tersedia. Silakan hapus dari keranjang dan coba lagi.`,
+                    error: `Produk "${product.name}" sedang tidak tersedia.`,
                 };
             }
 
@@ -70,15 +97,13 @@ export async function createOrder(data: CreateOrderInput) {
             if (item.size && product.sizes) {
                 try {
                     const sizesConfig = JSON.parse(product.sizes);
-                    const sizeEntry = sizesConfig.sizes?.find((s: { value: string; regularPrice?: number }) => s.value === item.size);
+                    const sizeEntry = sizesConfig.sizes?.find((s: any) => s.value === item.size);
                     if (sizeEntry && Number(sizeEntry.regularPrice) > 0) {
                         price = Number(sizeEntry.regularPrice);
                     }
-                } catch {
-                }
+                } catch { }
             }
 
-            // Apply active promotion or discount price
             const activePromo = product.promotions[0];
             if (activePromo) {
                 const promoVal = Number(activePromo.discountValue);
@@ -104,15 +129,10 @@ export async function createOrder(data: CreateOrderInput) {
         }
 
         const totalAmount = totalSubtotal + data.shippingAmount;
-
-        // Generate unique order code: UB-YYYYMMDD-XXXXX
         const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
         const orderCode = `UB-${dateStr}-${randomStr}`;
 
-        // Verify userId actually exists in DB before linking.
-        // Session can have a stale/dangling userId (e.g. after DB reset) that
-        // would cause a FK constraint violation — treat as guest order instead.
         let verifiedUserId: string | null = null;
         if (data.userId) {
             const userExists = await prisma.user.findUnique({
@@ -120,9 +140,6 @@ export async function createOrder(data: CreateOrderInput) {
                 select: { id: true },
             });
             verifiedUserId = userExists?.id ?? null;
-            if (!userExists) {
-                console.warn(`[createOrder] userId "${data.userId}" not found in DB — creating as guest order.`);
-            }
         }
 
         const order = await prisma.order.create({
@@ -141,65 +158,19 @@ export async function createOrder(data: CreateOrderInput) {
                     create: orderItems,
                 },
             },
-
         });
 
         return { success: true as const, orderId: order.id, orderCode: order.orderCode };
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error('[createOrder] Unexpected error:', message);
-        return { success: false as const, error: `Gagal membuat pesanan: ${message}` };
+        console.error('[createOrder] Error:', error);
+        return { success: false as const, error: 'Gagal membuat pesanan' };
     }
 }
 
-
-// ─────────────────────────────────────────────
-// GET MY ORDERS (by email)
-// ─────────────────────────────────────────────
 export async function getMyOrders(email: string) {
     try {
         const orders = await prisma.order.findMany({
-            where: {
-                customerEmail: email,
-            },
-            include: {
-                items: {
-                    include: {
-                        product: {
-                            select: {
-                                id: true,
-                                name: true,
-                                slug: true,
-                                assets: {
-                                    take: 1,
-                                    select: { url: true },
-                                },
-                            },
-                        },
-                    },
-                    orderBy: { createdAt: 'asc' },
-                },
-            },
-            orderBy: { createdAt: 'desc' },
-        });
-
-        return { success: true as const, orders };
-    } catch (error) {
-        console.error('Error fetching orders:', error);
-        return { success: false as const, error: 'Gagal mengambil data pesanan' };
-    }
-}
-
-// ─────────────────────────────────────────────
-// GET SINGLE ORDER DETAIL (by ID + email for security)
-// ─────────────────────────────────────────────
-export async function getOrderDetail(orderId: string, email: string) {
-    try {
-        const order = await prisma.order.findFirst({
-            where: {
-                id: orderId,
-                customerEmail: email,
-            },
+            where: { customerEmail: email },
             include: {
                 items: {
                     include: {
@@ -212,13 +183,44 @@ export async function getOrderDetail(orderId: string, email: string) {
                             },
                         },
                     },
+                    orderBy: { createdAt: 'asc' },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        return { success: true as const, orders: orders.map(sanitizeOrder) };
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        return { success: false as const, error: 'Gagal mengambil data pesanan' };
+    }
+}
+
+export async function getOrderDetail(orderId: string, email: string) {
+    try {
+        const order = await prisma.order.findFirst({
+            where: { id: orderId, customerEmail: email },
+            include: {
+                items: {
+                    include: {
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                                assets: { take: 1, select: { url: true } },
+                                regularPrice: true,
+                                discountPrice: true,
+                            },
+                        },
+                    },
                 },
             },
         });
 
         if (!order) return { success: false as const, error: 'Pesanan tidak ditemukan' };
 
-        return { success: true as const, order };
+        return { success: true as const, order: sanitizeOrder(order) };
     } catch (error) {
         console.error('Error fetching order detail:', error);
         return { success: false as const, error: 'Gagal mengambil detail pesanan' };

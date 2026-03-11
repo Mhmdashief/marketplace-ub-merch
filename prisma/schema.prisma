@@ -36,6 +36,7 @@ enum ShippingStatus {
   SHIPPED
   DELIVERED
   RETURNED
+  CANCELLED
 }
 
 enum DiscountType {
@@ -249,6 +250,8 @@ model Order {
 
   paymentMethod   String?
   paymentRef      String?
+  invoiceUrl      String?
+  trackingNumber  String?
   paidAt          DateTime?
   expiredAt       DateTime?
 

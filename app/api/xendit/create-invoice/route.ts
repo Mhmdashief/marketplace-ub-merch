@@ -21,8 +21,7 @@ export async function POST(req: NextRequest) {
 
         if (!order.customerEmail) {
             return NextResponse.json(
-                { error: 'email customer tidak tersedia' },
-                { status: 400 }
+                { error: 'email customer tidak tersedia' }, { status: 400 }
             );
         }
 
@@ -44,6 +43,7 @@ export async function POST(req: NextRequest) {
             where: { id: order.id },
             data: {
                 paymentRef: invoice.id,
+                invoiceUrl: invoice.invoice_url,
                 expiredAt: invoice.expiry_date
                     ? new Date(invoice.expiry_date)
                     : null,
@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
             success: true,
             invoiceUrl: invoice.invoice_url,
             invoiceId: invoice.id,
+            orderCode: order.orderCode,
         });
 
     } catch (error) {

@@ -9,43 +9,59 @@ import Link from "next/link";
 export default async function AdminDashboard() {
     const session = await auth();
 
-    // Fetch statistics
-    const [totalUsers, totalProducts, totalOrders] = await Promise.all([
+    // Fetch semua stats dari database secara paralel
+    const [
+        totalUsers,
+        totalProducts,
+        totalOrders,
+        revenueResult,
+        pendingOrders,
+    ] = await Promise.all([
         prisma.user.count(),
-        Promise.resolve(0),
-        Promise.resolve(0),
+        prisma.product.count({ where: { isActive: true, deletedAt: null } }),
+        prisma.order.count(),
+        prisma.order.aggregate({
+            where: { paymentStatus: 'PAID' },
+            _sum: { totalAmount: true },
+        }),
+        prisma.order.count({ where: { paymentStatus: 'PENDING' } }),
     ]);
+
+    const totalRevenue = Number(revenueResult._sum.totalAmount ?? 0);
+
+    const formatIDR = (n: number) =>
+        new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
 
     const stats = [
         {
             name: "Total Customers",
-            value: totalUsers.toString(),
+            value: totalUsers.toLocaleString('id-ID'),
             icon: Users,
-            change: "+12%",
+            change: "Registered users",
             changeType: "increase" as const,
             color: "blue" as const,
         },
         {
-            name: "Products Count",
-            value: totalProducts.toString(),
+            name: "Active Products",
+            value: totalProducts.toLocaleString('id-ID'),
             icon: Package,
-            change: "+8%",
+            change: "Published items",
             changeType: "increase" as const,
             color: "green" as const,
         },
         {
-            name: "Active Orders",
-            value: totalOrders.toString(),
+            name: "Total Orders",
+            value: totalOrders.toLocaleString('id-ID'),
             icon: ShoppingCart,
-            change: "+23%",
-            changeType: "increase" as const,
+            change: `${pendingOrders} pending`,
+            changeType: pendingOrders > 0 ? "increase" as const : "decrease" as const,
             color: "purple" as const,
         },
         {
             name: "Total Revenue",
-            value: "Rp 0",
+            value: formatIDR(totalRevenue),
             icon: TrendingUp,
-            change: "+15%",
+            change: "From paid orders",
             changeType: "increase" as const,
             color: "orange" as const,
         },
@@ -79,7 +95,7 @@ export default async function AdminDashboard() {
                 </div>
             </div>
 
-            {/* Stats Grid */}
+            {/* Stats Grid — REAL DATA */}
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat) => (
                     <StatsCard key={stat.name} {...stat} />
@@ -93,16 +109,13 @@ export default async function AdminDashboard() {
                 </div>
 
                 <div className="space-y-8">
-                    {/* Quick Actions Card */}
                     <div className="bg-[#001a33] rounded-[32px] shadow-2xl shadow-blue-900/20 p-8 border border-white/5 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-ub-gold/10 blur-3xl rounded-full -mr-16 -mt-16"></div>
-
                         <div className="relative z-10">
                             <h2 className="text-sm font-black text-ub-gold mb-8 flex items-center gap-3 uppercase tracking-[0.2em]">
                                 <div className="w-2 h-2 bg-ub-gold rounded-full animate-pulse"></div>
                                 Control Center
                             </h2>
-
                             <div className="grid grid-cols-1 gap-4">
                                 <Link href="/admin/products" className="flex items-center justify-between p-5 bg-white/5 hover:bg-ub-gold group/btn rounded-2xl transition-all duration-500 border border-white/5 hover:border-ub-gold shadow-lg hover:shadow-ub-gold/20">
                                     <div className="flex items-center gap-4">
@@ -113,7 +126,6 @@ export default async function AdminDashboard() {
                                     </div>
                                     <ArrowRight className="h-4 w-4 text-ub-gold group-hover/btn:text-white transition-all transform group-hover/btn:translate-x-1" />
                                 </Link>
-
                                 <Link href="/admin/users" className="flex items-center justify-between p-5 bg-white/5 hover:bg-white group/btn rounded-2xl transition-all duration-500 border border-white/5 hover:border-white shadow-lg hover:shadow-white/20">
                                     <div className="flex items-center gap-4">
                                         <div className="p-3 bg-white/10 group-hover/btn:bg-[#001a33]/10 rounded-xl text-white group-hover/btn:text-[#001a33] transition-colors">
@@ -123,7 +135,6 @@ export default async function AdminDashboard() {
                                     </div>
                                     <ArrowRight className="h-4 w-4 text-white group-hover/btn:text-[#001a33] transition-all transform group-hover/btn:translate-x-1" />
                                 </Link>
-
                                 <Link href="/admin/orders" className="flex items-center justify-between p-5 bg-white/5 hover:bg-white group/btn rounded-2xl transition-all duration-500 border border-white/5 hover:border-white shadow-lg hover:shadow-white/20">
                                     <div className="flex items-center gap-4">
                                         <div className="p-3 bg-white/10 group-hover/btn:bg-[#001a33]/10 rounded-xl text-white group-hover/btn:text-[#001a33] transition-colors">
@@ -139,7 +150,7 @@ export default async function AdminDashboard() {
                 </div>
             </div>
 
-            {/* Bottom Row - Recent Activity */}
+            {/* Recent Transactions — REAL DATA */}
             <div className="bg-[#001a33] rounded-[40px] shadow-2xl border border-white/5 overflow-hidden group">
                 <div className="p-10 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 relative">
                     <div className="absolute top-0 left-0 w-1 h-full bg-ub-gold opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -10,11 +10,13 @@ import {
     ShoppingCart,
     ArrowRight,
     CheckCircle2,
-    Lock,
     MapPin,
     Plus,
     ChevronDown,
     UserCheck,
+    X,
+    Loader2,
+    ShieldCheck,
 } from 'lucide-react';
 import { useCart } from '@/components/shared/ShoppingCart';
 import { createOrder } from '@/app/actions/orders';
@@ -46,13 +48,126 @@ const SHIPPING_METHODS = [
     },
 ];
 
+// ─── XENDIT PAYMENT MODAL ─────────────────────────────────────────────────────
+function XenditPaymentModal({
+    invoiceUrl,
+    orderCode,
+    onClose,
+    onPaymentSuccess,
+}: {
+    invoiceUrl: string;
+    orderCode: string;
+    onClose: () => void;
+    onPaymentSuccess: () => void;
+}) {
+    const [isLoaded, setIsLoaded] = useState(false);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // Poll tiap 5 detik untuk cek status pembayaran
+    useEffect(() => {
+        intervalRef.current = setInterval(async () => {
+            try {
+                const res = await fetch(`/api/xendit/check-status?orderCode=${orderCode}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.paymentStatus === 'PAID') {
+                        if (intervalRef.current) clearInterval(intervalRef.current);
+                        onPaymentSuccess();
+                    }
+                }
+            } catch {
+                // silent fail
+            }
+        }, 5000);
+
+        return () => {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+        };
+    }, [orderCode, onPaymentSuccess]);
+
+    // Kunci scroll body saat modal terbuka
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, []);
+
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            {/* Backdrop blur — klik untuk tutup */}
+            <div
+                className="absolute inset-0 bg-black/75 backdrop-blur-md"
+                onClick={onClose}
+            />
+
+            {/* Modal container */}
+            <div className="relative w-full max-w-lg h-[90vh] max-h-[820px] flex flex-col rounded-[2rem] overflow-hidden shadow-[0_40px_120px_rgba(0,0,0,0.6)] border border-white/10 animate-in zoom-in-95 duration-300">
+
+                {/* Header */}
+                <div className="flex-shrink-0 flex items-center justify-between bg-black px-6 py-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-ub-gold animate-pulse" />
+                        <span className="text-[11px] font-black uppercase tracking-[0.25em] text-white">
+                            Pembayaran Aman · Powered by Xendit
+                        </span>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all active:scale-95"
+                        title="Tutup"
+                    >
+                        <X className="w-4 h-4 text-white" />
+                    </button>
+                </div>
+
+                {/* Loading spinner */}
+                {!isLoaded && (
+                    <div className="absolute inset-0 top-14 flex flex-col items-center justify-center gap-4 bg-[#FDFDFD] z-10">
+                        <Loader2 className="w-10 h-10 text-black animate-spin" />
+                        <p className="text-[11px] font-black uppercase tracking-widest text-gray-400">
+                            Memuat halaman pembayaran...
+                        </p>
+                    </div>
+                )}
+
+                {/* Xendit iframe */}
+                <iframe
+                    src={invoiceUrl}
+                    className="flex-1 w-full border-0 bg-white"
+                    onLoad={() => setIsLoaded(true)}
+                    allow="payment *; camera *; microphone *"
+                    title="Xendit Payment"
+                />
+
+                {/* Footer */}
+                <div className="flex-shrink-0 flex items-center justify-between bg-gray-50 border-t border-gray-100 px-6 py-3">
+                    <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                            SSL 256-bit · Transaksi Terenkripsi
+                        </span>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
+                    >
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function CheckoutClient() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { data: session } = useSession();
-    const { cart, totalPrice, clearCart } = useCart();
+    const { cart, clearCart } = useCart();
 
-    // ── Direct-purchase mode (from Buy Now on product page) ──────────────────
+    // ── Direct-purchase mode (from Buy Now on product page) ────────────────
     const directProductId = searchParams.get('directProductId');
     const directQty = parseInt(searchParams.get('qty') || '1', 10);
     const directSize = searchParams.get('size') || null;
@@ -77,21 +192,23 @@ export default function CheckoutClient() {
         });
     }, [directProductId]);
 
-    // Items that will be submitted in the order
     const checkoutItems = directProductId && directProduct
         ? [{ id: directProduct.id, name: directProduct.name, price: directProduct.price, image: directProduct.image, quantity: directQty, size: directSize }]
         : cart;
 
     const checkoutTotal = checkoutItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    // ────────────────────────────────────────────────────────────────────────
+    // ──────────────────────────────────────────────────────────────────────
 
     const [isMounted, setIsMounted] = useState(false);
-    const [checkoutStep, setCheckoutStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submittingMessage, setSubmittingMessage] = useState('Memproses pesanan...');
-    const [createdOrderCode, setCreatedOrderCode] = useState<string | null>(null);
     const [checkoutError, setCheckoutError] = useState<string | null>(null);
     const [isStaleCart, setIsStaleCart] = useState(false);
+
+    // ── State untuk Xendit modal ───────────────────────────────────────────
+    const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null);
+    const [activeOrderCode, setActiveOrderCode] = useState<string | null>(null);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
 
     // Saved addresses
     const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
@@ -118,7 +235,6 @@ export default function CheckoutClient() {
         setIsMounted(true);
     }, []);
 
-    // Load saved addresses when session is ready (do NOT auto-fill form)
     useEffect(() => {
         if (session?.user?.id) {
             getUserAddresses(session.user.id).then((res) => {
@@ -130,7 +246,6 @@ export default function CheckoutClient() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session]);
 
-    // Isi form dari data akun yang sedang login
     const fillFromSession = () => {
         if (!session?.user) return;
         setFormData((prev) => ({
@@ -154,11 +269,16 @@ export default function CheckoutClient() {
         if (closePanel) setShowAddressPicker(false);
     };
 
+    // Callback saat pembayaran berhasil terdeteksi
+    const handlePaymentSuccess = useCallback(() => {
+        setShowPaymentModal(false);
+        router.push('/orders');
+    }, [router]);
+
     if (!isMounted || directProductLoading) return null;
 
-    // Guard: no items to checkout
-    // In direct-purchase mode: only block if product fetch failed, not because cart is empty
-    if (checkoutItems.length === 0 && checkoutStep === 1) {
+    // Guard: tidak ada item
+    if (checkoutItems.length === 0) {
         return (
             <div className="min-h-screen pt-32 pb-20 px-4 flex flex-col items-center justify-center text-center">
                 <div className="w-24 h-24 bg-gray-50 rounded-[2.5rem] flex items-center justify-center mb-8 rotate-12">
@@ -199,7 +319,7 @@ export default function CheckoutClient() {
 
         const fullAddress = `${formData.address}${formData.notes ? ` (${formData.notes})` : ''}, ${formData.city}, ${formData.province}, ${formData.postalCode}`;
 
-        // Step 1: Buat order di database
+        // Step 1: Buat order
         const result = await createOrder({
             items: checkoutItems.map((item) => ({
                 productId: item.id,
@@ -223,12 +343,12 @@ export default function CheckoutClient() {
             return;
         }
 
-        // Step 2: Bersihkan cart (hanya untuk checkout cart biasa)
+        // Step 2: Bersihkan cart
         if (!directProductId) clearCart();
 
-        // Step 3: Buat Xendit invoice dan redirect ke halaman pembayaran
+        // Step 3: Buat Xendit invoice → tampilkan modal langsung
         try {
-            setSubmittingMessage('Mengarahkan ke halaman pembayaran...');
+            setSubmittingMessage('Menyiapkan pembayaran...');
             const invoiceRes = await fetch('/api/xendit/create-invoice', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -237,26 +357,28 @@ export default function CheckoutClient() {
 
             const invoiceData = await invoiceRes.json();
 
-            if (!invoiceRes.ok || !invoiceData.invoiceUrl) {
+            if (!invoiceRes.ok) {
                 throw new Error(invoiceData.error || 'Gagal membuat invoice pembayaran');
             }
 
-            // Redirect ke halaman invoice Xendit
-            window.location.href = invoiceData.invoiceUrl;
+            // Simpan invoice URL & order code → buka modal
+            setInvoiceUrl(invoiceData.invoiceUrl);
+            setActiveOrderCode(invoiceData.orderCode ?? result.orderCode);
+            setIsSubmitting(false);
+            setShowPaymentModal(true);
         } catch (err) {
-            // Jika gagal buat invoice, tetap tampilkan halaman sukses dengan info order
-            // (user masih bisa bayar nanti dari halaman Orders)
             console.error('[checkout] Invoice creation failed:', err);
-            setCreatedOrderCode(result.orderCode ?? null);
-            setCheckoutStep(2);
+            setCheckoutError('Pesanan berhasil dibuat, namun gagal membuka pembayaran. Cek halaman Pesanan Saya.');
             setIsSubmitting(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#FDFDFD] pt-32 pb-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {checkoutStep === 1 ? (
+        <>
+            <div className="min-h-screen bg-[#FDFDFD] pt-32 pb-20">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+                    {/* ─── FORM ─── */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
 
                         {/* ═══ LEFT: FORM ═══ */}
@@ -359,8 +481,6 @@ export default function CheckoutClient() {
                                             <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-black text-sm italic">2</div>
                                             <h2 className="text-lg font-black uppercase text-black italic tracking-tight">Alamat Pengiriman</h2>
                                         </div>
-
-                                        {/* Saved address picker trigger */}
                                         {savedAddresses.length > 0 && (
                                             <button
                                                 type="button"
@@ -374,7 +494,6 @@ export default function CheckoutClient() {
                                         )}
                                     </div>
 
-                                    {/* Saved address picker panel */}
                                     {showAddressPicker && (
                                         <div className="animate-in slide-in-from-top-2 duration-300">
                                             <div className="bg-gray-50 rounded-3xl p-6 border border-gray-100 space-y-4">
@@ -402,7 +521,6 @@ export default function CheckoutClient() {
                                         </div>
                                     )}
 
-                                    {/* Add new address inline */}
                                     {showAddressManager && !showAddressPicker && (
                                         <div className="bg-gray-50 rounded-3xl p-6 border border-gray-100 animate-in slide-in-from-top-2 duration-300">
                                             <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-4">
@@ -424,7 +542,6 @@ export default function CheckoutClient() {
                                         </div>
                                     )}
 
-                                    {/* Manual form fields */}
                                     {selectedAddressId && (
                                         <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-6 py-4 flex items-center gap-3">
                                             <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
@@ -469,7 +586,7 @@ export default function CheckoutClient() {
                                             <input
                                                 required
                                                 type="text"
-                                                className="w-full px-6 py-5 bg-gray-50 border-transparent text-black rounded-2xl focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
+                                                className="w-full px-6 py-5 bg-gray-50 border-transparent rounded-2xl text-black focus:bg-white focus:ring-4 focus:ring-black/5 focus:outline-none transition-all text-sm font-bold"
                                                 placeholder="Kota Malang"
                                                 value={formData.city}
                                                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
@@ -634,40 +751,22 @@ export default function CheckoutClient() {
                             </div>
                         </div>
                     </div>
-                ) : (
-                    /* ═══ SUCCESS SCREEN ═══ */
-                    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center space-y-10 animate-in zoom-in-95 duration-1000">
-                        <div className="w-40 h-40 bg-emerald-50 rounded-full flex items-center justify-center ring-[16px] ring-emerald-50/50">
-                            <CheckCircle2 className="w-20 h-20 text-emerald-500" />
-                        </div>
-                        <div className="space-y-6">
-                            <h2 className="text-6xl font-black text-black tracking-tighter uppercase italic">Order Terdaftar</h2>
-                            <p className="text-[12px] font-black text-ub-gold uppercase tracking-[0.4em]">
-                                Order Reference: {createdOrderCode}
-                            </p>
-                            <p className="text-xl text-gray-500 font-medium max-w-lg mx-auto leading-relaxed border-l-4 border-emerald-100 pl-8">
-                                Pesanan Anda telah dicatat. Silakan selesaikan pembayaran melalui halaman <strong>Pesanan Saya</strong>.
-                            </p>
-                        </div>
-                        <div className="pt-12 flex flex-col sm:flex-row gap-6 w-full max-w-lg">
-                            <button
-                                type="button"
-                                onClick={() => router.push('/orders')}
-                                className="flex-1 py-7 bg-black text-white text-[11px] font-black uppercase tracking-[0.3em] rounded-[2rem] shadow-2xl hover:bg-ub-navy transition-all active:scale-[0.98]"
-                            >
-                                View My Orders
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => router.push('/merchandise')}
-                                className="flex-1 py-7 bg-gray-50 text-black text-[11px] font-black uppercase tracking-[0.3em] rounded-[2rem] hover:bg-gray-100 transition-all active:scale-[0.98]"
-                            >
-                                Back to Archive
-                            </button>
-                        </div>
-                    </div>
-                )}
+                </div>
             </div>
-        </div>
+
+            {/* ✅ Xendit Payment Modal — muncul langsung setelah order dibuat */}
+            {showPaymentModal && invoiceUrl && activeOrderCode && (
+                <XenditPaymentModal
+                    invoiceUrl={invoiceUrl}
+                    orderCode={activeOrderCode}
+                    onClose={() => {
+                        setShowPaymentModal(false);
+                        // Jika user tutup modal, arahkan ke halaman orders
+                        router.push(`/orders`);
+                    }}
+                    onPaymentSuccess={handlePaymentSuccess}
+                />
+            )}
+        </>
     );
 }

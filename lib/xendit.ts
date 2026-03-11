@@ -16,8 +16,9 @@ export async function createInvoice(data: {
             description: data.description,
             payer_email: data.payerEmail,
             currency: "IDR",
+            // Setelah bayar / gagal → arahkan ke halaman pesanan
             success_redirect_url: `${process.env.NEXT_PUBLIC_SITE_URL}/orders`,
-            failure_redirect_url: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout`,
+            failure_redirect_url: `${process.env.NEXT_PUBLIC_SITE_URL}/orders`,
         },
         {
             auth: {

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export const runtime = 'nodejs';
+
 export async function POST(req: NextRequest) {
-  // Verifikasi webhook callback token dari Xendit
+  console.log("Webhook triggered");
   const callbackToken = req.headers.get('x-callback-token');
 
   if (callbackToken !== process.env.XENDIT_CALLBACK_TOKEN) {
