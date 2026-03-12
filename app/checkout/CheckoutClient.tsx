@@ -165,7 +165,7 @@ export default function CheckoutClient() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { data: session } = useSession();
-    const { cart, clearCart } = useCart();
+    const { cart, clearCart, isInitialized } = useCart();
 
     // ── Direct-purchase mode (from Buy Now on product page) ────────────────
     const directProductId = searchParams.get('directProductId');
@@ -275,10 +275,12 @@ export default function CheckoutClient() {
         router.push('/orders');
     }, [router]);
 
-    if (!isMounted || directProductLoading) return null;
+    if (!isMounted || directProductLoading || !isInitialized) return null;
 
     // Guard: tidak ada item
-    if (checkoutItems.length === 0) {
+    // Kita cek juga isSubmitting & showPaymentModal agar tidak "flash" empty screen 
+    // saat cart baru saja dikosongkan setelah order berhasil dibuat.
+    if (checkoutItems.length === 0 && !isSubmitting && !showPaymentModal && !checkoutError) {
         return (
             <div className="min-h-screen pt-32 pb-20 px-4 flex flex-col items-center justify-center text-center">
                 <div className="w-24 h-24 bg-gray-50 rounded-[2.5rem] flex items-center justify-center mb-8 rotate-12">

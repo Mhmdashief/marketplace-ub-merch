@@ -12,7 +12,7 @@ interface CartSheetProps {
 }
 
 export default function CartSheet({ isOpen, onClose }: CartSheetProps) {
-    const { cart, removeFromCart, updateQuantity, totalPrice } = useCart();
+    const { cart, removeFromCart, updateQuantity, totalPrice, isInitialized } = useCart();
     const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
@@ -72,7 +72,11 @@ export default function CartSheet({ isOpen, onClose }: CartSheetProps) {
 
                     {/* Dynamic Items Section */}
                     <div className="flex-1 overflow-y-auto px-8 py-4 space-y-10 custom-scrollbar">
-                        {cart.length === 0 ? (
+                        {!isInitialized ? (
+                            <div className="h-full flex flex-col items-center justify-center">
+                                <div className="w-8 h-8 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                            </div>
+                        ) : cart.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-center px-4">
                                 <div className="relative mb-8">
                                     <div className="w-24 h-24 bg-gray-50 rounded-[2.5rem] flex items-center justify-center scale-110 rotate-12 transition-transform hover:rotate-0 duration-700">

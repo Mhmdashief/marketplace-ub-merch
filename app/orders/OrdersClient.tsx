@@ -28,7 +28,6 @@ export default function OrdersClient() {
         } else if (status === 'authenticated' && session?.user?.email) {
             fetchOrders();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [status]);
 
     const fetchOrders = async () => {
@@ -93,7 +92,7 @@ export default function OrdersClient() {
                         <input
                             type="text"
                             placeholder="Search by Order ID..."
-                            className="pl-12 pr-6 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-black/5 focus:outline-none transition-all w-full md:w-64 shadow-sm"
+                            className="pl-12 pr-6 py-4 text-black bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-black/5 focus:outline-none transition-all w-full md:w-64 shadow-sm"
                         />
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-black transition-colors" />
                     </div>

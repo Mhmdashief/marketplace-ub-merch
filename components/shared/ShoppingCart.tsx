@@ -19,6 +19,7 @@ interface CartContextType {
     totalPrice: number;
     isCartOpen: boolean;
     setIsCartOpen: (isOpen: boolean) => void;
+    isInitialized: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -26,17 +27,25 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
-
-    // Load data dari local storage saat pertama kali render
+    const [isInitialized, setIsInitialized] = useState(false);
     useEffect(() => {
         const savedCart = localStorage.getItem("cart");
-        if (savedCart) setCart(JSON.parse(savedCart));
+        if (savedCart) {
+            try {
+                setCart(JSON.parse(savedCart));
+            } catch (e) {
+                console.error("Failed to parse cart from localStorage", e);
+            }
+        }
+        setIsInitialized(true);
     }, []);
 
     // Simpan ke local storage setiap kali ada perubahan pada cart
     useEffect(() => {
-        localStorage.setItem("cart", JSON.stringify(cart));
-    }, [cart]);
+        if (isInitialized) {
+            localStorage.setItem("cart", JSON.stringify(cart));
+        }
+    }, [cart, isInitialized]);
 
     const addToCart = (product: CartItem) => {
         setCart((prev) => {
@@ -72,7 +81,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     const totalPrice = cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
     return (
-        <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, totalPrice, isCartOpen, setIsCartOpen }}>
+        <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, totalPrice, isCartOpen, setIsCartOpen, isInitialized }}>
             {children}
         </CartContext.Provider>
     );
