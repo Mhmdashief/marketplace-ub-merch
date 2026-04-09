@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { TrendingUp, ArrowRight, Crown } from 'lucide-react';
+import { ArrowRight, Crown } from 'lucide-react';
 import Link from 'next/link';
 import { getBestSellers } from '@/app/actions/products';
 

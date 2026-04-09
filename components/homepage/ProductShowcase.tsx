@@ -14,7 +14,7 @@ function formatPrice(price: number) {
 const SHOWCASE_TAGS = ['Premium Collection', 'Comfort Fit', 'Best Value'];
 
 export default async function ProductShowcase() {
-    const showcaseProducts = await getExclusiveShowcaseProducts(3);
+    const showcaseProducts = await getExclusiveShowcaseProducts(12);
 
     if (showcaseProducts.length < 1) return null;
 
@@ -115,7 +115,7 @@ export default async function ProductShowcase() {
                                     </div>
                                     <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black mb-2 sm:mb-3 leading-tight uppercase italic">{showcaseProducts[0].name}</h3>
                                     <p className="text-gray-300 mb-6 sm:mb-8 text-sm sm:text-lg max-w-md line-clamp-2 font-medium opacity-80 uppercase tracking-tight">
-                                        {showcaseProducts[0].category} — UB Official Merchandise
+                                        UB Official Merchandise
                                     </p>
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="text-2xl sm:text-3xl font-black italic">
@@ -130,47 +130,31 @@ export default async function ProductShowcase() {
                             </div>
                         </Link>
 
-                        {/* Top Right Card */}
-                        <Link
-                            href={`/merchandise/${showcaseProducts[1].slug}`}
-                            className="group relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl overflow-hidden shadow-2xl hover:shadow-white/10 transition-all duration-500"
-                        >
-                            <div className="relative h-[250px] sm:h-[290px]">
-                                <Image src={showcaseProducts[1].image} alt={showcaseProducts[1].name} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                                <div className="absolute inset-0 p-5 sm:p-6 flex flex-col justify-end">
-                                    <div className="mb-2 sm:mb-3">
-                                        <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">{SHOWCASE_TAGS[1]}</span>
-                                    </div>
-                                    <h3 className="text-lg sm:text-2xl font-black mb-3 sm:mb-4 uppercase italic leading-none">{showcaseProducts[1].name}</h3>
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div className="text-xl sm:text-2xl font-black italic">{formatPrice(showcaseProducts[1].discountPrice ?? showcaseProducts[1].price)}</div>
-                                        <div className="px-4 py-2 bg-white text-black text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-gray-100 transition-all flex-shrink-0">Lihat</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </Link>
-
-                        {/* Bottom Right Card */}
-                        <Link
-                            href={`/merchandise/${showcaseProducts[2].slug}`}
-                            className="group relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl overflow-hidden shadow-2xl hover:shadow-white/10 transition-all duration-500"
-                        >
-                            <div className="relative h-[250px] sm:h-[290px]">
-                                <Image src={showcaseProducts[2].image} alt={showcaseProducts[2].name} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                                <div className="absolute inset-0 p-5 sm:p-6 flex flex-col justify-end">
-                                    <div className="mb-2 sm:mb-3">
-                                        <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">{SHOWCASE_TAGS[2]}</span>
-                                    </div>
-                                    <h3 className="text-lg sm:text-2xl font-black mb-3 sm:mb-4 uppercase italic leading-none">{showcaseProducts[2].name}</h3>
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div className="text-xl sm:text-2xl font-black italic">{formatPrice(showcaseProducts[2].discountPrice ?? showcaseProducts[2].price)}</div>
-                                        <div className="px-4 py-2 bg-white text-black text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-gray-100 transition-all flex-shrink-0">Lihat</div>
+                        {/* Small Cards */}
+                        {showcaseProducts.slice(1).map((product, idx) => (
+                            <Link
+                                key={product.id}
+                                href={`/merchandise/${product.slug}`}
+                                className="group relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl overflow-hidden shadow-2xl hover:shadow-white/10 transition-all duration-500"
+                            >
+                                <div className="relative h-[250px] sm:h-[290px]">
+                                    <Image src={product.image} alt={product.name} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                                    <div className="absolute inset-0 p-5 sm:p-6 flex flex-col justify-end">
+                                        <div className="mb-2 sm:mb-3">
+                                            <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
+                                                {SHOWCASE_TAGS[(idx + 1) % SHOWCASE_TAGS.length] || 'Exclusive'}
+                                            </span>
+                                        </div>
+                                        <h3 className="text-lg sm:text-2xl font-black mb-3 sm:mb-4 uppercase italic leading-none">{product.name}</h3>
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="text-xl sm:text-2xl font-black italic">{formatPrice(product.discountPrice ?? product.price)}</div>
+                                            <div className="px-4 py-2 bg-white text-black text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-gray-100 transition-all flex-shrink-0">Lihat</div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </Link>
+                            </Link>
+                        ))}
                     </div>
                 )}
 

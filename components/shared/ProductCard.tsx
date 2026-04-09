@@ -2,9 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCart, Heart, ArrowUpRight } from 'lucide-react';
+import { Heart, ArrowUpRight } from 'lucide-react';
 import { useState } from 'react';
-import { useCart } from './ShoppingCart';
 
 interface ProductCardProps {
     id: string;
@@ -12,23 +11,15 @@ interface ProductCardProps {
     name: string;
     price: number;
     discountPrice?: number | null;
-    category: string;
     image: string;
-    hasPromotion?: boolean;
+    category?: string | null;
 }
 
-export default function ProductCard({ id, slug, name, price, discountPrice, category, image, hasPromotion }: ProductCardProps) {
-    const { addToCart } = useCart();
+export default function ProductCard({ id, slug, name, price, discountPrice, image, category }: ProductCardProps) {
     const [isHovered, setIsHovered] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
 
     const displayPrice = discountPrice ?? price;
-
-    const handleAddToCart = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        addToCart({ id, name, price: displayPrice, image, quantity: 1 });
-    };
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('id-ID', {
@@ -60,16 +51,9 @@ export default function ProductCard({ id, slug, name, price, discountPrice, cate
                     <span
                         className="px-2 sm:px-3 py-1 bg-white/90 backdrop-blur-xl text-[7px] sm:text-[8px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-black rounded-md sm:rounded-lg shadow-sm border border-white/50 w-fit"
                     >
-                        {category}
+                        {category || 'MERCHANDISE'}
                     </span>
-                    {hasPromotion && (
-                        <span className="px-2 py-0.5 bg-ub-gold text-white text-[7px] font-black uppercase tracking-widest rounded-md shadow-sm">
-                            Promo
-                        </span>
-                    )}
                 </div>
-
-                {/* Engagement Actions - Hidden on mobile for cleaner UI */}
                 <button
                     onClick={(e) => {
                         e.preventDefault();
@@ -85,13 +69,12 @@ export default function ProductCard({ id, slug, name, price, discountPrice, cate
 
                 {/* Primary Action Button - Hover only on desktop */}
                 <div className="absolute inset-x-4 sm:inset-x-6 bottom-4 sm:bottom-6 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 hidden sm:block">
-                    <button
-                        onClick={handleAddToCart}
-                        className="w-full py-3.5 sm:py-5 bg-black text-white text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] rounded-xl sm:rounded-2xl shadow-2xl hover:bg-ub-navy transition-all flex items-center justify-center gap-2 sm:gap-3 active:scale-95"
+                    <div
+                        className="w-full py-3.5 sm:py-5 bg-black text-white text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] rounded-xl sm:rounded-2xl shadow-2xl hover:bg-ub-navy transition-all flex items-center justify-center gap-2 sm:gap-3"
                     >
-                        <ShoppingCart className="w-3 h-3" />
-                        Quick Purchase
-                    </button>
+                        <ArrowUpRight className="w-3 h-3" />
+                        View Product
+                    </div>
                 </div>
             </div>
 

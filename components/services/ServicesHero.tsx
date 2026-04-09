@@ -1,13 +1,10 @@
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
-import { ArrowDownRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function ServicesHero() {
     return (
         <section className="relative min-h-[90vh] flex flex-col justify-center bg-white overflow-hidden pt-20">
-            {/* Background Elements */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] right-[-5%] w-[40rem] h-[40rem] bg-ub-gold/10 rounded-full blur-3xl" />
                 <div className="absolute bottom-[-10%] left-[-5%] w-[40rem] h-[40rem] bg-ub-navy/5 rounded-full blur-3xl" />
@@ -47,21 +44,6 @@ export default function ServicesHero() {
                             transition={{ duration: 1, delay: 0.4 }}
                             className="mt-12 w-full h-[1px] bg-gray-200"
                         />
-
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 1, delay: 0.5 }}
-                            className="flex justify-between items-center mt-6"
-                        >
-                            <span className="text-sm font-semibold text-ub-navy uppercase tracking-widest">Scroll to Explore</span>
-                            <motion.div
-                                animate={{ y: [0, 10, 0] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                            >
-                                <ArrowDownRight className="w-6 h-6 text-ub-gold" />
-                            </motion.div>
-                        </motion.div>
                     </div>
                 </div>
             </div>

@@ -1,13 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ChevronLeft, ShieldCheck, Truck, ShoppingCart, ArrowRight, Zap, Package, Info } from 'lucide-react';
-import { useCart } from '@/components/shared/ShoppingCart';
-
-
+import { ChevronLeft, ShieldCheck, Truck, ArrowRight, Zap, Package, Info, ExternalLink, Loader2, Heart } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { checkIsWishlisted, toggleWishlist } from '@/app/actions/wishlist/wishlist';
 
 interface ProductDetail {
     id: string;
@@ -25,6 +23,12 @@ interface ProductDetail {
     price: number;
     image: string;
     sizes?: string | null;
+    marketplaceLinks?: {
+        id: string;
+        platform: string;
+        url: string;
+        isActive: boolean;
+    }[];
     promotion?: {
         name: string;
         endAt: Date;
@@ -34,44 +38,59 @@ interface ProductDetail {
 }
 
 export default function ProductDetailClient({ product }: { product: ProductDetail }) {
-    const router = useRouter();
-    const { addToCart } = useCart();
-
-    const [quantity, setQuantity] = useState(1);
-    const [selectedSize, setSelectedSize] = useState<string | null>(null);
-    const [isLiked, setIsLiked] = useState(false);
+    const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState<'description' | 'specs'>('description');
     const [activeImage, setActiveImage] = useState(0);
+    const [redirectingLinkId, setRedirectingLinkId] = useState<string | null>(null);
+    const [isWishlisted, setIsWishlisted] = useState(false);
+    const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
 
-    const handleAddToCart = () => {
-        if (hasSizes && !selectedSize) {
-            alert('Silakan pilih ukuran terlebih dahulu');
+    useEffect(() => {
+        if (session?.user?.id && product?.id) {
+            checkIsWishlisted(session.user.id, product.id).then(res => {
+                if (res.success) setIsWishlisted(res.isWishlisted!);
+            });
+        }
+    }, [session?.user?.id, product?.id]);
+
+    const handleToggleWishlist = async () => {
+        if (!session?.user?.id) {
+            alert('Silakan login terlebih dahulu untuk menyimpan wishlist.');
             return;
         }
-        addToCart({
-            id: product.id,
-            name: product.name,
-            price: effectiveDisplayPrice,
-            image: images[0],
-            quantity: quantity,
-            size: selectedSize,
-        });
-    };
-
-    // Buy Now: go to /checkout with direct-purchase params (does NOT touch cart)
-    const handleBuyNow = () => {
-        if (hasSizes && !selectedSize) {
-            alert('Silakan pilih ukuran terlebih dahulu');
-            return;
+        setIsTogglingWishlist(true);
+        const res = await toggleWishlist(session.user.id, product.id);
+        if (res.success) {
+            setIsWishlisted(res.added!);
         }
-        const params = new URLSearchParams({
-            directProductId: product.id,
-            qty: String(quantity),
-            ...(selectedSize ? { size: selectedSize } : {}),
-        });
-        router.push(`/checkout?${params.toString()}`);
+        setIsTogglingWishlist(false);
     };
 
+    const handleMarketplaceClick = async (link: { id: string; platform: string; url: string }) => {
+        setRedirectingLinkId(link.id);
+        try {
+            const res = await fetch('/api/track-click', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    productId: product.id,
+                    platform: link.platform,
+                    marketplaceLinkId: link.id,
+                }),
+            });
+            const data = await res.json();
+            if (data.url) {
+                window.open(data.url, '_blank');
+            } else {
+                window.open(link.url, '_blank');
+            }
+        } catch (err) {
+            console.error('Track click failed', err);
+            window.open(link.url, '_blank');
+        } finally {
+            setRedirectingLinkId(null);
+        }
+    };
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('id-ID', {
@@ -81,87 +100,28 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
         }).format(price);
     };
 
-    const displayPrice = product.discountPrice ?? product.regularPrice;
-    const originalPrice = product.discountPrice ? product.regularPrice : null;
-    const discountPercent = originalPrice
-        ? Math.round((1 - displayPrice / originalPrice) * 100)
+    const effectiveDisplayPrice = product.discountPrice ?? product.regularPrice;
+    const effectiveOriginalPrice = product.discountPrice !== null ? product.regularPrice : null;
+
+    const effectiveDiscountPct = effectiveOriginalPrice
+        ? Math.round((1 - effectiveDisplayPrice / effectiveOriginalPrice) * 100)
         : null;
 
     const images = product.images?.length > 0 ? product.images : [product.image];
+    const activeLinks = product.marketplaceLinks?.filter(l => l.isActive) || [];
 
-    // Parse sizes config from DB (supports all legacy formats)
-    const sizesConfig = (() => {
-        if (!product.sizes) return null;
-        try {
-            const parsed = JSON.parse(product.sizes);
-            // Very old: { enabled, type, values: string[] }
-            if (Array.isArray(parsed.values)) {
-                return {
-                    enabled: parsed.enabled ?? false,
-                    type: parsed.type ?? 'clothing',
-                    sizes: (parsed.values as string[]).map((v: string) => ({
-                        value: v, regularPrice: 0, discountPrice: null,
-                    })),
-                };
-            }
-            // Previous: { enabled, type, sizes: [{value, priceDiff}] }
-            if (parsed.sizes?.[0]?.priceDiff !== undefined) {
-                return {
-                    enabled: parsed.enabled ?? false,
-                    type: parsed.type ?? 'clothing',
-                    sizes: parsed.sizes.map((s: { value: string; priceDiff: number }) => ({
-                        value: s.value, regularPrice: 0, discountPrice: null,
-                    })),
-                };
-            }
-            // Current: { enabled, type, sizes: [{value, regularPrice, discountPrice}] }
-            return parsed as {
-                enabled: boolean;
-                type: string;
-                sizes: { value: string; regularPrice: number; discountPrice: number | null }[];
-            };
-        } catch { return null; }
-    })();
-    const hasSizes = sizesConfig?.enabled && (sizesConfig.sizes?.length ?? 0) > 0;
-
-    // Effective price based on selected size
-    // Effective price based on selected size
-    const selectedSizeEntry = sizesConfig?.sizes?.find((s: { value: string; regularPrice: number; discountPrice: number | null }) => s.value === selectedSize);
-
-    // Base prices for reference
-    const baseReg = product.regularPrice;
-    const baseDisc = product.discountPrice;
-
-    // Determine regular and discount price for the current selection
-    let currentReg = baseReg;
-    let currentDisc = baseDisc;
-
-    if (selectedSizeEntry) {
-        if (selectedSizeEntry.regularPrice > 0) {
-            currentReg = selectedSizeEntry.regularPrice;
-            // If custom regular price is set, only use custom discount price
-            currentDisc = selectedSizeEntry.discountPrice;
-        } else {
-            // Use base regular price, and custom or base discount price
-            currentReg = baseReg;
-            currentDisc = selectedSizeEntry.discountPrice !== null
-                ? selectedSizeEntry.discountPrice
-                : baseDisc;
+    const getPlatformColor = (platform: string) => {
+        switch (platform.toUpperCase()) {
+            case 'TOKOPEDIA': return 'bg-[#00AA5B] hover:bg-[#008f4c] text-white';
+            case 'SHOPEE': return 'bg-[#EE4D2D] hover:bg-[#d74224] text-white';
+            case 'LAZADA': return 'bg-[#F36F21] hover:bg-[#e06117] text-white';
+            case 'TIKTOK': return 'bg-black hover:bg-gray-800 text-white';
+            case 'BUKALAPAK': return 'bg-[#E31E52] hover:bg-[#c91847] text-white';
+            default: return 'bg-ub-navy hover:bg-ub-dark-navy text-white';
         }
-    }
-
-    // Final prices to display
-    const effectiveDisplayPrice = currentDisc ?? currentReg;
-    const effectiveOriginalPrice = currentDisc !== null ? currentReg : null;
-
-    // Discount badge percentage
-    const effectiveDiscountPct = effectiveOriginalPrice
-        ? Math.round((1 - effectiveDisplayPrice / effectiveOriginalPrice) * 100)
-        : (baseDisc ? Math.round((1 - baseDisc / baseReg) * 100) : null);
-
+    };
 
     return (
-
         <div className="min-h-screen bg-white pb-20">
             {/* Top Navigation */}
             <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-2xl border-b border-gray-100">
@@ -187,11 +147,6 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
                                 className="object-cover transition-transform duration-1000 group-hover:scale-105"
                                 priority
                             />
-                            <div className="absolute top-4 left-4 sm:top-8 sm:left-8">
-                                <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-white/90 backdrop-blur-xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-black rounded-lg sm:rounded-xl border border-white/50 shadow-sm">
-                                    Official Archive
-                                </span>
-                            </div>
                             {product.stock <= 0 && (
                                 <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center">
                                     <div className="px-6 py-3 bg-black text-white text-sm font-black uppercase tracking-widest rounded-2xl flex items-center gap-2">
@@ -220,45 +175,61 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
 
                     {/* Information Section */}
                     <div className="lg:col-span-5 flex flex-col pt-4">
-                        {/* Promotion / Action Banner */}
-                        {(effectiveDiscountPct != null && effectiveDiscountPct > 0) && (
-                            <div className="relative overflow-hidden bg-gradient-to-r from-ub-navy to-ub-dark-navy rounded-3xl p-6 mb-10 group shadow-lg">
-                                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                                    <Zap className="w-16 h-16 text-white fill-current" />
+                        {/* Authentic Heritage Badge */}
+                        <div className="relative w-full overflow-hidden bg-gray-50/80 rounded-3xl p-6 mb-8 border border-gray-100 group transition-all duration-500 hover:bg-white hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-ub-gold/20">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-ub-gold/5 rounded-full blur-3xl group-hover:bg-ub-gold/10 transition-colors duration-500" />
+                            <div className="relative flex items-center gap-5">
+                                <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-105 transition-transform duration-500 text-ub-gold">
+                                    <ShieldCheck className="w-6 h-6" />
                                 </div>
-                                <div className="relative z-10 flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-white text-lg font-black tracking-tight uppercase italic">
-                                            {product.promotion?.name || 'SPECIAL PRICE'}
-                                        </h3>
-                                        <p className="text-white/80 text-[10px] font-bold uppercase tracking-widest mt-1">
-                                            {product.promotion
-                                                ? `Ends: ${new Date(product.promotion.endAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })}`
-                                                : `Save ${effectiveDiscountPct}% from normal price`}
-                                        </p>
-                                    </div>
-                                    <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
-                                        <span className="text-2xl font-black text-white">-{effectiveDiscountPct}%</span>
-                                    </div>
+                                <div>
+                                    <h3 className="text-[11px] font-black text-black uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
+                                        Official Brawijaya Merchandise
+                                        {product.promotion && (
+                                            <span className="bg-ub-gold text-white px-2 py-0.5 rounded-md text-[8px] animate-pulse">
+                                                {product.promotion.name}
+                                            </span>
+                                        )}
+                                    </h3>
+                                    <p className="text-[10px] text-gray-500 font-medium leading-relaxed max-w-[280px]">
+                                        Produk berlisensi resmi. Kualitas terjamin dengan standar premium Universitas Brawijaya.
+                                    </p>
                                 </div>
                             </div>
-                        )}
+                        </div>
 
                         {/* Category */}
                         <div className="flex items-center gap-3 mb-6">
                             <span className="text-[10px] font-black text-ub-gold uppercase tracking-[0.3em]">{product.category}</span>
                         </div>
 
-                        {/* Product Name */}
-                        <h1 className="text-3xl sm:text-5xl font-black text-black tracking-tight leading-[1.1] mb-6 sm:mb-8 uppercase italic">
-                            {product.name}
-                        </h1>
+                        {/* Product Name & Wishlist */}
+                        <div className="flex items-start justify-between gap-6 mb-6 sm:mb-8">
+                            <h1 className="text-3xl sm:text-5xl font-black text-black tracking-tight leading-[1.1] uppercase italic">
+                                {product.name}
+                            </h1>
+                            <button
+                                onClick={handleToggleWishlist}
+                                disabled={isTogglingWishlist}
+                                className={`flex-shrink-0 w-12 h-12 rounded-2xl border-2 flex items-center justify-center transition-all ${
+                                    isWishlisted 
+                                        ? 'border-rose-500 bg-rose-50 text-rose-500 hover:bg-rose-100' 
+                                        : 'border-gray-200 bg-white text-gray-400 hover:border-black hover:text-black'
+                                }`}
+                            >
+                                {isTogglingWishlist ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <Heart className={`w-6 h-6 ${isWishlisted ? 'fill-current' : ''}`} />
+                                )}
+                            </button>
+                        </div>
 
                         {/* Price */}
                         <div className="flex flex-col gap-2 mb-8">
                             <div className="flex items-center gap-4 flex-wrap">
                                 <span className="text-4xl sm:text-5xl font-black text-black tracking-tighter italic">
-                                    {formatPrice(effectiveDisplayPrice * quantity)}
+                                    {formatPrice(effectiveDisplayPrice)}
                                 </span>
                                 {effectiveDiscountPct != null && effectiveDiscountPct > 0 && (
                                     <span className="px-3 py-1 bg-rose-100 text-rose-600 text-[10px] sm:text-[11px] font-black rounded-lg">
@@ -268,120 +239,82 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
                             </div>
                             {effectiveOriginalPrice != null && (
                                 <span className="text-gray-400 text-sm sm:text-base font-medium line-through decoration-rose-500/30 decoration-2">
-                                    {formatPrice(effectiveOriginalPrice * quantity)}
+                                    {formatPrice(effectiveOriginalPrice)}
                                 </span>
                             )}
                         </div>
 
                         {/* Stok Info */}
-                        <div className="flex items-center gap-2 mb-8 px-4 py-3 bg-gray-50 rounded-2xl">
-                            <Info className="w-4 h-4 text-gray-400" />
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                {product.stock > 0 ? `${product.stock} unit tersedia` : 'Stok Habis'}
-                            </span>
+                        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 px-6 py-5 rounded-3xl border transition-all duration-300 ${
+                            product.stock > 0 && product.stock <= 10 
+                                ? 'bg-orange-50/50 border-orange-100' 
+                                : product.stock > 0 
+                                    ? 'bg-emerald-50/50 border-emerald-100' 
+                                    : 'bg-rose-50/50 border-rose-100'
+                        }`}>
+                            <div className="flex items-center gap-4">
+                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                                    product.stock > 0 && product.stock <= 10 ? 'bg-orange-100 text-orange-600' : product.stock > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
+                                }`}>
+                                    {product.stock > 0 && product.stock <= 10 ? <Zap className="w-5 h-5 animate-pulse" /> : product.stock > 0 ? <Package className="w-5 h-5" /> : <Info className="w-5 h-5" />}
+                                </div>
+                                <div>
+                                    <h4 className="text-[10px] font-black text-black uppercase tracking-[0.2em] mb-1">Status Ketersediaan</h4>
+                                    <p className={`text-xs font-bold ${
+                                        product.stock > 0 && product.stock <= 10 ? 'text-orange-600' : product.stock > 0 ? 'text-emerald-600' : 'text-rose-600'
+                                    }`}>
+                                        {product.stock > 0 && product.stock <= 10 ? `Sisa ${product.stock} unit - Terbatas!` : product.stock > 0 ? `Ready Stock (${product.stock} Unit)` : 'Stok Habis Sementara'}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center hidden sm:flex pr-2">
+                                <div className="relative flex h-3 w-3">
+                                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                                        product.stock > 0 && product.stock <= 10 ? 'bg-orange-400' : product.stock > 0 ? 'bg-emerald-400' : 'bg-rose-400'
+                                    }`}></span>
+                                    <span className={`relative inline-flex rounded-full h-3 w-3 ${
+                                        product.stock > 0 && product.stock <= 10 ? 'bg-orange-500' : product.stock > 0 ? 'bg-emerald-500' : 'bg-rose-500'
+                                    }`}></span>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Product Options */}
-                        <div className="space-y-10 mb-12">
-                            {hasSizes && (
-                                <div>
-                                    <div className="flex items-center justify-between mb-4">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
-                                            {sizesConfig!.type === 'inch' ? 'Pilih Ukuran (Inch)' : 'Pilih Ukuran'}
-                                        </span>
-                                        <button className="text-[10px] font-black text-ub-navy uppercase tracking-widest hover:underline underline-offset-4">
-                                            Size Guide
+                        {/* CTA Buttons - Marketplace Links */}
+                        <div className="flex flex-col gap-4 mb-12">
+                            <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Beli di Official Store Kami</h3>
+                            {activeLinks.length > 0 ? (
+                                <div className="grid gap-3">
+                                    {activeLinks.map(link => (
+                                        <button
+                                            key={link.id}
+                                            onClick={() => handleMarketplaceClick(link)}
+                                            disabled={product.stock <= 0 || redirectingLinkId === link.id}
+                                            className={`group py-5 px-6 ${getPlatformColor(link.platform)} text-[11px] font-black uppercase tracking-[0.3em] rounded-[1.5rem] shadow-xl hover:shadow-2xl transition-all flex items-center justify-between active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed`}
+                                        >
+                                            <span className="flex items-center gap-3">
+                                                {redirectingLinkId === link.id ? (
+                                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                                ) : (
+                                                    <ExternalLink className="w-5 h-5" />
+                                                )}
+                                                Beli di {link.platform}
+                                            </span>
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                         </button>
-                                    </div>
-                                    <div className="flex flex-wrap gap-3">
-                                        {sizesConfig!.sizes.map((entry: { value: string; regularPrice: number; discountPrice: number | null }) => {
-                                            return (
-                                                <button
-                                                    key={entry.value}
-                                                    onClick={() => setSelectedSize(entry.value === selectedSize ? null : entry.value)}
-                                                    className={`flex flex-col items-center justify-center min-w-[60px] h-16 px-3 rounded-2xl text-xs font-black transition-all gap-0.5 ${selectedSize === entry.value
-                                                        ? 'bg-black text-white shadow-xl shadow-black/20 ring-4 ring-black/5'
-                                                        : 'bg-white text-gray-500 border border-gray-100 hover:border-black hover:text-black'
-                                                        }`}
-                                                >
-                                                    <span>{entry.value}</span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    {!selectedSize && (
-                                        <p className="mt-3 text-[9px] font-bold text-rose-400 uppercase tracking-widest">
-                                            ⚠ Silakan pilih ukuran sebelum membeli
-                                        </p>
-                                    )}
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-center">
+                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                                        Belum tersedia di marketplace online
+                                    </p>
                                 </div>
                             )}
-
-                            {/* Quantity */}
-                            <div>
-                                <span className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-4">Quantity</span>
-                                <div className="inline-flex items-center bg-gray-50 rounded-2xl p-1 border border-gray-100">
-                                    <button
-                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                        className="w-12 h-12 flex items-center justify-center text-gray-400 hover:text-black transition-colors text-lg font-bold"
-                                        disabled={product.stock <= 0}
-                                    >
-                                        -
-                                    </button>
-                                    <span className="w-12 text-center text-sm font-black text-black">{quantity}</span>
-                                    <button
-                                        onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                                        className="w-12 h-12 flex items-center justify-center text-gray-400 hover:text-black transition-colors text-lg font-bold"
-                                        disabled={product.stock <= 0}
-                                    >
-                                        +
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* CTA Buttons */}
-                        <div className="flex flex-col gap-4 mb-12">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <button
-                                    onClick={handleAddToCart}
-                                    disabled={product.stock <= 0}
-                                    className="group py-6 bg-white text-black border-2 border-black text-[11px] font-black uppercase tracking-[0.3em] rounded-[2rem] hover:bg-black hover:text-white transition-all flex items-center justify-center gap-4 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                    <ShoppingCart className="w-4 h-4" />
-                                    Add to Cart
-                                </button>
-                                <button
-                                    onClick={handleBuyNow}
-                                    disabled={product.stock <= 0}
-                                    className="group py-6 bg-black text-white text-[11px] font-black uppercase tracking-[0.3em] rounded-[2rem] shadow-2xl hover:bg-ub-navy transition-all flex items-center justify-center gap-4 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                    Buy Now
-                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                </button>
-                            </div>
                         </div>
 
                         {/* Trust Badges */}
                         <div className="grid grid-cols-2 gap-6 pt-12 border-t border-gray-100">
-                            <div className="flex gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 text-black">
-                                    <Truck className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <h4 className="text-[10px] text-black font-bold uppercase tracking-widest mb-1">Pengiriman Cepat</h4>
-                                    <p className="text-[10px] text-black font-black">Dikirim 3-5 hari kerja ke seluruh Indonesia.</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 text-black">
-                                    <ShieldCheck className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <h4 className="text-[10px] text-black font-bold uppercase tracking-widest mb-1">Produk Resmi</h4>
-                                    <p className="text-[10px] text-black font-black">100% merchandise original berlisensi UB.</p>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -427,31 +360,37 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
                 </div>
             </main>
 
-
             {/* Fixed Bottom Action Bar (Mobile Only) */}
-            <div className="fixed bottom-0 inset-x-0 z-[60] bg-white/80 backdrop-blur-2xl border-t border-gray-100 p-4 pb-8 flex items-center justify-between gap-4 lg:hidden animate-in slide-in-from-bottom duration-500">
-                <div className="flex flex-col">
-                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Total Price</span>
+            <div className="fixed bottom-0 inset-x-0 z-[60] bg-white/90 backdrop-blur-2xl border-t border-gray-100 p-4 pb-6 flex flex-col gap-3 lg:hidden animate-in slide-in-from-bottom duration-500">
+                <div className="flex items-center justify-between px-2">
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none">Price</span>
                     <span className="text-lg font-black text-black tracking-tighter italic leading-none">
-                        {formatPrice(effectiveDisplayPrice * quantity)}
+                        {formatPrice(effectiveDisplayPrice)}
                     </span>
                 </div>
-                <div className="flex gap-2 flex-grow max-w-[200px]">
-                    <button
-                        onClick={handleAddToCart}
-                        disabled={product.stock <= 0}
-                        className="flex-1 h-12 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-xl flex items-center justify-center active:scale-95 disabled:opacity-40"
-                    >
-                        <ShoppingCart className="w-4 h-4" />
+                {activeLinks.length > 0 ? (
+                    <div className="flex gap-2 w-full overflow-x-auto pb-2 snap-x">
+                        {activeLinks.map(link => (
+                            <button
+                                key={link.id}
+                                onClick={() => handleMarketplaceClick(link)}
+                                disabled={product.stock <= 0 || redirectingLinkId === link.id}
+                                className={`flex-1 min-w-[140px] snap-center py-4 ${getPlatformColor(link.platform)} text-[10px] font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2 active:scale-95 disabled:opacity-40 whitespace-nowrap px-4`}
+                            >
+                                {redirectingLinkId === link.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <ExternalLink className="w-4 h-4" />
+                                )}
+                                {link.platform}
+                            </button>
+                        ))}
+                    </div>
+                ) : (
+                    <button disabled className="w-full py-4 bg-gray-100 text-gray-400 text-[10px] font-black uppercase tracking-widest rounded-2xl">
+                        Tidak Tersedia
                     </button>
-                    <button
-                        onClick={handleBuyNow}
-                        disabled={product.stock <= 0}
-                        className="flex-[2] h-12 bg-ub-navy text-white text-[9px] font-black uppercase tracking-widest rounded-xl flex items-center justify-center active:scale-95 disabled:opacity-40"
-                    >
-                        Buy Now
-                    </button>
-                </div>
+                )}
             </div>
         </div>
     );

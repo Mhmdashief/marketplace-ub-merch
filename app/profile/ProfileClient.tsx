@@ -4,11 +4,11 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
     User,
     Shield,
     Calendar,
-    MapPin,
     Camera,
     Pencil,
     X,
@@ -21,10 +21,12 @@ import {
     AlertCircle,
     Loader2,
     ChevronRight,
+    Heart,
+    ArrowRight
 } from 'lucide-react';
-import { getUserAddresses } from '@/app/actions/addresses';
 import { getUserProfile, updateUserProfile, changeUserPassword, updateUserAvatar, softDeleteAccount } from '@/app/actions/profile';
-import AddressManager, { type SavedAddress } from '@/components/shared/AddressManager';
+import { getUserWishlists } from '@/app/actions/wishlist/wishlist';
+import { getUserActivities } from '@/app/actions/activity/activity';
 
 type UserProfile = {
     id: string;
@@ -33,10 +35,10 @@ type UserProfile = {
     image: string | null;
     role: string;
     createdAt: Date;
-    _count: { orders: number; addresses: number };
+    _count: { wishlists: number; clickTrackings: number };
 };
 
-type ActiveTab = 'account' | 'addresses' | 'security';
+type ActiveTab = 'account' | 'activity' | 'wishlist' | 'security';
 
 export default function ProfileClient() {
     const { data: session, status, update: updateSession } = useSession();
@@ -44,7 +46,8 @@ export default function ProfileClient() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+    const [wishlists, setWishlists] = useState<any[]>([]);
+    const [activities, setActivities] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<ActiveTab>('account');
 
     // Edit profile state
@@ -76,16 +79,22 @@ export default function ProfileClient() {
     }, [status, session?.user?.id]);
 
     const loadData = async () => {
-        const [profileRes, addressRes] = await Promise.all([
-            getUserProfile(session!.user!.id),
-            getUserAddresses(session!.user!.id),
+        const userId = session!.user!.id;
+        const [profileRes, wishlistRes, activityRes] = await Promise.all([
+            getUserProfile(userId),
+            getUserWishlists(userId),
+            getUserActivities(userId),
         ]);
+        
         if (profileRes.success && profileRes.user) {
-            setProfile(profileRes.user as UserProfile);
+            setProfile(profileRes.user as unknown as UserProfile);
             setEditName(profileRes.user.name);
         }
-        if (addressRes.success && addressRes.addresses) {
-            setAddresses(addressRes.addresses);
+        if (wishlistRes.success && wishlistRes.wishlists) {
+            setWishlists(wishlistRes.wishlists);
+        }
+        if (activityRes.success && activityRes.activities) {
+            setActivities(activityRes.activities);
         }
     };
 
@@ -175,15 +184,23 @@ export default function ProfileClient() {
 
     const tabs: { id: ActiveTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
         { id: 'account', label: 'Profil Saya', icon: User },
-        { id: 'addresses', label: 'Alamat Pengiriman', icon: MapPin },
+        { id: 'activity', label: 'Aktivitas Saya', icon: Eye },
+        { id: 'wishlist', label: 'Wishlist / Favorit', icon: Heart },
         { id: 'security', label: 'Keamanan Akun', icon: Lock },
     ];
+
+    const formatPrice = (price: number) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+        }).format(price);
+    };
 
     return (
         <div className="min-h-screen bg-[#FAFAFA] pb-24">
             {/* ─── PREMIUM HERO HEADER ─── */}
             <div className="relative pt-32 pb-48 bg-white border-b border-gray-100 overflow-hidden">
-                {/* Abstract Background Elements */}
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-ub-gold/5 blur-[120px] rounded-full -mr-48 -mt-48" />
                 <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-ub-navy/5 blur-[100px] rounded-full -ml-32 -mb-32" />
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
@@ -202,7 +219,6 @@ export default function ProfileClient() {
                                         </div>
                                     )}
 
-                                    {/* Upload Overlay */}
                                     <button
                                         onClick={() => fileInputRef.current?.click()}
                                         className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-2 text-white"
@@ -299,20 +315,20 @@ export default function ProfileClient() {
                             <div className="space-y-10">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-1">
-                                        <p className="text-3xl font-black text-black italic leading-none">{profile._count.orders}</p>
-                                        <p className="text-[8px] font-black uppercase tracking-widest text-gray-600">Successful Orders</p>
+                                        <p className="text-3xl font-black text-black italic leading-none">{profile._count.clickTrackings}</p>
+                                        <p className="text-[8px] font-black uppercase tracking-widest text-gray-600">Total Produk Diklik</p>
                                     </div>
                                     <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center">
-                                        <ShoppingBag className="w-5 h-5 text-black" />
+                                        <Eye className="w-5 h-5 text-black" />
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between pt-6 border-t border-gray-50">
                                     <div className="space-y-1">
-                                        <p className="text-3xl font-black text-black italic leading-none">{addresses.length}</p>
-                                        <p className="text-[8px] font-black uppercase tracking-widest text-gray-600">Shipping Addresses</p>
+                                        <p className="text-xl font-black text-black italic leading-none">{profile._count.wishlists}</p>
+                                        <p className="text-[8px] font-black uppercase tracking-widest text-gray-600">Wishlist Count</p>
                                     </div>
-                                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center">
-                                        <MapPin className="w-5 h-5 text-black" />
+                                    <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center">
+                                        <Heart className="w-5 h-5 text-rose-500" />
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between pt-6 border-t border-gray-50">
@@ -361,7 +377,6 @@ export default function ProfileClient() {
                     <div className="lg:col-span-8">
                         <div className="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-gray-100 p-8 sm:p-12 min-h-[600px]">
 
-                            {/* Rendering dynamic content based on tab */}
                             {activeTab === 'account' && (
                                 <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                     <div className="flex items-center justify-between">
@@ -389,17 +404,78 @@ export default function ProfileClient() {
                                             </div>
                                         ))}
                                     </div>
-
                                 </div>
                             )}
 
-                            {activeTab === 'addresses' && (
+                            {activeTab === 'activity' && (
                                 <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-xl font-black text-gray-600 tracking-widest uppercase italic">Shipping Ledger</h3>
+                                        <h3 className="text-xl font-black text-gray-600 tracking-widest uppercase italic">Aktivitas Saya</h3>
                                         <div className="w-12 h-1 bg-ub-gold rounded-full" />
                                     </div>
-                                    <AddressManager userId={profile.id} initialAddresses={addresses} />
+                                    
+                                    <div className="bg-gray-50 rounded-3xl p-6 md:p-8 space-y-6 border border-gray-100">
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Produk Dilihat Terakhir</h4>
+                                        {activities.length > 0 ? (
+                                            <div className="space-y-4">
+                                                {activities.map((act) => (
+                                                    <Link href={`/merchandise/${act.product.slug}`} key={act.id} className="group flex items-center justify-between p-5 bg-white rounded-2xl hover:bg-black transition-all border border-transparent shadow-sm hover:shadow-2xl">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="p-3 bg-gray-50 text-gray-400 rounded-xl group-hover:bg-white/10 group-hover:text-ub-gold transition-colors">
+                                                                <ShoppingBag className="w-5 h-5" />
+                                                            </div>
+                                                            <div className="font-bold text-sm text-black group-hover:text-white transition-colors">{act.product.name}</div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-white transition-colors" />
+                                                            <span className="text-[10px] font-black uppercase tracking-widest text-ub-gold bg-ub-gold/10 group-hover:bg-white/10 px-4 py-2 rounded-full transition-colors">{act.platform}</span>
+                                                        </div>
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm font-medium text-gray-400 bg-white p-6 rounded-2xl border border-gray-100 text-center">
+                                                Belum ada aktivitas klik menuju marketplace.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'wishlist' && (
+                                <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-xl font-black text-gray-600 tracking-widest uppercase italic">Wishlist / Favorit</h3>
+                                        <div className="w-12 h-1 bg-ub-gold rounded-full" />
+                                    </div>
+                                    
+                                    {wishlists.length > 0 ? (
+                                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {wishlists.map((w) => (
+                                                <Link key={w.id} href={`/merchandise/${w.product.slug}`} className="group relative flex flex-col bg-white border border-gray-100 rounded-[2rem] overflow-hidden hover:shadow-2xl hover:border-transparent transition-all duration-500">
+                                                    <div className="aspect-[4/5] relative bg-gray-50">
+                                                        <Image
+                                                            src={w.product.assets?.[0]?.url || '/images/reusable/placeholder.png'}
+                                                            alt={w.product.name}
+                                                            fill
+                                                            className="object-cover group-hover:scale-105 transition duration-700"
+                                                        />
+                                                    </div>
+                                                    <div className="p-5 flex-1 flex flex-col justify-between">
+                                                        <h4 className="font-bold text-xs leading-tight mb-2 line-clamp-2 text-black group-hover:text-ub-gold transition-colors">{w.product.name}</h4>
+                                                        <div className="text-black font-black italic text-sm mt-auto">
+                                                            {formatPrice(w.product.discountPrice ?? w.product.regularPrice)}
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-20 bg-gray-50 rounded-3xl border border-gray-100">
+                                            <Heart className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                                            <p className="text-gray-400 text-sm font-medium">Belum ada wishlist tersimpan. Tambahkan produk favoritmu!</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

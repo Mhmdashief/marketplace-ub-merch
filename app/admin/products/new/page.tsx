@@ -2,21 +2,18 @@
 
 import { useState, useRef, useEffect, useTransition } from 'react';
 import {
-    Package, ArrowLeft, Upload, X, Star, Zap,
+    ArrowLeft, Upload, X, Star, Zap,
     TrendingUp, ShieldCheck, Heart, Save, ChevronDown, Check, AlertCircle, Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createProduct } from '@/app/actions/products';
-import SizeManager from '@/components/admin/SizeManager';
+import { upsertMarketplaceLinks } from '@/app/actions/marketplace';
+import { PRODUCT_CATEGORIES } from '@/app/constant/product-categories';
+import MarketplaceLinksManager, { type LinkEntry } from '@/components/admin/MarketplaceLinksManager';
 
-const PRODUCT_CATEGORIES = [
-    'Varsity', 'T-Shirt', 'Crewneck & Hoodie', 'Sweater',
-    'Leather Jacket', 'Topi', 'Tumbler', 'Sticker',
-    'Key Chain', 'Leather Product', 'T-Shirt Colourful',
-    'Polo', 'Sepatu', 'Vest', 'Totebag & Slempang',
-];
+
 
 // Map showcase label names → formData key
 const SHOWCASE_LABELS = [
@@ -42,7 +39,7 @@ export default function NewProductPage() {
     const [discountPrice, setDiscountPrice] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [images, setImages] = useState<File[]>([]);
-    const [sizesJson, setSizesJson] = useState<string | null>(null);
+
 
     // Showcase flags state
     const [showcaseFlags, setShowcaseFlags] = useState<Record<ShowcaseKey, boolean>>({
@@ -52,6 +49,9 @@ export default function NewProductPage() {
         isExclusiveShowcase: false,
         isKoleksiPilihan: false,
     });
+
+    // Marketplace links state
+    const [marketplaceLinks, setMarketplaceLinks] = useState<LinkEntry[]>([]);
 
     // UI state
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -108,8 +108,7 @@ export default function NewProductPage() {
             formData.set(key, String(showcaseFlags[key]));
         });
 
-        // Include sizes
-        if (sizesJson) formData.set('sizes', sizesJson);
+
 
         images.forEach((file) => {
             formData.append('images', file);
@@ -120,7 +119,11 @@ export default function NewProductPage() {
 
             if (result?.error) {
                 setError(result.error);
-            } else {
+            } else if (result?.productId) {
+                // Simpan marketplace links setelah produk created
+                if (marketplaceLinks.length > 0) {
+                    await upsertMarketplaceLinks(result.productId, marketplaceLinks);
+                }
                 setSuccess(true);
                 setTimeout(() => router.push('/admin/products'), 1500);
             }
@@ -339,12 +342,13 @@ export default function NewProductPage() {
 
                 {/* RIGHT: Labels & Availability */}
                 <div className="space-y-8">
-                    {/* Size Manager */}
-                    <SizeManager
-                        baseRegularPrice={Number(regularPrice)}
-                        baseDiscountPrice={discountPrice ? Number(discountPrice) : null}
-                        onChange={setSizesJson}
+                    {/* Marketplace Links */}
+                    <MarketplaceLinksManager
+                        initialLinks={marketplaceLinks}
+                        onChange={setMarketplaceLinks}
                     />
+
+
 
                     {/* Showcase Labels */}
                     <div className="bg-[#001a33] rounded-[40px] shadow-2xl p-8 border border-white/5 relative overflow-hidden">
@@ -359,8 +363,8 @@ export default function NewProductPage() {
                                         type="button"
                                         onClick={() => toggleFlag(key)}
                                         className={`w-full flex items-center justify-between p-5 rounded-2xl cursor-pointer transition-all border ${isChecked
-                                                ? 'bg-ub-gold/10 border-ub-gold/30'
-                                                : 'bg-white/5 hover:bg-white/10 border-white/5'
+                                            ? 'bg-ub-gold/10 border-ub-gold/30'
+                                            : 'bg-white/5 hover:bg-white/10 border-white/5'
                                             }`}
                                     >
                                         <div className="flex items-center gap-4">
@@ -372,8 +376,8 @@ export default function NewProductPage() {
                                             </span>
                                         </div>
                                         <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${isChecked
-                                                ? 'bg-ub-gold border-ub-gold shadow-lg shadow-ub-gold/20'
-                                                : 'bg-white/5 border-white/10'
+                                            ? 'bg-ub-gold border-ub-gold shadow-lg shadow-ub-gold/20'
+                                            : 'bg-white/5 border-white/10'
                                             }`}>
                                             {isChecked && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                                         </div>

@@ -1,32 +1,24 @@
 'use client';
 
-import { Search, ShoppingCart, User, Menu, X, ChevronDown, LogOut, Settings, Package, UserPlus } from 'lucide-react';
+import { User, Menu, X, ChevronDown, LogOut } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
-import { useCart } from './ShoppingCart';
-import CartSheet from './CartSheet';
+
 
 export default function Navbar() {
-    // 1. SEMUA HOOKS HARUS DI PALING ATAS
     const { data: session, status } = useSession();
     const pathname = usePathname();
-    const { cart, isCartOpen, setIsCartOpen } = useCart();
-
-    // State hooks
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
     const [isMerchandiseOpen, setIsMerchandiseOpen] = useState(false);
     const [isMobileMerchOpen, setIsMobileMerchOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
-    // Ref hooks
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const userDropdownRef = useRef<HTMLDivElement>(null);
 
-    // Effect hooks
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
@@ -40,13 +32,10 @@ export default function Navbar() {
         };
     }, []);
 
-    // 2. LOGIKA CONDITIONAL RETURN (Halaman Auth/Admin tidak pakai Navbar ini)
     const isAuthPage = pathname?.startsWith('/auth');
     const isAdminPage = pathname?.startsWith('/admin');
 
     if (isAuthPage || isAdminPage) return null;
-
-    // 3. LOGIKA HANDLERS
     const handleMouseEnter = () => {
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
@@ -60,12 +49,6 @@ export default function Navbar() {
             setIsMerchandiseOpen(false);
         }, 500);
     };
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        console.log('Searching for:', searchQuery);
-    };
-
     const handleLogout = async () => {
         await signOut({ callbackUrl: '/' });
     };
@@ -82,7 +65,8 @@ export default function Navbar() {
         { name: 'T-Shirt Colourful', slug: 't-shirt-colourful' },
         { name: 'Vest', slug: 'vest' },
         { name: 'Sepatu', slug: 'sepatu' },
-        { name: 'Topi', slug: 'topi' }
+        { name: 'Topi', slug: 'topi' },
+        { name: 'Pengharum ruangan', slug: 'pengharum-ruangan' }
     ].map(cat => ({
         ...cat,
         href: `/merchandise?category=${cat.slug}`
@@ -103,7 +87,6 @@ export default function Navbar() {
                         />
                     </Link>
 
-                    {/* Desktop Navigation */}
                     <div className="hidden lg:flex items-center space-x-8 flex-1 justify-center">
                         <div className="relative group/merch">
                             <button
@@ -160,29 +143,6 @@ export default function Navbar() {
 
                     {/* Desktop Search & Icons */}
                     <div className="hidden lg:flex items-center space-x-3">
-                        <form onSubmit={handleSearch} className="relative group">
-                            <input
-                                type="text"
-                                placeholder="Search products..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-40 focus:w-64 px-4 py-2 pl-10 pr-4 rounded-full border border-gray-500 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-ub-navy/20 focus:border-ub-navy transition-all duration-500 text-sm text-black"
-                            />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-ub-navy transition-colors" />
-                        </form>
-
-                        <button
-                            onClick={() => setIsCartOpen(true)}
-                            className="group relative p-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 hover:scale-110 active:scale-95"
-                        >
-                            <ShoppingCart className="w-6 h-6 text-gray-700 group-hover:text-ub-navy transition-colors" />
-                            {cart.length > 0 && (
-                                <span className="absolute top-1.5 right-1.5 bg-ub-gold text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border-2 border-white shadow-sm group-hover:bg-ub-navy transition-colors">
-                                    {cart.length}
-                                </span>
-                            )}
-                        </button>
-
                         {status === 'loading' ? (
                             <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
                         ) : session ? (
@@ -224,7 +184,7 @@ export default function Navbar() {
                                         <div className="p-2">
                                             {[
                                                 { icon: User, label: 'My Profile', href: '/profile' },
-                                                { icon: Package, label: 'My Orders', href: '/orders' },
+
                                             ].map((item) => (
                                                 <Link
                                                     key={item.label}
@@ -269,17 +229,7 @@ export default function Navbar() {
 
                     {/* Mobile Navigation Icons */}
                     <div className="flex lg:hidden items-center space-x-1">
-                        <button
-                            onClick={() => setIsCartOpen(true)}
-                            className="relative p-2.5 rounded-full hover:bg-gray-100 transition-all active:scale-95"
-                        >
-                            <ShoppingCart className="w-6 h-6 text-gray-700" />
-                            {cart.length > 0 && (
-                                <span className="absolute top-1.5 right-1.5 bg-ub-gold text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border-2 border-white shadow-sm">
-                                    {cart.length}
-                                </span>
-                            )}
-                        </button>
+
 
                         <div className="p-1">
                             {session ? (
@@ -321,19 +271,6 @@ export default function Navbar() {
                 {/* Mobile Menu Content */}
                 {isMenuOpen && (
                     <div className="lg:hidden py-4 space-y-4 animate-fade-in border-t border-gray-100 px-2">
-                        <form onSubmit={handleSearch}>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Search products..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full px-4 py-2 pl-10 pr-4 rounded-full border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-ub-navy/20 focus:border-ub-navy transition-all duration-300 text-black"
-                                />
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            </div>
-                        </form>
-
                         <div className="space-y-1">
                             <button
                                 onClick={() => setIsMobileMerchOpen(!isMobileMerchOpen)}
@@ -373,7 +310,6 @@ export default function Navbar() {
                     </div>
                 )}
             </div>
-            <CartSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
         </nav>
     );
 }

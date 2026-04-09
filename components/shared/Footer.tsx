@@ -63,17 +63,6 @@ export default function Footer() {
                                     Hubungi Kami
                                 </Link>
                             </li>
-
-                            <li>
-                                <Link href="/returns" className="text-gray-400 hover:text-white transition-colors text-sm">
-                                    Pengembalian
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/track" className="text-gray-400 hover:text-white transition-colors text-sm">
-                                    Lacak Pesanan
-                                </Link>
-                            </li>
                         </ul>
                     </div>
                     <div>
@@ -122,52 +111,6 @@ export default function Footer() {
                                 </span>
                             </li>
                         </ul>
-                    </div>
-                </div>
-
-                {/* Marketplace Shortcuts Section */}
-                <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-3xl p-8 mb-12 border border-white/5 relative overflow-hidden group/marketplace">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(59,130,246,0.1),transparent)] opacity-0 group-hover/marketplace:opacity-100 transition-opacity duration-1000"></div>
-
-                    <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
-                        <div className="text-center lg:text-left">
-                            <h3 className="text-2xl font-bold text-white mb-2">Tersedia di Marketplace</h3>
-                            <p className="text-gray-400">Belanja koleksi pilihan kami lebih mudah & aman di platform favorit Anda</p>
-                        </div>
-
-                        <div className="flex flex-wrap justify-center gap-6">
-                            <Link
-                                href="https://shopee.co.id/ubmerchandise"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="group/shopee flex items-center justify-center bg-white h-20 px-10 rounded-2xl transition-all duration-500 hover:scale-105 hover:shadow-[0_0_40px_rgba(238,77,45,0.25)] relative overflow-hidden"
-                            >
-                                <div className="absolute inset-0 bg-orange-50 group-hover/shopee:bg-white transition-colors"></div>
-                                <Image
-                                    src="/images/reusable/shopee.png"
-                                    alt="Shopee UB Merch"
-                                    width={160}
-                                    height={60}
-                                    className="h-10 w-auto object-contain relative z-10 transition-transform duration-500 group-hover/shopee:scale-110"
-                                />
-                            </Link>
-
-                            <Link
-                                href="https://www.tokopedia.com/ubmerchandise/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="group/tokopedia flex items-center justify-center bg-white h-20 px-10 rounded-2xl transition-all duration-500 hover:scale-105 hover:shadow-[0_0_40px_rgba(3,172,14,0.25)] relative overflow-hidden"
-                            >
-                                <div className="absolute inset-0 bg-green-50 group-hover/tokopedia:bg-white transition-colors"></div>
-                                <Image
-                                    src="/images/reusable/tokopedia.png"
-                                    alt="Tokopedia UB Merch"
-                                    width={160}
-                                    height={60}
-                                    className="h-10 w-auto object-contain relative z-10 transition-transform duration-500 group-hover/tokopedia:scale-110"
-                                />
-                            </Link>
-                        </div>
                     </div>
                 </div>
 
@@ -225,7 +168,7 @@ export default function Footer() {
                     </div>
                 </div>
             </div>
-        </footer>
+        </footer >
     );
 }
 

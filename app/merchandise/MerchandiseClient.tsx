@@ -12,24 +12,14 @@ interface Product {
     slug: string;
     price: number;
     discountPrice: number | null;
-    hasPromotion?: boolean;
-    promoName?: string;
     stock: number;
-    category: string;
-    categorySlug: string;
     image: string;
     sales: number;
-}
-
-interface Category {
-    name: string;
-    slug: string;
+    category?: string | null;
 }
 
 interface MerchandiseClientProps {
     initialProducts: Product[];
-    categories: Category[];
-    activeCategory?: string;
 }
 
 const SORT_OPTIONS = [
@@ -40,35 +30,20 @@ const SORT_OPTIONS = [
 
 export default function MerchandiseClient({
     initialProducts,
-    categories,
-    activeCategory,
 }: MerchandiseClientProps) {
     const router = useRouter();
 
-    const [selectedCategorySlug, setSelectedCategorySlug] = useState(activeCategory || 'all');
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState('newest');
     const [gridView, setGridView] = useState<'3' | '4'>('4');
     const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
 
-    // Dropdown States
-    const [isCategoryOpen, setIsCategoryOpen] = useState(false);
     const [isSortOpen, setIsSortOpen] = useState(false);
-
-    const categoryRef = useRef<HTMLDivElement>(null);
     const sortRef = useRef<HTMLDivElement>(null);
-
-    // Sync categories from props
-    useEffect(() => {
-        setSelectedCategorySlug(activeCategory || 'all');
-    }, [activeCategory]);
 
     // Click outside handlers
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
-                setIsCategoryOpen(false);
-            }
             if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
                 setIsSortOpen(false);
             }
@@ -85,15 +60,6 @@ export default function MerchandiseClient({
         }).format(price);
     };
 
-    const handleCategoryChange = (slug: string) => {
-        setSelectedCategorySlug(slug);
-        setIsCategoryOpen(false);
-        if (slug === 'all') {
-            router.push('/merchandise', { scroll: false });
-        } else {
-            router.push(`/merchandise?category=${slug}`, { scroll: false });
-        }
-    };
 
     const toggleLike = (productId: string) => {
         setLikedProducts(prev => {
@@ -108,22 +74,14 @@ export default function MerchandiseClient({
     };
 
     const activeSortLabel = SORT_OPTIONS.find(opt => opt.value === sortBy)?.label || 'Sort By';
-    const activeCategoryName = selectedCategorySlug === 'all'
-        ? 'All Categories'
-        : categories.find(c => c.slug === selectedCategorySlug)?.name || selectedCategorySlug;
 
     const filteredProducts = useMemo(() => {
         let filtered = [...initialProducts];
 
-        if (selectedCategorySlug && selectedCategorySlug !== 'all') {
-            filtered = filtered.filter(p => p.categorySlug === selectedCategorySlug);
-        }
-
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
             filtered = filtered.filter(p =>
-                p.name.toLowerCase().includes(q) ||
-                p.category.toLowerCase().includes(q)
+                p.name.toLowerCase().includes(q)
             );
         }
 
@@ -139,36 +97,7 @@ export default function MerchandiseClient({
         }
 
         return filtered;
-    }, [initialProducts, searchQuery, sortBy, selectedCategorySlug]);
-
-    const NAVBAR_CATEGORIES = [
-        { name: 'Tote Bag & Slempang', slug: 'totebag-and-slempang' },
-        { name: 'T-shirt', slug: 't-shirt' },
-        { name: 'Tumbler', slug: 'tumbler' },
-        { name: 'Crewneck & Hoodie', slug: 'crewneck-and-hoodie' },
-        { name: 'Varsity', slug: 'varsity' },
-        { name: 'Polo', slug: 'polo' },
-        { name: 'Leather Jacket', slug: 'leather-jacket' },
-        { name: 'Leather Product', slug: 'leather-product' },
-        { name: 'T-Shirt Colourful', slug: 't-shirt-colourful' },
-        { name: 'Vest', slug: 'vest' },
-        { name: 'Sepatu', slug: 'sepatu' },
-        { name: 'Topi', slug: 'topi' },
-        { name: 'Sweater', slug: 'sweater' }
-    ];
-
-    const allCategories = useMemo(() => {
-        const base = [{ name: 'All Categories', slug: 'all' }];
-        const combined = [...NAVBAR_CATEGORIES];
-
-        categories.forEach(cat => {
-            if (!combined.some(c => c.slug === cat.slug)) {
-                combined.push(cat);
-            }
-        });
-
-        return [...base, ...combined];
-    }, [categories]);
+    }, [initialProducts, searchQuery, sortBy]);
 
     return (
         <div className="bg-white min-h-screen">
@@ -191,49 +120,6 @@ export default function MerchandiseClient({
                                 />
                             </div>
 
-                            {/* Premium Category Dropdown - Synchronized with Navbar Style */}
-                            <div className="relative" ref={categoryRef}>
-                                <button
-                                    onClick={() => {
-                                        setIsCategoryOpen(!isCategoryOpen);
-                                        setIsSortOpen(false);
-                                    }}
-                                    className={`h-full px-8 py-5 flex items-center justify-between gap-4 bg-gray-50/50 border border-gray-100 rounded-3xl min-w-[200px] transition-all hover:bg-white hover:border-black group ${isCategoryOpen ? 'bg-white border-black ring-4 ring-black/5' : ''}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <Filter className={`w-4 h-4 ${isCategoryOpen ? 'text-black' : 'text-gray-400'}`} />
-                                        <span className={`text-[11px] font-black uppercase tracking-widest ${isCategoryOpen ? 'text-black' : 'text-gray-600'}`}>
-                                            {activeCategoryName}
-                                        </span>
-                                    </div>
-                                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCategoryOpen ? 'rotate-180 text-black' : 'text-gray-400'}`} />
-                                </button>
-
-                                {isCategoryOpen && (
-                                    <div className="absolute top-full left-0 mt-3 w-screen max-w-[320px] sm:max-w-[480px] bg-white rounded-3xl shadow-2xl border border-gray-100 p-6 animate-in fade-in slide-in-from-top-2 duration-300 z-50 ring-1 ring-black/5">
-                                        <div className="mb-4 pb-4 border-b border-gray-50">
-                                            <span className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em]">Select Category</span>
-                                        </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                            {allCategories.map((cat) => (
-                                                <button
-                                                    key={cat.slug}
-                                                    onClick={() => handleCategoryChange(cat.slug)}
-                                                    className={`flex items-center justify-between px-5 py-3.5 rounded-2xl transition-all group/item ${selectedCategorySlug === cat.slug
-                                                        ? 'bg-black text-white shadow-xl shadow-black/10'
-                                                        : 'text-gray-600 hover:bg-gray-50 hover:text-black'
-                                                        }`}
-                                                >
-                                                    <span className={`text-xs font-bold ${selectedCategorySlug === cat.slug ? '' : 'group-hover/item:translate-x-1'} transition-transform`}>
-                                                        {cat.name}
-                                                    </span>
-                                                    {selectedCategorySlug === cat.slug && <Check className="w-4 h-4" />}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
                         </div>
 
                         {/* Right: Sort & View Controls */}
@@ -243,7 +129,6 @@ export default function MerchandiseClient({
                                 <button
                                     onClick={() => {
                                         setIsSortOpen(!isSortOpen);
-                                        setIsCategoryOpen(false);
                                     }}
                                     className={`w-full sm:w-auto px-8 py-5 flex items-center justify-between gap-4 bg-gray-50/50 border border-gray-100 rounded-3xl min-w-[180px] transition-all hover:bg-white hover:border-black group ${isSortOpen ? 'bg-white border-black ring-4 ring-black/5' : ''}`}
                                 >
@@ -359,9 +244,9 @@ export default function MerchandiseClient({
 
                                     {/* Product Status Badge */}
                                     <div className="absolute top-6 left-6 flex flex-col gap-2">
-                                        {(product.hasPromotion || product.discountPrice) && (
+                                        {product.discountPrice && (
                                             <span className="px-4 py-2 bg-rose-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl shadow-lg">
-                                                {product.promoName || 'Special Price'}
+                                                Special Price
                                             </span>
                                         )}
                                     </div>
@@ -379,7 +264,9 @@ export default function MerchandiseClient({
                                 {/* Refined Meta Info */}
                                 <div className="mt-10 px-4 flex flex-col flex-1">
                                     <div className="flex items-center justify-between mb-4">
-                                        <span className="text-[11px] font-black text-ub-gold uppercase tracking-[0.3em]">{product.category}</span>
+                                        <span className="text-[11px] font-black text-ub-gold uppercase tracking-[0.3em]">
+                                            {product.category || 'Merchandise'}
+                                        </span>
                                     </div>
 
                                     <h3 className="text-xl font-bold text-gray-900 leading-tight mb-6 group-hover:text-ub-navy transition-colors line-clamp-1 italic">
@@ -417,9 +304,9 @@ export default function MerchandiseClient({
                         <p className="text-gray-400 text-sm mb-12 max-w-sm text-center font-medium leading-relaxed">
                             Maaf, kami tidak dapat menemukan produk dalam koleksi ini. Silakan coba atur kembali filter Anda atau jelajahi kategori lainnya.
                         </p>
-                        {(searchQuery || selectedCategorySlug !== 'all') && (
+                        {(searchQuery) && (
                             <button
-                                onClick={() => { setSearchQuery(''); handleCategoryChange('all'); }}
+                                onClick={() => { setSearchQuery(''); }}
                                 className="px-14 py-6 bg-black text-white text-[10px] font-black uppercase tracking-[0.4em] rounded-[2rem] shadow-2xl hover:shadow-black/20 hover:bg-ub-navy transition-all active:scale-95"
                             >
                                 Reset Filters

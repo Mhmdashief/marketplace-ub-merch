@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { getFeaturedProducts } from '@/app/actions/products';
 
 export default async function FeaturedProducts() {

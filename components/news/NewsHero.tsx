@@ -1,18 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ArrowRight, Newspaper, TrendingUp } from 'lucide-react';
 
 export default function NewsHero() {
     return (
         <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 bg-ub-navy overflow-hidden">
-            {/* Background Decorative Elements */}
             <div className="absolute inset-0 pointer-events-none">
-                {/* Modern Gradient Blobs */}
                 <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[70%] bg-gradient-to-br from-ub-gold/20 to-transparent rounded-full blur-[120px] mix-blend-screen opacity-60" />
                 <div className="absolute bottom-[-20%] left-[-10%] w-[40%] h-[60%] bg-gradient-to-tr from-blue-600/20 to-transparent rounded-full blur-[100px] mix-blend-screen opacity-50" />
 
-                {/* Grid Pattern */}
                 <div className="absolute inset-0 opacity-[0.03]"
                     style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '40px 40px' }}
                 />
@@ -21,7 +17,6 @@ export default function NewsHero() {
             <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
                 <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12 lg:gap-20">
 
-                    {/* Left Content - Main Title */}
                     <div className="max-w-4xl">
                         <motion.h1
                             initial={{ opacity: 0, y: 20 }}
@@ -36,7 +31,6 @@ export default function NewsHero() {
                         </motion.h1>
                     </div>
 
-                    {/* Right Content - Description & Stats */}
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -53,7 +47,6 @@ export default function NewsHero() {
                 </div>
             </div>
 
-            {/* Scroll Indicator */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

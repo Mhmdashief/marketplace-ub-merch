@@ -20,8 +20,8 @@ export async function getUserProfile(userId: string) {
                 createdAt: true,
                 _count: {
                     select: {
-                        orders: true,
-                        addresses: true,
+                        wishlists: true,
+                        clickTrackings: true,
                     },
                 },
             },

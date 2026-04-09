@@ -2,7 +2,6 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { PRODUCT_CATEGORIES } from '@/app/constant/product-categories';
 import { writeFile } from 'fs/promises';
 import path from 'path';
 
@@ -16,46 +15,10 @@ function slugify(text: string) {
         .replace(/\s+/g, '-');
 }
 
-// ─── Helper: pastikan Category sudah ada di DB, return categoryId ────────────
-async function ensureCategory(categoryName: string): Promise<string> {
-    const slug = slugify(categoryName);
-    const category = await prisma.category.upsert({
-        where: { slug },
-        update: {},
-        create: { name: categoryName, slug },
-    });
-    return category.id;
-}
-
-// ─── Helper: shared include untuk promotions ─────────────────────────────────
-function promotionInclude(now: Date) {
-    return {
-        where: {
-            promotion: {
-                isActive: true,
-                deletedAt: null,
-                startAt: { lte: now },
-                endAt: { gte: now },
-            },
-        },
-        include: { promotion: true },
-    } as const;
-}
-
 // ─── Helper: map raw prisma product → public-facing shape ────────────────────
 function mapPublicProduct(p: any) {
     const regPrice = Number(p.regularPrice);
     let discPrice = p.discountPrice ? Number(p.discountPrice) : null;
-
-    const activePromo = p.promotions?.[0];
-    if (activePromo) {
-        const promoVal = Number(activePromo.discountValue);
-        if (activePromo.discountType === 'PERCENTAGE') {
-            discPrice = regPrice * (1 - promoVal / 100);
-        } else {
-            discPrice = regPrice - promoVal;
-        }
-    }
 
     return {
         id: p.id,
@@ -64,25 +27,21 @@ function mapPublicProduct(p: any) {
         price: regPrice,
         discountPrice: discPrice,
         stock: p.stock,
-        category: p.category.name,
-        categorySlug: p.category.slug,
-        image: p.assets[0]?.url ?? '/images/reusable/placeholder.png',
+        image: p.assets?.[0]?.url ?? '/images/reusable/placeholder.png',
         rating: 4.8,
         sales: 0,
-        hasPromotion: !!activePromo,
-        promoName: activePromo?.promotion.name,
         // Showcase flags
         isFeatured: p.isFeatured,
         isNewArrival: p.isNewArrival,
         isBestSeller: p.isBestSeller,
         isExclusiveShowcase: p.isExclusiveShowcase,
         isKoleksiPilihan: p.isKoleksiPilihan,
+        category: p.category,
     };
 }
 
 // ─── LIST products untuk halaman publik (user-facing) ──────────────────────
-export async function getPublicProducts(search?: string, categorySlug?: string) {
-    const now = new Date();
+export async function getPublicProducts(search?: string) {
     const products = await prisma.product.findMany({
         where: {
             isActive: true,
@@ -92,14 +51,9 @@ export async function getPublicProducts(search?: string, categorySlug?: string) 
                     { name: { contains: search, mode: 'insensitive' } },
                 ],
             }),
-            ...(categorySlug && categorySlug !== 'all' && {
-                category: { slug: categorySlug },
-            }),
         },
         include: {
-            category: { select: { name: true, slug: true } },
             assets: { select: { url: true }, take: 1 },
-            promotions: promotionInclude(now),
         },
         orderBy: { createdAt: 'desc' },
     });
@@ -110,13 +64,10 @@ export async function getPublicProducts(search?: string, categorySlug?: string) 
 // ─── Scoped homepage queries ─────────────────────────────────────────────────
 
 export async function getFeaturedProducts(limit = 2) {
-    const now = new Date();
     const products = await prisma.product.findMany({
         where: { isActive: true, deletedAt: null, isFeatured: true },
         include: {
-            category: { select: { name: true, slug: true } },
             assets: { select: { url: true }, take: 1 },
-            promotions: promotionInclude(now),
         },
         orderBy: { createdAt: 'desc' },
         take: limit,
@@ -125,13 +76,10 @@ export async function getFeaturedProducts(limit = 2) {
 }
 
 export async function getNewArrivals(limit = 6) {
-    const now = new Date();
     const products = await prisma.product.findMany({
         where: { isActive: true, deletedAt: null, isNewArrival: true },
         include: {
-            category: { select: { name: true, slug: true } },
             assets: { select: { url: true }, take: 1 },
-            promotions: promotionInclude(now),
         },
         orderBy: { createdAt: 'desc' },
         take: limit,
@@ -140,13 +88,10 @@ export async function getNewArrivals(limit = 6) {
 }
 
 export async function getBestSellers(limit = 4) {
-    const now = new Date();
     const products = await prisma.product.findMany({
         where: { isActive: true, deletedAt: null, isBestSeller: true },
         include: {
-            category: { select: { name: true, slug: true } },
             assets: { select: { url: true }, take: 1 },
-            promotions: promotionInclude(now),
         },
         orderBy: { createdAt: 'desc' },
         take: limit,
@@ -154,14 +99,11 @@ export async function getBestSellers(limit = 4) {
     return products.map(mapPublicProduct);
 }
 
-export async function getExclusiveShowcaseProducts(limit = 3) {
-    const now = new Date();
+export async function getExclusiveShowcaseProducts(limit = 12) {
     const products = await prisma.product.findMany({
         where: { isActive: true, deletedAt: null, isExclusiveShowcase: true },
         include: {
-            category: { select: { name: true, slug: true } },
             assets: { select: { url: true }, take: 1 },
-            promotions: promotionInclude(now),
         },
         orderBy: { createdAt: 'desc' },
         take: limit,
@@ -170,13 +112,10 @@ export async function getExclusiveShowcaseProducts(limit = 3) {
 }
 
 export async function getKoleksiPilihanProducts(limit = 8) {
-    const now = new Date();
     const products = await prisma.product.findMany({
         where: { isActive: true, deletedAt: null, isKoleksiPilihan: true },
         include: {
-            category: { select: { name: true, slug: true } },
             assets: { select: { url: true }, take: 1 },
-            promotions: promotionInclude(now),
         },
         orderBy: { createdAt: 'desc' },
         take: limit,
@@ -184,18 +123,8 @@ export async function getKoleksiPilihanProducts(limit = 8) {
     return products.map(mapPublicProduct);
 }
 
-// ─── GET semua categories aktif untuk filter publik ─────────────────────────
-export async function getPublicCategories() {
-    const categories = await prisma.category.findMany({
-        where: { isActive: true, deletedAt: null },
-        select: { name: true, slug: true },
-        orderBy: { name: 'asc' },
-    });
-    return categories;
-}
-
 // ─── LIST products (untuk tabel admin) ──────────────────────────────────────
-export async function getAdminProducts(search?: string, categoryFilter?: string) {
+export async function getAdminProducts(search?: string) {
     const products = await prisma.product.findMany({
         where: {
             deletedAt: null,
@@ -205,22 +134,9 @@ export async function getAdminProducts(search?: string, categoryFilter?: string)
                     { id: { contains: search, mode: 'insensitive' } },
                 ],
             }),
-            ...(categoryFilter && categoryFilter !== 'ALL' && {
-                category: { name: categoryFilter },
-            }),
         },
         include: {
-            category: { select: { name: true } },
             assets: { select: { url: true }, take: 1 },
-            promotions: {
-                where: {
-                    promotion: {
-                        isActive: true,
-                        deletedAt: null,
-                    }
-                },
-                include: { promotion: true }
-            }
         },
         orderBy: { createdAt: 'desc' },
     });
@@ -231,22 +147,22 @@ export async function getAdminProducts(search?: string, categoryFilter?: string)
         price: Number(p.regularPrice),
         discountPrice: p.discountPrice ? Number(p.discountPrice) : null,
         stock: p.stock,
-        category: p.category.name,
         slug: p.slug,
         image: p.assets[0]?.url ?? null,
         status: (p.isActive ? 'ACTIVE' : 'DRAFT') as 'ACTIVE' | 'DRAFT',
-        promotion: p.promotions[0]?.promotion.name ?? null,
+        category: p.category,
     }));
 }
 
 export async function getProductBySlug(slug: string) {
-    const now = new Date();
     const product = await prisma.product.findUnique({
         where: { slug },
         include: {
-            category: true,
             assets: true,
-            promotions: promotionInclude(now),
+            marketplaceLinks: {
+                where: { isActive: true },
+                orderBy: { platform: 'asc' },
+            },
         },
     });
 
@@ -254,16 +170,6 @@ export async function getProductBySlug(slug: string) {
 
     const regPrice = Number(product.regularPrice);
     let discPrice = product.discountPrice ? Number(product.discountPrice) : null;
-    const activePromo = product.promotions[0];
-
-    if (activePromo) {
-        const promoVal = Number(activePromo.discountValue);
-        if (activePromo.discountType === 'PERCENTAGE') {
-            discPrice = regPrice * (1 - promoVal / 100);
-        } else {
-            discPrice = regPrice - promoVal;
-        }
-    }
 
     return {
         id: product.id,
@@ -273,20 +179,20 @@ export async function getProductBySlug(slug: string) {
         stock: product.stock,
         regularPrice: regPrice,
         discountPrice: discPrice,
-        category: product.category.name,
         isActive: product.isActive,
         images: product.assets.map((a: { url: string }) => a.url),
-        sizes: product.sizes || null,
         rating: 4.5,
         sales: 0,
         price: discPrice ?? regPrice,
+        category: product.category,
+        sizes: product.sizes,
         image: product.assets[0]?.url || '/images/reusable/placeholder.png',
-        promotion: activePromo ? {
-            name: (activePromo as any).promotion.name,
-            endAt: (activePromo as any).promotion.endAt,
-            discountValue: Number(activePromo.discountValue),
-            discountType: activePromo.discountType
-        } : null
+        marketplaceLinks: product.marketplaceLinks.map((link: any) => ({
+            id: link.id,
+            platform: link.platform,
+            url: link.url,
+            isActive: link.isActive,
+        })),
     };
 }
 
@@ -294,8 +200,11 @@ export async function getProductById(id: string) {
     const product = await prisma.product.findUnique({
         where: { id },
         include: {
-            category: true,
             assets: true,
+            marketplaceLinks: {
+                where: { isActive: true },
+                orderBy: { platform: 'asc' },
+            },
         },
     });
 
@@ -308,28 +217,33 @@ export async function getProductById(id: string) {
         stock: product.stock,
         regularPrice: Number(product.regularPrice),
         discountPrice: product.discountPrice ? Number(product.discountPrice) : null,
-        category: product.category.name,
         isActive: product.isActive,
-        images: product.assets.map(a => a.url),
-        sizes: product.sizes || null,
+        images: product.assets.map((a: any) => a.url),
+        category: product.category,
+        sizes: product.sizes,
         // Showcase flags
         isFeatured: product.isFeatured,
         isNewArrival: product.isNewArrival,
         isBestSeller: product.isBestSeller,
         isExclusiveShowcase: product.isExclusiveShowcase,
         isKoleksiPilihan: product.isKoleksiPilihan,
+        // Marketplace links
+        marketplaceLinks: product.marketplaceLinks.map((l: any) => ({
+            platform: l.platform,
+            url: l.url,
+            isActive: l.isActive,
+        })),
     };
 }
 
 export async function updateProduct(id: string, formData: FormData) {
     const name = formData.get('name') as string;
     const description = formData.get('description') as string;
-    const categoryName = formData.get('category') as string;
     const regularPrice = Number(formData.get('regularPrice'));
     const discountPrice = formData.get('discountPrice') ? Number(formData.get('discountPrice')) : null;
     const stock = Number(formData.get('stock'));
+    const category = formData.get('category') as string | null;
     const isActive = formData.get('isActive') === 'true';
-    const sizesJson = formData.get('sizes') as string | null;
 
     // Showcase flags
     const isFeatured = formData.get('isFeatured') === 'true';
@@ -342,8 +256,8 @@ export async function updateProduct(id: string, formData: FormData) {
     const files = formData.getAll('images') as File[];
     const newImageUrls: string[] = [];
 
-    if (!name || !description || !categoryName || !regularPrice || stock === undefined) {
-        return { error: 'Field nama, deskripsi, kategori, harga, dan stok wajib diisi.' };
+    if (!name || !description || !regularPrice || stock === undefined) {
+        return { error: 'Field nama, deskripsi, harga, dan stok wajib diisi.' };
     }
 
     try {
@@ -357,7 +271,6 @@ export async function updateProduct(id: string, formData: FormData) {
             newImageUrls.push(`/uploads/${fileName}`);
         }
 
-        const categoryId = await ensureCategory(categoryName);
         const slug = `${slugify(name)}-${Date.now()}`;
 
         await prisma.product.update({
@@ -369,9 +282,8 @@ export async function updateProduct(id: string, formData: FormData) {
                 regularPrice,
                 discountPrice,
                 stock,
+                category,
                 isActive,
-                categoryId,
-                sizes: sizesJson || null,
                 // Showcase flags
                 isFeatured,
                 isNewArrival,
@@ -401,12 +313,12 @@ export async function updateProduct(id: string, formData: FormData) {
 export async function createProduct(formData: FormData) {
     const name = formData.get('name') as string;
     const description = formData.get('description') as string;
-    const categoryName = formData.get('category') as string;
     const regularPrice = Number(formData.get('regularPrice'));
     const discountPrice = formData.get('discountPrice')
         ? Number(formData.get('discountPrice'))
         : null;
     const stock = Number(formData.get('stock'));
+    const category = formData.get('category') as string | null;
     const isActive = formData.get('isActive') === 'true';
     const sizesJson = formData.get('sizes') as string | null;
 
@@ -420,12 +332,8 @@ export async function createProduct(formData: FormData) {
     const files = formData.getAll('images') as File[];
     const imageUrls: string[] = [];
 
-    if (!name || !description || !categoryName || !regularPrice || stock === undefined) {
-        return { error: 'Field nama, deskripsi, kategori, harga, dan stok wajib diisi.' };
-    }
-
-    if (!PRODUCT_CATEGORIES.includes(categoryName as typeof PRODUCT_CATEGORIES[number])) {
-        return { error: 'Kategori tidak valid.' };
+    if (!name || !description || !regularPrice || stock === undefined) {
+        return { error: 'Field nama, deskripsi, harga, dan stok wajib diisi.' };
     }
 
     try {
@@ -442,7 +350,6 @@ export async function createProduct(formData: FormData) {
             imageUrls.push(`/uploads/${fileName}`);
         }
 
-        const categoryId = await ensureCategory(categoryName);
         const slug = `${slugify(name)}-${Date.now()}`;
 
         const product = await prisma.product.create({
@@ -453,9 +360,8 @@ export async function createProduct(formData: FormData) {
                 regularPrice,
                 discountPrice,
                 stock,
+                category,
                 isActive,
-                categoryId,
-                sizes: sizesJson || null,
                 // Showcase flags
                 isFeatured,
                 isNewArrival,

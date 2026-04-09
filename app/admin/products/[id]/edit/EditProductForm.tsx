@@ -9,8 +9,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { updateProduct } from '@/app/actions/products';
+import { upsertMarketplaceLinks } from '@/app/actions/marketplace';
 import { PRODUCT_CATEGORIES } from '@/app/constant/product-categories';
-import SizeManager from '@/components/admin/SizeManager';
+
+import MarketplaceLinksManager, { type LinkEntry } from '@/components/admin/MarketplaceLinksManager';
 
 // Map showcase label names → formData key
 const SHOWCASE_LABELS = [
@@ -40,6 +42,8 @@ interface ProductData {
     isBestSeller?: boolean;
     isExclusiveShowcase?: boolean;
     isKoleksiPilihan?: boolean;
+    // Marketplace links
+    marketplaceLinks?: LinkEntry[];
 }
 
 export default function EditProductForm({ product }: { product: ProductData }) {
@@ -61,8 +65,7 @@ export default function EditProductForm({ product }: { product: ProductData }) {
     const [newImages, setNewImages] = useState<File[]>([]);
     const [existingImages, setExistingImages] = useState<string[]>(product.images ?? []);
 
-    // Sizes state — kept as JSON string or null
-    const [sizesJson, setSizesJson] = useState<string | null>(product.sizes ?? null);
+
 
     // Showcase flags — initialised from server data
     const [showcaseFlags, setShowcaseFlags] = useState<Record<ShowcaseKey, boolean>>({
@@ -72,6 +75,11 @@ export default function EditProductForm({ product }: { product: ProductData }) {
         isExclusiveShowcase: product.isExclusiveShowcase ?? false,
         isKoleksiPilihan: product.isKoleksiPilihan ?? false,
     });
+
+    // Marketplace links state
+    const [marketplaceLinks, setMarketplaceLinks] = useState<LinkEntry[]>(
+        product.marketplaceLinks ?? []
+    );
 
     // UI state
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -131,8 +139,7 @@ export default function EditProductForm({ product }: { product: ProductData }) {
             fd.set(key, String(showcaseFlags[key]));
         });
 
-        // Include sizes JSON if set
-        if (sizesJson) fd.set('sizes', sizesJson);
+
 
         newImages.forEach((file) => fd.append('images', file));
         existingImages.forEach((url) => fd.append('keptImages', url));
@@ -142,6 +149,8 @@ export default function EditProductForm({ product }: { product: ProductData }) {
             if (result?.error) {
                 setError(result.error);
             } else {
+                // Save marketplace links setelah product update berhasil
+                await upsertMarketplaceLinks(product.id, marketplaceLinks);
                 setSuccess(true);
                 setTimeout(() => router.push('/admin/products'), 1500);
             }
@@ -469,12 +478,10 @@ export default function EditProductForm({ product }: { product: ProductData }) {
 
                 {/* RIGHT column */}
                 <div className="space-y-8">
-                    {/* Size Manager */}
-                    <SizeManager
-                        initialSizes={product.sizes}
-                        baseRegularPrice={Number(regularPrice) || product.regularPrice}
-                        baseDiscountPrice={discountPrice ? Number(discountPrice) : product.discountPrice}
-                        onChange={setSizesJson}
+                    {/* Marketplace Links */}
+                    <MarketplaceLinksManager
+                        initialLinks={marketplaceLinks}
+                        onChange={setMarketplaceLinks}
                     />
 
                     {/* Showcase labels */}

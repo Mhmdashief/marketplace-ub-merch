@@ -14,4 +14,5 @@ export const PRODUCT_CATEGORIES = [
     'Sepatu',
     'Vest',
     'Totebag & Slempang',
+    'Pengharum ruangan',
 ] as const;

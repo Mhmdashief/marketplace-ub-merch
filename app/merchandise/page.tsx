@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import Image from 'next/image';
-import { getPublicProducts, getPublicCategories } from '@/app/actions/products';
+import { getPublicProducts } from '@/app/actions/products';
 import MerchandiseClient from './MerchandiseClient';
 
 export const metadata = {
@@ -11,27 +11,17 @@ export const metadata = {
 // Re-fetch setiap kunjungan agar selalu sinkron dengan admin panel
 export const dynamic = 'force-dynamic';
 
-async function MerchandiseContent({ categorySlug }: { categorySlug?: string }) {
-    const [products, categories] = await Promise.all([
-        getPublicProducts(undefined, categorySlug),
-        getPublicCategories(),
-    ]);
+async function MerchandiseContent() {
+    const products = await getPublicProducts();
 
     return (
         <MerchandiseClient
             initialProducts={products}
-            categories={categories}
-            activeCategory={categorySlug || 'all'}
         />
     );
 }
 
-export default function MerchandisePage({
-    searchParams,
-}: {
-    searchParams: { category?: string };
-}) {
-    const categorySlug = searchParams.category;
+export default function MerchandisePage() {
 
     return (
         <div className="min-h-screen bg-white flex flex-col">
@@ -84,7 +74,7 @@ export default function MerchandisePage({
                         <div className="w-16 h-16 border-4 border-ub-gold border-t-transparent rounded-full animate-spin" />
                     </div>
                 }>
-                    <MerchandiseContent categorySlug={categorySlug} />
+                    <MerchandiseContent />
                 </Suspense>
             </main>
         </div>

@@ -1,19 +1,14 @@
 import Link from 'next/link';
 import ProductCard from '../shared/ProductCard';
-import { getKoleksiPilihanProducts, getPublicCategories } from '@/app/actions/products';
+import { getKoleksiPilihanProducts } from '@/app/actions/products';
 
 export default async function ProductGrid() {
-    // Fetch produk dan kategori secara paralel
-    const [products, categories] = await Promise.all([
-        getKoleksiPilihanProducts(12),
-        getPublicCategories(),
-    ]);
+    // Fetch produk
+    const products = await getKoleksiPilihanProducts(12);
 
     // Jika tidak ada produk yang ditandai Koleksi Pilihan,
     // sembunyikan seluruh section — sama seperti section lainnya.
     if (products.length === 0) return null;
-
-    const homeCategories = [{ name: 'All', slug: 'all' }, ...categories.slice(0, 6)];
 
     return (
         <section id="products" className="py-32 bg-white">
@@ -29,18 +24,7 @@ export default async function ProductGrid() {
                         Koleksi <span className="italic font-light text-gray-600">Pilihan</span>
                     </h2>
 
-                    {/* Category Quick Links */}
-                    <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
-                        {homeCategories.map((cat) => (
-                            <Link
-                                key={cat.slug}
-                                href={cat.slug === 'all' ? '/merchandise' : `/merchandise?category=${cat.slug}`}
-                                className="px-4 sm:px-8 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all duration-300 bg-gray-50 text-gray-400 hover:bg-black hover:text-white border border-transparent hover:border-black"
-                            >
-                                {cat.name}
-                            </Link>
-                        ))}
-                    </div>
+
                 </div>
 
                 {/* Product Grid */}
@@ -53,9 +37,7 @@ export default async function ProductGrid() {
                             name={product.name}
                             price={product.price}
                             discountPrice={product.discountPrice}
-                            category={product.category}
                             image={product.image}
-                            hasPromotion={product.hasPromotion}
                         />
                     ))}
                 </div>
