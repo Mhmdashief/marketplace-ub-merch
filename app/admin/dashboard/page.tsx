@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import StatsCard from "@/components/admin/StatsCard";
-import { Package, Users, Calendar, ArrowRight, AlertTriangle, MousePointerClick, Image as ImageIcon } from "lucide-react";
+import { Package, Users, Calendar, ArrowRight, AlertTriangle, MousePointerClick } from "lucide-react";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
@@ -16,7 +16,6 @@ export default async function AdminDashboard() {
         lowStockProducts,
         productsWithoutLinks,
         totalClicks30d,
-        activeBanners,
     ] = await Promise.all([
         prisma.user.count(),
         prisma.product.count({ where: { isActive: true, deletedAt: null } }),
@@ -27,7 +26,6 @@ export default async function AdminDashboard() {
         prisma.clickTracking.count({
             where: { clickedAt: { gte: thirtyDaysAgo } },
         }),
-        prisma.banner.count({ where: { isActive: true, deletedAt: null } }),
     ]);
 
     const stats = [
@@ -140,7 +138,6 @@ export default async function AdminDashboard() {
                         <div className="grid grid-cols-1 gap-3">
                             {[
                                 { href: '/admin/products', icon: Package, label: 'Products Management', color: 'hover:bg-ub-gold hover:border-ub-gold' },
-                                { href: '/admin/banners', icon: ImageIcon, label: 'Banner Management', color: 'hover:bg-blue-500 hover:border-blue-500' },
                                 { href: '/admin/users', icon: Users, label: 'Users Hub', color: 'hover:bg-white hover:border-white' },
                                 { href: '/admin/reports', icon: MousePointerClick, label: 'Analytics & Reports', color: 'hover:bg-purple-500 hover:border-purple-500' },
                             ].map(({ href, icon: Icon, label, color }) => (
@@ -175,19 +172,7 @@ export default async function AdminDashboard() {
                         </div>
                     </div>
 
-                    {/* Active Banners Count */}
-                    <Link href="/admin/banners"
-                        className="flex items-center gap-4 p-6 bg-[#001a33] rounded-[28px] border border-white/5 hover:border-blue-500/30 transition-all group"
-                    >
-                        <div className="p-3 bg-blue-500/10 rounded-2xl group-hover:bg-blue-500/20 transition-colors">
-                            <ImageIcon className="h-6 w-6 text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                            <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Banner Aktif</p>
-                            <p className="text-2xl font-black text-white mt-0.5">{activeBanners}</p>
-                        </div>
-                        <ArrowRight className="h-4 w-4 text-gray-600 group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
-                    </Link>
+
                 </div>
             </div>
         </div>

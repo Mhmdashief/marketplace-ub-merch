@@ -5,7 +5,6 @@ import ServiceCard from './ServiceCard';
 import { motion } from 'framer-motion';
 
 export default function ServicesContent() {
-    // Array Services dengan Layout Config (Bento Grid)
     const services = [
         {
             iconName: 'Palette',
@@ -18,7 +17,7 @@ export default function ServicesContent() {
                 'Packaging Design'
             ],
             gradient: 'from-purple-600 to-blue-600',
-            className: 'md:col-span-2' // Changed from row-span-2 to just col-span-2
+            className: 'md:col-span-2'
         },
         {
             iconName: 'Package',
@@ -70,7 +69,7 @@ export default function ServicesContent() {
                 'Motion Graphics'
             ],
             gradient: 'from-teal-600 to-emerald-600',
-            className: 'md:col-span-2' // Wide Card
+            className: 'md:col-span-2'
         },
         {
             iconName: 'Camera',

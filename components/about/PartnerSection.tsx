@@ -20,7 +20,7 @@ const partners = [
     { name: 'Bank BTN', logo: '/images/reusable/btn.png' },
 ];
 
-export default function PartnerMarqueeOnly() {
+export default function PartnerSection() {
     const duplicatedPartners = [...partners, ...partners];
 
     return (
@@ -71,14 +71,14 @@ export default function PartnerMarqueeOnly() {
                     {duplicatedPartners.map((partner, index) => (
                         <div
                             key={`${partner.name}-${index}`}
-                            className="mx-4 md:mx-8 flex-shrink-0"
+                            className="mx-6 md:mx-12 flex-shrink-0"
                         >
-                            <div className="relative h-50 w-50 md:h-72 md:w-72">
+                            <div className="relative h-24 w-24 md:h-32 md:w-32 lg:h-40 lg:w-40">
                                 <Image
                                     src={partner.logo}
                                     alt={partner.name}
                                     fill
-                                    className="object-contain transition-all duration-300 cursor-pointer hover:scale-110"
+                                    className="object-contain transition-all duration-300 cursor-pointer grayscale opacity-50 hover:grayscale-0 hover:opacity-100 hover:scale-110"
                                 />
                             </div>
                         </div>
@@ -87,4 +87,4 @@ export default function PartnerMarqueeOnly() {
             </div>
         </section>
     );
-}
+}

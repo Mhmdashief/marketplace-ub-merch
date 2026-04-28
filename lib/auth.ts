@@ -30,7 +30,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     const user = await prisma.user.findUnique({
                         where: { email },
                     });
+                    
                     if (!user || !user.password) return null;
+                    
+                    // 🛡️ Restrict login to ADMIN only
+                    if (user.role !== "ADMIN") {
+                        console.log(`Unauthorized login attempt: ${email} is not an ADMIN`);
+                        return null;
+                    }
+
                     if (user.status !== "ACTIVE") {
                         return null;
                     }
@@ -59,12 +67,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     callbacks: {
         ...authConfig.callbacks,
         async signIn({ user, account }) {
+            // 🛡️ Restrict Google login to existing ADMIN only
             if (account?.provider === "google") {
                 const existingUser = await prisma.user.findUnique({
                     where: { email: user.email! },
                 });
 
-                if (existingUser && existingUser.status !== "ACTIVE") {
+                if (!existingUser || existingUser.role !== "ADMIN" || existingUser.status !== "ACTIVE") {
+                    console.log(`Unauthorized Google login attempt: ${user.email}`);
                     return false;
                 }
             }

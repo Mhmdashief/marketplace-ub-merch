@@ -7,10 +7,7 @@ import {
     LayoutDashboard,
     Package,
     Users,
-    FolderTree,
     BarChart2,
-    Image as ImageIcon,
-    Tag,
 } from "lucide-react";
 
 const menuItems = [
@@ -26,12 +23,7 @@ const menuItems = [
             { name: "Products", href: "/admin/products", icon: Package },
         ],
     },
-    {
-        group: "Content",
-        items: [
-            { name: "Banners", href: "/admin/banners", icon: ImageIcon },
-        ],
-    },
+
     {
         group: "Management",
         items: [

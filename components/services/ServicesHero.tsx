@@ -19,7 +19,7 @@ export default function ServicesHero() {
                     <span className="block text-ub-navy font-bold tracking-widest uppercase text-sm mb-6">
                         Our Expertise
                     </span>
-                    <h1 className="text-7xl md:text-9xl font-black text-ub-navy tracking-tighter leading-[0.9] mb-12">
+                    <h1 className="text-5xl sm:text-6xl md:text-9xl font-black text-ub-navy tracking-tighter leading-[0.9] mb-12">
                         CRAFTING <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-ub-gold to-yellow-500">
                             EXCELLENCE.

@@ -1,36 +1,34 @@
 'use client';
 
-import { User, Menu, X, ChevronDown, LogOut } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 
 
 export default function Navbar() {
-    const { data: session, status } = useSession();
     const pathname = usePathname();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isMerchandiseOpen, setIsMerchandiseOpen] = useState(false);
     const [isMobileMerchOpen, setIsMobileMerchOpen] = useState(false);
-    const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const userDropdownRef = useRef<HTMLDivElement>(null);
 
+    const navLinks = [
+        { name: 'About Us', href: '/about' },
+        { name: 'News', href: '/news' },
+        { name: 'Services', href: '/services' },
+        { name: 'Contact', href: '/contact' },
+    ];
+
+    // Auto-close mobile menu when route changes (prevents dispatchEvent null bug)
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
-                setIsUserDropdownOpen(false);
-            }
-        };
+        setIsMenuOpen(false);
+        setIsMobileMerchOpen(false);
+    }, [pathname]);
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
+
 
     const isAuthPage = pathname?.startsWith('/auth');
     const isAdminPage = pathname?.startsWith('/admin');
@@ -49,9 +47,7 @@ export default function Navbar() {
             setIsMerchandiseOpen(false);
         }, 500);
     };
-    const handleLogout = async () => {
-        await signOut({ callbackUrl: '/' });
-    };
+
 
     const merchandiseCategories = [
         { name: 'Tote Bag & Slempang', slug: 'totebag-and-slempang' },
@@ -125,12 +121,7 @@ export default function Navbar() {
                             )}
                         </div>
 
-                        {[
-                            { name: 'About Us', href: '/about' },
-                            { name: 'News', href: '/news' },
-                            { name: 'Services', href: '/services' },
-                            { name: 'Contact', href: '/contact' },
-                        ].map((link) => (
+                        {navLinks.map((link) => (
                             <Link
                                 key={link.name}
                                 href={link.href}
@@ -143,88 +134,7 @@ export default function Navbar() {
 
                     {/* Desktop Search & Icons */}
                     <div className="hidden lg:flex items-center space-x-3">
-                        {status === 'loading' ? (
-                            <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
-                        ) : session ? (
-                            <div className="relative" ref={userDropdownRef}>
-                                <button
-                                    onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                                    className="group relative p-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center space-x-2"
-                                >
-                                    {session.user?.image ? (
-                                        <Image
-                                            src={session.user.image}
-                                            alt={session.user.name || 'User'}
-                                            width={24}
-                                            height={24}
-                                            className="rounded-full"
-                                        />
-                                    ) : (
-                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-ub-navy to-ub-gold flex items-center justify-center">
-                                            <span className="text-white text-xs font-bold">
-                                                {session.user?.name?.charAt(0).toUpperCase() || 'U'}
-                                            </span>
-                                        </div>
-                                    )}
-                                </button>
-
-                                {isUserDropdownOpen && (
-                                    <div className="absolute right-0 mt-4 w-72 bg-white rounded-3xl shadow-[0_20px_70px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden animate-in slide-in-from-top-4 duration-300 z-50">
-                                        {/* Dropdown Header */}
-                                        <div className="p-6 bg-gray-50/50 border-b border-gray-100">
-                                            <p className="text-sm font-black text-black uppercase tracking-tight truncate">
-                                                {session.user?.name || 'User Profile'}
-                                            </p>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest truncate mt-1">
-                                                {session.user?.email}
-                                            </p>
-                                        </div>
-
-                                        {/* Menu Items */}
-                                        <div className="p-2">
-                                            {[
-                                                { icon: User, label: 'My Profile', href: '/profile' },
-
-                                            ].map((item) => (
-                                                <Link
-                                                    key={item.label}
-                                                    href={item.href}
-                                                    onClick={() => setIsUserDropdownOpen(false)}
-                                                    className="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-black rounded-2xl transition-all duration-200 group"
-                                                >
-                                                    <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all duration-300">
-                                                        <item.icon className="w-4 h-4" />
-                                                    </div>
-                                                    <span className="text-[11px] font-black uppercase tracking-widest">{item.label}</span>
-                                                </Link>
-                                            ))}
-                                        </div>
-
-                                        {/* Logout Section */}
-                                        <div className="p-2 border-t border-gray-100 bg-gray-50/30">
-                                            <button
-                                                onClick={handleLogout}
-                                                className="flex items-center space-x-3 w-full px-4 py-3 text-red-500 hover:bg-red-50 rounded-2xl transition-all duration-200 group"
-                                            >
-                                                <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all duration-300">
-                                                    <LogOut className="w-4 h-4" />
-                                                </div>
-                                                <span className="text-[11px] font-black uppercase tracking-widest">Logout</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="flex items-center space-x-3">
-                                <Link href="/auth/login" className="px-5 py-2 bg-ub-navy text-white rounded-full hover:bg-ub-navy/90 transition-all duration-300 font-medium text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5">
-                                    Login
-                                </Link>
-                                <Link href="/auth/register" className="px-5 py-2 bg-ub-navy text-white rounded-full hover:bg-ub-navy/90 transition-all duration-300 font-medium text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5">
-                                    Register
-                                </Link>
-                            </div>
-                        )}
+                        {/* Auth links removed */}
                     </div>
 
                     {/* Mobile Navigation Icons */}
@@ -232,31 +142,7 @@ export default function Navbar() {
 
 
                         <div className="p-1">
-                            {session ? (
-                                <Link href="/profile" className="flex items-center">
-                                    {session.user?.image ? (
-                                        <Image
-                                            src={session.user.image}
-                                            alt="User"
-                                            width={32}
-                                            height={32}
-                                            className="rounded-full border-2 border-white shadow-sm"
-                                        />
-                                    ) : (
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ub-navy to-ub-gold flex items-center justify-center shadow-sm">
-                                            <span className="text-white text-xs font-bold">
-                                                {session.user?.name?.charAt(0).toUpperCase() || 'U'}
-                                            </span>
-                                        </div>
-                                    )}
-                                </Link>
-                            ) : (
-                                <Link href="/auth/login" className="p-2.5 rounded-full hover:bg-gray-100 transition-all active:scale-95 flex items-center justify-center">
-                                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-                                        <User className="w-4 h-4 text-gray-500" />
-                                    </div>
-                                </Link>
-                            )}
+                            {/* Mobile Auth links removed */}
                         </div>
 
                         <button
@@ -270,42 +156,48 @@ export default function Navbar() {
 
                 {/* Mobile Menu Content */}
                 {isMenuOpen && (
-                    <div className="lg:hidden py-4 space-y-4 animate-fade-in border-t border-gray-100 px-2">
-                        <div className="space-y-1">
+                    <div className="lg:hidden py-6 space-y-6 animate-fade-in border-t border-gray-100 px-4">
+                        <div className="space-y-2">
                             <button
                                 onClick={() => setIsMobileMerchOpen(!isMobileMerchOpen)}
-                                className="w-full flex items-center justify-between px-4 py-2.5 text-left text-gray-700 hover:bg-ub-gold/5 rounded-xl transition-all duration-200 group"
+                                className="w-full flex items-center justify-between px-4 py-3 text-left text-gray-700 hover:bg-ub-gold/5 rounded-2xl transition-all duration-200 group"
                             >
-                                <span className="font-semibold text-gray-500 text-[10px] uppercase tracking-wider">Merchandise</span>
+                                <span className="font-black text-black text-[12px] uppercase tracking-widest">Merchandise</span>
                                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isMobileMerchOpen ? 'rotate-180 text-ub-navy' : ''}`} />
                             </button>
 
-                            <div className={`space-y-1 pl-4 overflow-hidden transition-all duration-300 ${isMobileMerchOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                            <div className={`space-y-1 pl-4 overflow-hidden transition-all duration-500 ease-in-out ${isMobileMerchOpen ? 'max-h-[800px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
                                 {merchandiseCategories.map((category) => (
                                     <Link
                                         key={category.name}
                                         href={category.href}
-                                        className="block px-4 py-2 text-sm text-gray-600 hover:text-ub-navy hover:bg-gray-50 rounded-lg transition-all duration-200 border-l-2 border-transparent hover:border-ub-gold"
-                                        onClick={() => setIsMenuOpen(false)}
+                                        className="block px-4 py-3 text-sm text-gray-600 hover:text-ub-navy hover:bg-gray-50 rounded-xl transition-all duration-200 border-l-2 border-transparent hover:border-ub-gold"
                                     >
                                         {category.name}
                                     </Link>
                                 ))}
-                                <Link href="/merchandise" className="block px-4 py-2 text-xs font-bold text-ub-navy hover:underline mt-2" onClick={() => setIsMenuOpen(false)}>
-                                    View All Collection →
+                                <Link
+                                    href="/merchandise"
+                                    className="block px-4 py-3 text-xs font-black text-ub-navy hover:underline mt-4 tracking-tight"
+                                >
+                                    VIEW ALL COLLECTION →
                                 </Link>
                             </div>
 
-                            {['Services', 'News', 'About Us', 'Contact'].map((item) => (
-                                <Link
-                                    key={item}
-                                    href={`/${item.toLowerCase().replace(' ', '')}`}
-                                    className="block px-4 py-2.5 text-gray-700 hover:bg-ub-gold/5 hover:text-ub-navy rounded-xl transition-all duration-200 font-medium"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    {item}
-                                </Link>
-                            ))}
+                            <div className="pt-4 space-y-2 border-t border-gray-50">
+                                {navLinks.map((link) => (
+                                    <Link
+                                        key={link.name}
+                                        href={link.href}
+                                        className="block px-4 py-3.5 text-gray-900 hover:bg-ub-navy hover:text-white rounded-2xl transition-all duration-300 font-bold group flex items-center justify-between"
+                                    >
+                                        <span className="text-[11px] uppercase tracking-[0.2em]">{link.name}</span>
+                                        <ChevronDown className="w-4 h-4 -rotate-90 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                                    </Link>
+                                ))}
+                            </div>
+
+
                         </div>
                     </div>
                 )}

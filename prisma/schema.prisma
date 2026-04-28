@@ -11,12 +11,10 @@ datasource db {
 enum Role {
   USER
   ADMIN
-  SUPER_ADMIN
 }
 
 enum UserStatus {
   ACTIVE
-  SUSPENDED
   BANNED
   DELETED
 }
@@ -176,23 +174,6 @@ model ClickTracking {
   @@map("click_trackings")
 }
 
-// Banner / Hero slider untuk homepage
-model Banner {
-  id          String    @id @default(cuid())
-  title       String
-  subtitle    String?
-  imageUrl    String
-  linkUrl     String?
-  linkLabel   String?
-  isActive    Boolean   @default(true)
-  sortOrder   Int       @default(0)
-  deletedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([isActive, sortOrder])
-  @@map("banners")
-}
 
 model Wishlist {
   id        String   @id @default(cuid())

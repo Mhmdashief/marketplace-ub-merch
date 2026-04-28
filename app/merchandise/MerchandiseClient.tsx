@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, Grid3x3, LayoutGrid, Heart, ArrowRight, Package, ChevronDown, Filter, SlidersHorizontal, Check } from 'lucide-react';
+import { Search, Grid3x3, LayoutGrid, ArrowRight, Package, ChevronDown, Filter, SlidersHorizontal, Check } from 'lucide-react';
 
 interface Product {
     id: string;
@@ -36,7 +36,6 @@ export default function MerchandiseClient({
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState('newest');
     const [gridView, setGridView] = useState<'3' | '4'>('4');
-    const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
 
     const [isSortOpen, setIsSortOpen] = useState(false);
     const sortRef = useRef<HTMLDivElement>(null);
@@ -61,17 +60,7 @@ export default function MerchandiseClient({
     };
 
 
-    const toggleLike = (productId: string) => {
-        setLikedProducts(prev => {
-            const next = new Set(prev);
-            if (next.has(productId)) {
-                next.delete(productId);
-            } else {
-                next.add(productId);
-            }
-            return next;
-        });
-    };
+
 
     const activeSortLabel = SORT_OPTIONS.find(opt => opt.value === sortBy)?.label || 'Sort By';
 
@@ -222,18 +211,7 @@ export default function MerchandiseClient({
                                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
 
                                     {/* Action Overlays */}
-                                    <button
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            toggleLike(product.id);
-                                        }}
-                                        className={`absolute top-6 right-6 p-4 rounded-2xl backdrop-blur-2xl shadow-sm transition-all duration-500 ${likedProducts.has(product.id)
-                                            ? 'bg-rose-500 text-white opacity-100'
-                                            : 'bg-white/80 text-black opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0'
-                                            }`}
-                                    >
-                                        <Heart className={`w-4 h-4 ${likedProducts.has(product.id) ? 'fill-current' : ''}`} />
-                                    </button>
+
 
                                     <div className="absolute inset-x-8 bottom-8 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700">
                                         <div className="w-full py-5 bg-black text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl shadow-3xl hover:bg-ub-navy transition-all flex items-center justify-center gap-4">

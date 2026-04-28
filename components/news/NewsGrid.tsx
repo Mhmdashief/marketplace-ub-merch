@@ -3,7 +3,6 @@
 import NewsCard from './NewsCard';
 
 export default function NewsGrid() {
-    // Sample news data - in production, this would come from a CMS or API
     const newsItems = [
         {
             slug: 'peluncuran-koleksi-terbaru-2026',

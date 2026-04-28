@@ -21,7 +21,7 @@ interface ServiceCardProps {
     features: string[];
     gradient: string;
     index: number;
-    className?: string; // For bento grid spans
+    className?: string; 
 }
 
 // Icon mapping

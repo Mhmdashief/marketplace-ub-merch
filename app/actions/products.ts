@@ -2,8 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { uploadToCloudinary, deleteFromCloudinary } from '@/lib/cloudinary';
 
 // ─── Helper: buat slug dari nama produk ─────────────────────────────────────
 function slugify(text: string) {
@@ -124,7 +123,7 @@ export async function getKoleksiPilihanProducts(limit = 8) {
 }
 
 // ─── LIST products (untuk tabel admin) ──────────────────────────────────────
-export async function getAdminProducts(search?: string) {
+export async function getAdminProducts(search?: string, category?: string) {
     const products = await prisma.product.findMany({
         where: {
             deletedAt: null,
@@ -134,6 +133,7 @@ export async function getAdminProducts(search?: string) {
                     { id: { contains: search, mode: 'insensitive' } },
                 ],
             }),
+            ...(category && category !== 'ALL' && { category }),
         },
         include: {
             assets: { select: { url: true }, take: 1 },
@@ -261,14 +261,24 @@ export async function updateProduct(id: string, formData: FormData) {
     }
 
     try {
+        // Upload gambar baru ke Cloudinary
         for (const file of files) {
             if (!file || file.size === 0) continue;
             const bytes = await file.arrayBuffer();
-            const buffer = Buffer.from(bytes);
-            const fileName = `${Date.now()}-${file.name.replace(/\s/g, '-')}`;
-            const uploadPath = path.join(process.cwd(), 'public/uploads', fileName);
-            await writeFile(uploadPath, buffer);
-            newImageUrls.push(`/uploads/${fileName}`);
+            const url = await uploadToCloudinary(bytes, 'ub-merch/products');
+            newImageUrls.push(url);
+        }
+
+        // Hapus gambar lama dari Cloudinary yang tidak dipertahankan
+        if (keptImages.length >= 0) {
+            const existingProduct = await prisma.product.findUnique({
+                where: { id },
+                include: { assets: { select: { url: true } } },
+            });
+            const toDelete = existingProduct?.assets
+                .map((a) => a.url)
+                .filter((url) => !keptImages.includes(url)) ?? [];
+            await Promise.all(toDelete.map(deleteFromCloudinary));
         }
 
         const slug = `${slugify(name)}-${Date.now()}`;
@@ -337,17 +347,12 @@ export async function createProduct(formData: FormData) {
     }
 
     try {
+        // Upload gambar ke Cloudinary
         for (const file of files) {
             if (!file || file.size === 0) continue;
-
             const bytes = await file.arrayBuffer();
-            const buffer = Buffer.from(bytes);
-
-            const fileName = `${Date.now()}-${file.name.replace(/\s/g, '-')}`;
-            const uploadPath = path.join(process.cwd(), 'public/uploads', fileName);
-
-            await writeFile(uploadPath, buffer);
-            imageUrls.push(`/uploads/${fileName}`);
+            const url = await uploadToCloudinary(bytes, 'ub-merch/products');
+            imageUrls.push(url);
         }
 
         const slug = `${slugify(name)}-${Date.now()}`;

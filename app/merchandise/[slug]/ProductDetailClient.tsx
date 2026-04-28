@@ -3,9 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronLeft, ShieldCheck, Truck, ArrowRight, Zap, Package, Info, ExternalLink, Loader2, Heart } from 'lucide-react';
-import { useSession } from 'next-auth/react';
-import { checkIsWishlisted, toggleWishlist } from '@/app/actions/wishlist/wishlist';
+import { ChevronLeft, ShieldCheck, Truck, ArrowRight, Zap, Package, Info, ExternalLink, Loader2 } from 'lucide-react';
 
 interface ProductDetail {
     id: string;
@@ -38,33 +36,11 @@ interface ProductDetail {
 }
 
 export default function ProductDetailClient({ product }: { product: ProductDetail }) {
-    const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState<'description' | 'specs'>('description');
     const [activeImage, setActiveImage] = useState(0);
     const [redirectingLinkId, setRedirectingLinkId] = useState<string | null>(null);
-    const [isWishlisted, setIsWishlisted] = useState(false);
-    const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
 
-    useEffect(() => {
-        if (session?.user?.id && product?.id) {
-            checkIsWishlisted(session.user.id, product.id).then(res => {
-                if (res.success) setIsWishlisted(res.isWishlisted!);
-            });
-        }
-    }, [session?.user?.id, product?.id]);
 
-    const handleToggleWishlist = async () => {
-        if (!session?.user?.id) {
-            alert('Silakan login terlebih dahulu untuk menyimpan wishlist.');
-            return;
-        }
-        setIsTogglingWishlist(true);
-        const res = await toggleWishlist(session.user.id, product.id);
-        if (res.success) {
-            setIsWishlisted(res.added!);
-        }
-        setIsTogglingWishlist(false);
-    };
 
     const handleMarketplaceClick = async (link: { id: string; platform: string; url: string }) => {
         setRedirectingLinkId(link.id);
@@ -203,26 +179,10 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
                             <span className="text-[10px] font-black text-ub-gold uppercase tracking-[0.3em]">{product.category}</span>
                         </div>
 
-                        {/* Product Name & Wishlist */}
                         <div className="flex items-start justify-between gap-6 mb-6 sm:mb-8">
                             <h1 className="text-3xl sm:text-5xl font-black text-black tracking-tight leading-[1.1] uppercase italic">
                                 {product.name}
                             </h1>
-                            <button
-                                onClick={handleToggleWishlist}
-                                disabled={isTogglingWishlist}
-                                className={`flex-shrink-0 w-12 h-12 rounded-2xl border-2 flex items-center justify-center transition-all ${
-                                    isWishlisted 
-                                        ? 'border-rose-500 bg-rose-50 text-rose-500 hover:bg-rose-100' 
-                                        : 'border-gray-200 bg-white text-gray-400 hover:border-black hover:text-black'
-                                }`}
-                            >
-                                {isTogglingWishlist ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <Heart className={`w-6 h-6 ${isWishlisted ? 'fill-current' : ''}`} />
-                                )}
-                            </button>
                         </div>
 
                         {/* Price */}
