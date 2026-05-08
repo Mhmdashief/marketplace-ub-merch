@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Calendar, User, Clock } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -55,10 +55,6 @@ export default function NewsCard({
                     <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
                         <span>{date}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <User className="w-4 h-4" />
-                        <span>{author}</span>
                     </div>
                     <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />

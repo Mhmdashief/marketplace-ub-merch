@@ -9,80 +9,53 @@ datasource db {
 }
 
 enum Role {
-  USER
+  SUPER_ADMIN
   ADMIN
 }
 
 enum UserStatus {
   ACTIVE
-  BANNED
-  DELETED
+  INACTIVE
 }
-
 
 enum MarketplacePlatform {
   TOKOPEDIA
   SHOPEE
+  TIKTOK_SHOP
 }
 
 model User {
-  id            String     @id @default(cuid())
-  name          String
-  email         String     @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          Role       @default(USER)
-  status        UserStatus @default(ACTIVE)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(ADMIN)
+  status    UserStatus @default(ACTIVE)
 
-  accounts  Account[]
-  sessions  Session[]
-  clickTrackings ClickTracking[]  
-  wishlists Wishlist[]
+  failedLoginAttempts Int      @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+  lastLoginIp         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  adminLogs AdminLog[]
 
   @@map("users")
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
+model AdminLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  ip        String?
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId])
-  @@map("accounts")
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("sessions")
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-  @@map("verification_tokens")
+  @@index([userId])
+  @@map("admin_logs")
 }
 
 model PasswordResetToken {
@@ -97,43 +70,52 @@ model PasswordResetToken {
 }
 
 model Product {
-  id                  String         @id @default(cuid())
-  slug                String         @unique
+  id                  String   @id @default(cuid())
+  slug                String   @unique
   name                String
   description         String
-  regularPrice        Decimal        @db.Decimal(12, 2)
-  discountPrice       Decimal?       @db.Decimal(12, 2)
+  regularPrice        Decimal  @db.Decimal(12, 2)
+  discountPrice       Decimal? @db.Decimal(12, 2)
   stock               Int
-  isActive            Boolean        @default(true)
-  isFeatured          Boolean        @default(false)
-  isNewArrival        Boolean        @default(false)
-  isBestSeller        Boolean        @default(false)
-  isExclusiveShowcase Boolean        @default(false)
-  isKoleksiPilihan    Boolean        @default(false)
+  isActive            Boolean  @default(true)
+  isFeatured          Boolean  @default(false)
+  isNewArrival        Boolean  @default(false)
+  isBestSeller        Boolean  @default(false)
+  isExclusiveShowcase Boolean  @default(false)
+  isKoleksiPilihan    Boolean  @default(false)
   category            String?
   sizes               String?
   deletedAt           DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  assets            ProductAsset[]
-  marketplaceLinks  MarketplaceLink[]
-  clickTrackings    ClickTracking[]
-  wishlists         Wishlist[]
+  assets           ProductAsset[]
+  marketplaceLinks MarketplaceLink[]
+  clickTrackings   ClickTracking[]
+  wishlists        Wishlist[]
 
   @@index([deletedAt])
+  @@index([isActive])
   @@map("products")
 }
 
 model ProductAsset {
   id        String   @id @default(cuid())
-  url       String
   productId String
+
+  data      Bytes    // binary image tersimpan langsung di PostgreSQL
+  mimeType  String   // "image/jpeg" | "image/png" | "image/webp"
+  fileName  String   // nama file asli, e.g. "kaos-ub-merah.jpg"
+  size      Int      // ukuran dalam bytes
+  sortOrder Int      @default(0)
+
   createdAt DateTime @default(now())
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
+  @@index([productId, sortOrder])
   @@map("product_assets")
 }
 
@@ -143,10 +125,11 @@ model MarketplaceLink {
   platform  MarketplacePlatform
   url       String
   isActive  Boolean             @default(true)
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
 
-  product       Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
   clickTrackings ClickTracking[]
 
   @@unique([productId, platform])
@@ -154,38 +137,60 @@ model MarketplaceLink {
   @@map("marketplace_links")
 }
 
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+  @@map("wishlists")
+}
 
 model ClickTracking {
   id                String              @id @default(cuid())
-  userId            String?
   productId         String
   marketplaceLinkId String?
   platform          MarketplacePlatform
   clickedAt         DateTime            @default(now())
 
-  user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   product         Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
   marketplaceLink MarketplaceLink? @relation(fields: [marketplaceLinkId], references: [id], onDelete: SetNull)
-  
-  @@index([userId])
+
   @@index([productId])
   @@index([platform])
   @@index([clickedAt])
   @@map("click_trackings")
 }
 
+enum ContentType {
+  BERITA
+  ARTIKEL
+}
 
-model Wishlist {
-  id        String   @id @default(cuid())
-  userId    String
-  productId String
-  createdAt DateTime @default(now())
+model Article {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  title       String
+  excerpt     String?     @db.Text
+  content     String      @db.Text
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  // Image handling via db
+  imageBytes  Bytes?
+  imageMime   String?
 
-  @@unique([userId, productId]) // biar ga double
-  @@index([userId])
-  @@index([productId])
-  @@map("wishlists")
+  contentType ContentType @default(BERITA)
+  category    String?
+  author      String      @default("Admin")
+  isActive    Boolean     @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("articles")
 }

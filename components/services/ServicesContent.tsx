@@ -32,19 +32,7 @@ export default function ServicesContent() {
             gradient: 'from-blue-600 to-cyan-500',
             className: 'md:col-span-1'
         },
-        {
-            iconName: 'Sparkles',
-            title: 'Branding Strategy',
-            description: 'Bangun identitas brand yang kuat dan konsisten untuk memenangkan hati pasar.',
-            features: [
-                'Brand Identity',
-                'Market Positioning',
-                'Brand Voice',
-                'Rebranding'
-            ],
-            gradient: 'from-pink-600 to-rose-500',
-            className: 'md:col-span-1'
-        },
+
         {
             iconName: 'PenTool',
             title: 'Logo Design',
@@ -97,19 +85,7 @@ export default function ServicesContent() {
             gradient: 'from-cyan-600 to-blue-600',
             className: 'md:col-span-1'
         },
-        {
-            iconName: 'Globe',
-            title: 'Website Development',
-            description: 'Website modern yang performant dan SEO-friendly untuk bisnis Anda.',
-            features: [
-                'Custom Design',
-                'Responsive Layout',
-                'SEO Optimization',
-                'CMS Integration'
-            ],
-            gradient: 'from-slate-700 to-slate-900',
-            className: 'md:col-span-1'
-        },
+
     ];
 
     return (
@@ -146,8 +122,8 @@ export default function ServicesContent() {
                     style={{ backgroundImage: 'radial-gradient(#003366 1px, transparent 1px)', backgroundSize: '24px 24px' }}
                 />
 
-                <div className="max-w-7xl mx-auto px-6 md:px-8 relative z-10">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="max-w-6xl mx-auto px-6 md:px-8 relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {services.map((service, index) => (
                             <ServiceCard key={index} {...service} index={index} />
                         ))}

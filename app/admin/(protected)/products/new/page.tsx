@@ -1,16 +1,15 @@
 'use client';
 
-import { useState, useRef, useEffect, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import {
     ArrowLeft, Upload, X, Star, Zap,
-    TrendingUp, ShieldCheck, Heart, Save, ChevronDown, Check, AlertCircle, Loader2,
+    TrendingUp, ShieldCheck, Heart, Save, Check, AlertCircle, Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createProduct } from '@/app/actions/products';
 import { upsertMarketplaceLinks } from '@/app/actions/marketplace';
-import { PRODUCT_CATEGORIES } from '@/app/constant/product-categories';
 import MarketplaceLinksManager, { type LinkEntry } from '@/components/admin/MarketplaceLinksManager';
 
 
@@ -53,21 +52,8 @@ export default function NewProductPage() {
     // Marketplace links state
     const [marketplaceLinks, setMarketplaceLinks] = useState<LinkEntry[]>([]);
 
-    // UI state
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-                setIsDropdownOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -214,49 +200,16 @@ export default function NewProductPage() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Category Dropdown */}
-                            <div className="space-y-2" ref={dropdownRef}>
+                            {/* Category Input */}
+                            <div className="space-y-2">
                                 <label className="text-[10px] font-black text-white uppercase tracking-widest ml-1">Category *</label>
-                                <div className="relative">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                        className={`w-full flex items-center justify-between px-6 py-4 bg-black/20 border ${isDropdownOpen ? 'border-ub-gold' : 'border-white/5'} rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all text-left`}
-                                    >
-                                        <span className={!category ? 'text-gray-600' : 'text-white'}>
-                                            {category || 'SELECT CATEGORY'}
-                                        </span>
-                                        <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180 text-ub-gold' : ''}`} />
-                                    </button>
-
-                                    <AnimatePresence>
-                                        {isDropdownOpen && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: 10 }}
-                                                className="absolute z-50 w-full mt-2 bg-[#001a33] border border-white/10 rounded-2xl shadow-2xl overflow-hidden shadow-black"
-                                            >
-                                                <div className="max-h-60 overflow-y-auto custom-scrollbar p-2">
-                                                    {PRODUCT_CATEGORIES.map((cat) => (
-                                                        <button
-                                                            key={cat}
-                                                            type="button"
-                                                            onClick={() => { setCategory(cat); setIsDropdownOpen(false); }}
-                                                            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${category === cat
-                                                                ? 'bg-ub-gold text-white'
-                                                                : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                                                }`}
-                                                        >
-                                                            {cat}
-                                                            {category === cat && <Check className="h-3 w-3" />}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
+                                <input
+                                    type="text"
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    placeholder="ENTER CATEGORY EX: T-SHIRT..."
+                                    className="w-full px-6 py-4 bg-black/20 text-white border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] focus:ring-2 focus:ring-ub-gold transition-all outline-none"
+                                />
                             </div>
 
                             <div className="space-y-2">

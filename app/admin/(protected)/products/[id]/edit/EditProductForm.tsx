@@ -10,8 +10,6 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { updateProduct } from '@/app/actions/products';
 import { upsertMarketplaceLinks } from '@/app/actions/marketplace';
-import { PRODUCT_CATEGORIES } from '@/app/constant/product-categories';
-
 import MarketplaceLinksManager, { type LinkEntry } from '@/components/admin/MarketplaceLinksManager';
 
 // Map showcase label names → formData key
@@ -25,6 +23,12 @@ const SHOWCASE_LABELS = [
 
 type ShowcaseKey = typeof SHOWCASE_LABELS[number]['key'];
 
+interface ProductImage {
+    id: string;
+    url: string;
+    fileName: string;
+}
+
 interface ProductData {
     id: string;
     name: string;
@@ -32,9 +36,9 @@ interface ProductData {
     stock: number;
     regularPrice: number;
     discountPrice: number | null;
-    category: string;
+    category: string | null;
     isActive: boolean;
-    images?: string[];
+    images?: ProductImage[];
     sizes?: string | null;
     // Showcase flags
     isFeatured?: boolean;
@@ -53,7 +57,7 @@ export default function EditProductForm({ product }: { product: ProductData }) {
     // Form state — seeded from server-fetched product data
     const [name, setName] = useState(product.name);
     const [description, setDescription] = useState(product.description);
-    const [category, setCategory] = useState(product.category);
+    const [category, setCategory] = useState(product.category ?? '');
     const [stock, setStock] = useState(String(product.stock));
     const [regularPrice, setRegularPrice] = useState(String(product.regularPrice));
     const [discountPrice, setDiscountPrice] = useState(
@@ -63,7 +67,7 @@ export default function EditProductForm({ product }: { product: ProductData }) {
 
     // Image state
     const [newImages, setNewImages] = useState<File[]>([]);
-    const [existingImages, setExistingImages] = useState<string[]>(product.images ?? []);
+    const [existingImages, setExistingImages] = useState<ProductImage[]>(product.images ?? []);
 
 
 
@@ -81,22 +85,8 @@ export default function EditProductForm({ product }: { product: ProductData }) {
         product.marketplaceLinks ?? []
     );
 
-    // UI state
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-
-    // Close dropdown on outside click
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-                setIsDropdownOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -142,7 +132,7 @@ export default function EditProductForm({ product }: { product: ProductData }) {
 
 
         newImages.forEach((file) => fd.append('images', file));
-        existingImages.forEach((url) => fd.append('keptImages', url));
+        existingImages.forEach((img) => fd.append('keptImages', img.id));
 
         startTransition(async () => {
             const result = await updateProduct(product.id, fd);
@@ -267,56 +257,18 @@ export default function EditProductForm({ product }: { product: ProductData }) {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Category dropdown */}
-                            <div className="space-y-2" ref={dropdownRef}>
+                            {/* Category Input */}
+                            <div className="space-y-2">
                                 <label className="text-[10px] font-black text-white uppercase tracking-widest ml-1">
                                     Kategori *
                                 </label>
-                                <div className="relative">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsDropdownOpen((o) => !o)}
-                                        className={`w-full flex items-center justify-between px-6 py-4 bg-black/20 border ${isDropdownOpen ? 'border-ub-gold' : 'border-white/5'} rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all text-left`}
-                                    >
-                                        <span className={!category ? 'text-gray-600' : 'text-white'}>
-                                            {category || 'PILIH KATEGORI'}
-                                        </span>
-                                        <ChevronDown
-                                            className={`h-4 w-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180 text-ub-gold' : ''}`}
-                                        />
-                                    </button>
-
-                                    <AnimatePresence>
-                                        {isDropdownOpen && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 8 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: 8 }}
-                                                className="absolute z-50 w-full mt-2 bg-[#001a33] border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
-                                            >
-                                                <div className="max-h-60 overflow-y-auto custom-scrollbar p-2">
-                                                    {PRODUCT_CATEGORIES.map((cat) => (
-                                                        <button
-                                                            key={cat}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setCategory(cat);
-                                                                setIsDropdownOpen(false);
-                                                            }}
-                                                            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${category === cat
-                                                                ? 'bg-ub-gold text-white'
-                                                                : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                                                }`}
-                                                        >
-                                                            {cat}
-                                                            {category === cat && <Check className="h-3 w-3" />}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
+                                <input
+                                    type="text"
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    placeholder="MASUKKAN KATEGORI EX: T-SHIRT..."
+                                    className="w-full px-6 py-4 bg-black/20 text-white border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] focus:ring-2 focus:ring-ub-gold transition-all outline-none"
+                                />
                             </div>
 
                             {/* Stock */}
@@ -418,13 +370,13 @@ export default function EditProductForm({ product }: { product: ProductData }) {
                                     Gambar Tersimpan ({existingImages.length})
                                 </p>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
-                                    {existingImages.map((src, idx) => (
+                                    {existingImages.map((img, idx) => (
                                         <div
-                                            key={`exist-${idx}`}
+                                            key={`existing-${idx}`}
                                             className="relative aspect-square rounded-2xl overflow-hidden border border-white/5 group/img"
                                         >
                                             <img
-                                                src={src}
+                                                src={img.url}
                                                 alt={`Gambar ${idx + 1}`}
                                                 className="w-full h-full object-cover group-hover/img:scale-110 transition-all duration-500"
                                             />

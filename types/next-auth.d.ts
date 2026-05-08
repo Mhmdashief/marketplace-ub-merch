@@ -1,5 +1,4 @@
 import { DefaultSession } from "next-auth";
-import { JWT } from "next-auth/jwt";
 
 declare module "next-auth" {
     interface Session {
@@ -11,6 +10,7 @@ declare module "next-auth" {
     }
 
     interface User {
+        id: string;
         role: string;
         status: string;
     }
@@ -21,5 +21,7 @@ declare module "next-auth/jwt" {
         id: string;
         role: string;
         status: string;
+        /** Unix timestamp (detik) terakhir kali JWT di-revalidasi ke database */
+        dbCheckedAt?: number;
     }
 }

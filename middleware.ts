@@ -12,36 +12,53 @@ export default auth((req) => {
     const userRole = req.auth?.user?.role;
     const userStatus = req.auth?.user?.status;
 
-    console.log("Middleware Debug:", { pathname, isLoggedIn, userRole, userStatus });
-
-    // 🔐 Proteksi route admin
-    if (pathname.startsWith("/admin")) {
-        if (!isLoggedIn) {
-            return NextResponse.redirect(new URL("/auth/login", req.url));
+    // ─── Halaman login admin: SELALU tampilkan form login ─────────────────────
+    // Kecuali jika sudah login sebagai admin valid → redirect ke dashboard
+    if (pathname === "/admin/login") {
+        if (
+            isLoggedIn &&
+            userRole &&
+            ADMIN_ROLES.includes(userRole) &&
+            userStatus === "ACTIVE"
+        ) {
+            return NextResponse.redirect(new URL("/admin/dashboard", req.url));
         }
-
-        // Block user non-admin
-        if (!ADMIN_ROLES.includes(userRole!)) {
-            return NextResponse.redirect(new URL("/", req.url));
-        }
-
-        // Block user status bermasalah
-        if (userStatus && userStatus !== "ACTIVE") {
-            return NextResponse.redirect(new URL("/auth/login?blocked=true", req.url));
-        }
+        // Belum login, atau session invalid/stale → tampilkan halaman login
+        return NextResponse.next();
     }
 
-    // UX: kalau sudah login, tidak boleh balik ke login page
-    if (pathname.startsWith("/auth/login") && isLoggedIn) {
-        if (ADMIN_ROLES.includes(userRole!)) {
-            return NextResponse.redirect(new URL("/admin", req.url));
+    // ─── Proteksi semua route /admin lainnya ─────────────────────────────────
+    if (pathname.startsWith("/admin")) {
+
+        // 1. Belum login → redirect ke halaman login admin
+        if (!isLoggedIn) {
+            const loginUrl = new URL("/admin/login", req.url);
+            loginUrl.searchParams.set("callbackUrl", pathname);
+            return NextResponse.redirect(loginUrl);
         }
-        return NextResponse.redirect(new URL("/", req.url));
+
+        // 2. Token direvoke / user dihapus dari DB
+        if (userRole === "REVOKED") {
+            return NextResponse.redirect(new URL("/admin/login?reason=revoked", req.url));
+        }
+
+        // 3. Status akun bermasalah (INACTIVE / LOCKED)
+        if (userStatus && userStatus !== "ACTIVE") {
+            return NextResponse.redirect(new URL("/admin/login?reason=blocked", req.url));
+        }
+
+        // 4. Role tidak valid untuk admin panel → 403
+        if (!ADMIN_ROLES.includes(userRole!)) {
+            return NextResponse.redirect(new URL("/403", req.url));
+        }
     }
 
     return NextResponse.next();
 });
 
 export const config = {
-    matcher: ["/admin/:path*", "/auth/login"],
+    matcher: [
+        "/admin/:path*",
+        "/admin/login",
+    ],
 };

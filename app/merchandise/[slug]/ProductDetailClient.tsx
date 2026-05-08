@@ -13,7 +13,7 @@ interface ProductDetail {
     stock: number;
     regularPrice: number;
     discountPrice: number | null;
-    category: string;
+    category: string | null;
     isActive: boolean;
     images: string[];
     rating: number;
@@ -91,7 +91,7 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
             case 'TOKOPEDIA': return 'bg-[#00AA5B] hover:bg-[#008f4c] text-white';
             case 'SHOPEE': return 'bg-[#EE4D2D] hover:bg-[#d74224] text-white';
             case 'LAZADA': return 'bg-[#F36F21] hover:bg-[#e06117] text-white';
-            case 'TIKTOK': return 'bg-black hover:bg-gray-800 text-white';
+            case 'TIKTOK_SHOP': return 'bg-black hover:bg-gray-800 text-white';
             case 'BUKALAPAK': return 'bg-[#E31E52] hover:bg-[#c91847] text-white';
             default: return 'bg-ub-navy hover:bg-ub-dark-navy text-white';
         }

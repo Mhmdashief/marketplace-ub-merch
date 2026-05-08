@@ -1,30 +1,21 @@
 import type { NextAuthConfig } from "next-auth";
-import Google from "next-auth/providers/google";
 
 export default {
-    providers: [
-        Google({
-            clientId: process.env.AUTH_GOOGLE_ID!,
-            clientSecret: process.env.AUTH_GOOGLE_SECRET!,
-            authorization: { params: { prompt: "select_account" } },
-        }),
-    ],
+    providers: [],
     pages: {
-        signIn: "/auth/login",
-        error: "/auth/login",
+        signIn: "/admin/login",
+        error: "/admin/login",
     },
     callbacks: {
         async jwt({ token, user, trigger, session }) {
             if (user) {
                 token.id = user.id as string;
-                token.role = user.role as string || "USER";
-                token.status = user.status as string || "ACTIVE";
-                console.log("JWT Callback - Initial Sign In:", { role: token.role, status: token.status });
+                token.role = user.role as string;
+                token.status = user.status as string;
             }
 
             if (trigger === "update" && session) {
                 token = { ...token, ...session };
-                console.log("JWT Callback - Update:", token);
             }
 
             return token;

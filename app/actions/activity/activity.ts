@@ -5,7 +5,6 @@ import { prisma } from '@/lib/prisma';
 export async function getUserActivities(userId: string) {
     try {
         const activities = await prisma.clickTracking.findMany({
-            where: { userId },
             orderBy: { clickedAt: 'desc' },
             take: 20,
             include: {

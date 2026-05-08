@@ -34,7 +34,7 @@ export default async function UserDetailPage(props: { params: Promise<{ id: stri
         switch (status) {
             case "ACTIVE":
                 return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-            case "BANNED":
+            case "INACTIVE":
                 return "bg-rose-500/10 text-rose-400 border-rose-500/20";
             default:
                 return "bg-amber-500/10 text-amber-400 border-amber-500/20";
@@ -67,19 +67,9 @@ export default async function UserDetailPage(props: { params: Promise<{ id: stri
 
                         <div className="flex flex-col items-center text-center space-y-6 relative z-10">
                             <div className="relative">
-                                {user.image ? (
-                                    <Image
-                                        src={user.image}
-                                        alt={user.name}
-                                        width={120}
-                                        height={120}
-                                        className="rounded-[40px] ring-4 ring-ub-gold/20 shadow-2xl"
-                                    />
-                                ) : (
-                                    <div className="h-32 w-32 rounded-[40px] bg-gradient-to-br from-ub-navy to-black flex items-center justify-center text-4xl font-black text-white ring-4 ring-ub-gold/20 shadow-2xl uppercase italic">
-                                        {user.name.charAt(0)}
-                                    </div>
-                                )}
+                                <div className="h-32 w-32 rounded-[40px] bg-gradient-to-br from-ub-navy to-black flex items-center justify-center text-4xl font-black text-white ring-4 ring-ub-gold/20 shadow-2xl uppercase italic">
+                                    {user.name.charAt(0)}
+                                </div>
                                 <div className={`absolute -bottom-2 -right-2 px-3 py-1 rounded-lg border text-[8px] font-black uppercase tracking-widest shadow-xl shadow-black/40 ${getStatusStyles(user.status)}`}>
                                     {user.status}
                                 </div>

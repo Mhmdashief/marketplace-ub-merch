@@ -102,7 +102,7 @@ export async function getClickAnalytics() {
     const productIds = topProducts.map((p) => p.productId);
     const products = await prisma.product.findMany({
         where: { id: { in: productIds } },
-        select: { id: true, name: true, assets: { select: { url: true }, take: 1 } },
+        select: { id: true, name: true, assets: { select: { id: true }, take: 1 } },
     });
 
     const topProductsWithName = topProducts.map((tp) => {
@@ -110,7 +110,7 @@ export async function getClickAnalytics() {
         return {
             productId: tp.productId,
             name: product?.name ?? 'Unknown',
-            image: product?.assets[0]?.url ?? null,
+            image: product?.assets[0] ? `/api/assets/${product.assets[0].id}` : null,
             clicks: tp._count.productId,
         };
     });

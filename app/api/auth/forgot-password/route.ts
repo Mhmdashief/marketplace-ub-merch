@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(
-            { success: false, error: "Terjadi kesalahan, silakan coba lagi" },
+            { success: false, error: error instanceof Error ? error.message : "Terjadi kesalahan pada sistem email" },
             { status: 500 }
         );
     }

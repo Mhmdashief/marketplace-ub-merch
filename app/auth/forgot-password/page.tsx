@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
                             cek inbox atau folder spam Anda.
                         </p>
                         <Link
-                            href="/auth/login"
+                            href="/admin/login"
                             className="inline-block text-blue-600 hover:text-blue-700 font-medium"
                         >
                             ← Kembali ke Login
@@ -126,7 +126,7 @@ export default function ForgotPasswordPage() {
 
                     <div className="text-center">
                         <Link
-                            href="/auth/login"
+                            href="/admin/login"
                             className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                         >
                             ← Kembali ke Login

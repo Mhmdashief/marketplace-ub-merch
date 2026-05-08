@@ -8,20 +8,21 @@ interface AdminNavbarProps {
     user: {
         name?: string | null;
         email?: string | null;
-        image?: string | null;
         role: string;
     };
+    onMenuClick?: () => void;
 }
 
-export default function AdminNavbar({ user }: AdminNavbarProps) {
+export default function AdminNavbar({ user, onMenuClick }: AdminNavbarProps) {
     const handleSignOut = async () => {
-        await signOut({ callbackUrl: "/" });
+        await signOut({ callbackUrl: "/admin/login" });
     };
 
     return (
         <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 bg-[#001a33] shadow-lg border-b border-white/5">
             <button
                 type="button"
+                onClick={onMenuClick}
                 className="border-r border-white/5 px-4 text-gray-400 hover:text-white focus:outline-none lg:hidden"
             >
                 <span className="sr-only">Open sidebar</span>
@@ -37,19 +38,9 @@ export default function AdminNavbar({ user }: AdminNavbarProps) {
                             <p className="text-sm font-bold text-white uppercase tracking-wider">{user.name}</p>
                             <p className="text-[10px] text-ub-gold font-black uppercase tracking-[0.1em]">{user.role}</p>
                         </div>
-                        {user.image ? (
-                            <Image
-                                className="h-10 w-10 rounded-full ring-2 ring-ub-gold"
-                                src={user.image}
-                                alt={user.name || "User"}
-                                width={40}
-                                height={40}
-                            />
-                        ) : (
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-ub-navy to-ub-dark-navy flex items-center justify-center text-white font-bold ring-2 ring-ub-gold uppercase">
-                                {user.name?.charAt(0).toUpperCase() || "A"}
-                            </div>
-                        )}
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-ub-navy to-ub-dark-navy flex items-center justify-center text-white font-bold ring-2 ring-ub-gold uppercase">
+                            {user.name?.charAt(0).toUpperCase() || "A"}
+                        </div>
                         <button
                             onClick={handleSignOut}
                             className="p-2 text-gray-400 hover:text-rose-500 transition-colors"

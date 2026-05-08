@@ -6,6 +6,7 @@ import { ExternalLink, Plus, Trash2, Check, AlertCircle } from 'lucide-react';
 export type MarketplacePlatform =
     | 'TOKOPEDIA'
     | 'SHOPEE'
+    | 'TIKTOK_SHOP'
 
 export type LinkEntry = {
     platform: MarketplacePlatform;
@@ -30,6 +31,13 @@ const PLATFORM_CONFIG: Record<
         bgColor: 'bg-orange-500/10 border-orange-500/20',
         placeholder: 'https://shopee.co.id/...',
         emoji: '🟠',
+    },
+    TIKTOK_SHOP: {
+        label: 'TikTok Shop',
+        color: 'text-gray-400',
+        bgColor: 'bg-white/5 border-white/10',
+        placeholder: 'https://shop.tiktok.com/...',
+        emoji: '⚫',
     },
 };
 

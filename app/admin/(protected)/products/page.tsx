@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { getAdminProducts } from '@/app/actions/products';
-import { PRODUCT_CATEGORIES } from '@/app/constant/product-categories';
+import { prisma } from '@/lib/prisma';
 import ProductsTable from './ProductsTable';
 
 interface PageProps {
@@ -12,6 +12,15 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     const { search, category } = await searchParams;
 
     const products = await getAdminProducts(search, category);
+
+    const categoriesData = await prisma.product.findMany({
+        select: { category: true },
+        distinct: ['category'],
+    });
+    
+    const uniqueCategories = categoriesData
+        .map(p => p.category)
+        .filter((c): c is string => c != null && c.trim() !== '');
 
     return (
         <div className="space-y-10 py-6 px-4 md:px-8 bg-[#000d1a] min-h-screen">
@@ -44,7 +53,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             {/* TABLE with Client-side interactivity */}
             <ProductsTable
                 products={products}
-                categories={['ALL', ...PRODUCT_CATEGORIES]}
+                categories={['ALL', ...uniqueCategories]}
                 initialSearch={search ?? ''}
                 initialCategory={category ?? 'ALL'}
             />

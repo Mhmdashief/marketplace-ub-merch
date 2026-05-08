@@ -51,7 +51,7 @@ function ResetPasswordForm() {
                 setSuccess(true);
                 // Redirect ke login setelah 3 detik
                 setTimeout(() => {
-                    router.push("/auth/login");
+                    router.push("/admin/login");
                 }, 3000);
             } else {
                 setError(data.error || "Terjadi kesalahan");
@@ -129,7 +129,7 @@ function ResetPasswordForm() {
                             halaman login...
                         </p>
                         <Link
-                            href="/auth/login"
+                            href="/admin/login"
                             className="inline-block text-blue-600 hover:text-blue-700 font-medium"
                         >
                             Login Sekarang →
@@ -205,7 +205,7 @@ function ResetPasswordForm() {
 
                     <div className="text-center">
                         <Link
-                            href="/auth/login"
+                            href="/admin/login"
                             className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                         >
                             ← Kembali ke Login
