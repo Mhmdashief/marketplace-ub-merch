@@ -13,14 +13,10 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { email } = forgotPasswordSchema.parse(body);
-
-        // Cek apakah user dengan email ini ada
         const user = await prisma.user.findUnique({
             where: { email },
         });
 
-        // Untuk keamanan, selalu return success message
-        // Jangan beri tahu apakah email terdaftar atau tidak
         if (!user) {
             return NextResponse.json({
                 success: true,
@@ -28,10 +24,7 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Generate token dan simpan ke database
         const token = await createPasswordResetToken(email);
-
-        // Kirim email
         await sendPasswordResetEmail(email, token);
 
         return NextResponse.json({

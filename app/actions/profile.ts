@@ -37,9 +37,6 @@ export async function getUserProfile() {
     }
 }
 
-// =============================
-// UPDATE USER PROFILE
-// =============================
 export async function updateUserProfile(
     data: { name: string }
 ) {
@@ -77,9 +74,6 @@ export async function updateUserProfile(
     }
 }
 
-// =============================
-// CHANGE PASSWORD
-// =============================
 export async function changeUserPassword(
     data: { currentPassword: string; newPassword: string }
 ) {
@@ -91,7 +85,6 @@ export async function changeUserPassword(
 
         const userId = session.user.id;
 
-        // ✅ validasi input dulu
         if (!data.currentPassword || !data.newPassword) {
             return { success: false as const, error: 'Semua field harus diisi' };
         }
@@ -128,9 +121,6 @@ export async function changeUserPassword(
     }
 }
 
-// =============================
-// SOFT DELETE (INACTIVE)
-// =============================
 export async function softDeleteAccount() {
     try {
         const session = await auth();

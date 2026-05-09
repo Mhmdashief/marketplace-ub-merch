@@ -168,11 +168,6 @@ model ClickTracking {
   @@map("click_trackings")
 }
 
-enum ContentType {
-  BERITA
-  ARTIKEL
-}
-
 model Article {
   id          String      @id @default(cuid())
   slug        String      @unique
@@ -183,8 +178,6 @@ model Article {
   // Image handling via db
   imageBytes  Bytes?
   imageMime   String?
-
-  contentType ContentType @default(BERITA)
   category    String?
   author      String      @default("Admin")
   isActive    Boolean     @default(true)

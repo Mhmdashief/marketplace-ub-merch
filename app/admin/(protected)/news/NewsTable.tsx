@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import {
     Search, Edit2, Trash2, Eye, Check, Image as ImageIcon,
 } from 'lucide-react';
@@ -14,7 +14,6 @@ interface Article {
     title: string;
     slug: string;
     category: string | null;
-    contentType: 'BERITA' | 'ARTIKEL';
     author: string;
     isActive: boolean;
     createdAt: Date;
@@ -25,10 +24,9 @@ interface Article {
 interface Props {
     articles: Article[];
     initialSearch: string;
-    initialCategory: string;
 }
 
-export default function NewsTable({ articles, initialSearch, initialCategory }: Props) {
+export default function NewsTable({ articles, initialSearch }: Props) {
     const router = useRouter();
     const pathname = usePathname();
     const [isPending, startTransition] = useTransition();
@@ -104,7 +102,7 @@ export default function NewsTable({ articles, initialSearch, initialCategory }: 
                                 <Check className="h-4 w-4" strokeWidth={3} />
                             </div>
                             <span className="text-xs font-black uppercase tracking-widest">
-                                {selected.length} Articles Selected
+                                {selected.length} News Selected
                             </span>
                         </div>
                         <button
@@ -148,7 +146,7 @@ export default function NewsTable({ articles, initialSearch, initialCategory }: 
                                     <td colSpan={5} className="text-center py-20">
                                         <div className="flex flex-col items-center gap-4 text-gray-600">
                                             <ImageIcon className="h-10 w-10" />
-                                            <p className="text-[11px] font-black uppercase tracking-widest">No articles found</p>
+                                            <p className="text-[11px] font-black uppercase tracking-widest">No news found</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -183,13 +181,6 @@ export default function NewsTable({ articles, initialSearch, initialCategory }: 
                                                         {article.title}
                                                     </p>
                                                     <div className="flex items-center gap-2 mt-1">
-                                                        <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
-                                                            article.contentType === 'BERITA'
-                                                                ? 'bg-blue-900/40 text-blue-400 border border-blue-500/20'
-                                                                : 'bg-amber-900/40 text-amber-400 border border-amber-500/20'
-                                                        }`}>
-                                                            {article.contentType}
-                                                        </span>
                                                         <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest">
                                                             {article.category || 'No Category'} <span className="text-white/10 mx-1">|</span> {article.author}
                                                         </p>

@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-/**
- * GET /api/assets/[id]
- * Serve binary image yang tersimpan langsung di database PostgreSQL.
- * Cache-Control: 1 minggu (immutable) agar browser/CDN cache efisien.
- */
 export async function GET(
     _req: NextRequest,
     { params }: { params: Promise<{ id: string }> }

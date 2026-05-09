@@ -266,7 +266,6 @@ export async function updateProduct(id: string, formData: FormData) {
     const isExclusiveShowcase = formData.get('isExclusiveShowcase') === 'true';
     const isKoleksiPilihan = formData.get('isKoleksiPilihan') === 'true';
 
-    // keptImages: array of asset IDs yang masih dipertahankan
     const keptAssetIds = formData.getAll('keptImages') as string[];
     const files = formData.getAll('images') as File[];
     console.log('[updateProduct] received files:', files.map(f => typeof f === 'object' ? { name: f.name, size: f.size, type: f.type } : typeof f));
@@ -276,7 +275,6 @@ export async function updateProduct(id: string, formData: FormData) {
     }
 
     try {
-        // Validasi ukuran & tipe setiap file baru
         for (const file of files) {
             if (!file || file.size === 0) continue;
             if (file.size > MAX_FILE_SIZE) {
@@ -290,7 +288,6 @@ export async function updateProduct(id: string, formData: FormData) {
         const slug = `${slugify(name)}-${Date.now()}`;
 
         await prisma.$transaction(async (tx) => {
-            // Hapus asset lama yang tidak dipertahankan
             await tx.productAsset.deleteMany({
                 where: {
                     productId: id,
@@ -298,11 +295,9 @@ export async function updateProduct(id: string, formData: FormData) {
                 },
             });
 
-            // Hitung sortOrder mulai dari setelah kept assets
             const existingCount = await tx.productAsset.count({ where: { productId: id } });
             let sortOrder = existingCount;
 
-            // Simpan file baru langsung ke DB
             for (const file of files) {
                 if (!file || file.size === 0) continue;
                 const buffer = await fileToBuffer(file);
@@ -349,7 +344,6 @@ export async function updateProduct(id: string, formData: FormData) {
     }
 }
 
-// ─── CREATE produk ────────────────────────────────────────────────────────────
 export async function createProduct(formData: FormData) {
     const name = formData.get('name') as string;
     const description = formData.get('description') as string;
@@ -374,7 +368,6 @@ export async function createProduct(formData: FormData) {
     }
 
     try {
-        // Validasi file
         for (const file of files) {
             if (!file || file.size === 0) continue;
             if (file.size > MAX_FILE_SIZE) {
@@ -407,7 +400,6 @@ export async function createProduct(formData: FormData) {
                 },
             });
 
-            // Upload semua gambar dalam satu transaksi
             let sortOrder = 0;
             for (const file of files) {
                 if (!file || file.size === 0) continue;
@@ -437,7 +429,6 @@ export async function createProduct(formData: FormData) {
     }
 }
 
-// ─── SOFT DELETE produk ──────────────────────────────────────────────────────
 export async function deleteProduct(productId: string) {
     await prisma.product.update({
         where: { id: productId },
@@ -448,7 +439,6 @@ export async function deleteProduct(productId: string) {
     revalidatePath('/');
 }
 
-// ─── BULK SOFT DELETE ────────────────────────────────────────────────────────
 export async function bulkDeleteProducts(productIds: string[]) {
     await prisma.product.updateMany({
         where: { id: { in: productIds } },
@@ -459,7 +449,6 @@ export async function bulkDeleteProducts(productIds: string[]) {
     revalidatePath('/');
 }
 
-// ─── TOGGLE ACTIVE status ────────────────────────────────────────────────────
 export async function toggleProductStatus(productId: string, currentStatus: boolean) {
     await prisma.product.update({
         where: { id: productId },

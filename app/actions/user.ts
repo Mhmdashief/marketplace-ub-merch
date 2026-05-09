@@ -32,7 +32,7 @@ export async function createUser(formData: FormData) {
             name,
             email,
             password: hashedPassword,
-            role: "ADMIN", // Hardcoded to ADMIN to prevent creating SUPER_ADMINs
+            role: "ADMIN",
             status: UserStatus.ACTIVE,
         },
     });

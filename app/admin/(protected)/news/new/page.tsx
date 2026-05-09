@@ -14,7 +14,6 @@ export default function NewArticlePage() {
     const [excerpt, setExcerpt] = useState('');
     const [content, setContent] = useState('');
     const [category, setCategory] = useState('');
-    const [contentType, setContentType] = useState<'BERITA' | 'ARTIKEL'>('BERITA');
     const [isActive, setIsActive] = useState(true);
     const [image, setImage] = useState<File | null>(null);
     const [error, setError] = useState('');
@@ -33,7 +32,6 @@ export default function NewArticlePage() {
         formData.set('excerpt', excerpt.trim());
         formData.set('content', content.trim());
         formData.set('category', category.trim());
-        formData.set('contentType', contentType);
         formData.set('isActive', String(isActive));
         if (image) formData.append('image', image);
 
@@ -56,7 +54,7 @@ export default function NewArticlePage() {
                         <span className="text-[10px] font-black text-ub-gold uppercase tracking-[0.3em]">Content</span>
                     </div>
                     <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">
-                        New <span className="text-white/10">/</span> {contentType === 'BERITA' ? 'Berita' : 'Artikel'}
+                        New <span className="text-white/10">/</span> Berita
                     </h1>
                 </div>
                 <button type="button" onClick={doSubmit} disabled={isPending}
@@ -112,24 +110,7 @@ export default function NewArticlePage() {
                     <div className="bg-[#001a33] rounded-[40px] shadow-2xl border border-white/5 p-8 space-y-6">
                         <h2 className="text-sm font-black text-gray-500 uppercase tracking-[0.2em]">Pengaturan</h2>
 
-                        {/* Type Selector */}
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-white uppercase tracking-widest ml-1">Tipe Konten *</label>
-                            <div className="grid grid-cols-2 gap-3">
-                                {(['BERITA', 'ARTIKEL'] as const).map((t) => (
-                                    <button key={t} type="button" onClick={() => setContentType(t)}
-                                        className={`py-4 px-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] border-2 transition-all ${
-                                            contentType === t
-                                                ? t === 'BERITA'
-                                                    ? 'bg-ub-navy/80 border-ub-navy text-white shadow-lg'
-                                                    : 'bg-ub-gold/80 border-ub-gold text-white shadow-lg'
-                                                : 'bg-black/20 border-white/10 text-gray-500 hover:border-white/30'
-                                        }`}>
-                                        {t === 'BERITA' ? '📰 Berita' : '📝 Artikel'}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                        {/* No longer showing Type Selector as we only use BERITA */}
 
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-white uppercase tracking-widest ml-1">Kategori</label>

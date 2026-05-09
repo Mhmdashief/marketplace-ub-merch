@@ -31,10 +31,7 @@ export default async function ArticleDetailPage({
 
     if (!article) notFound();
 
-    const typeLabel = article.contentType === 'BERITA' ? 'Berita' : 'Artikel';
-    const typeColor = article.contentType === 'BERITA'
-        ? 'bg-ub-navy text-white'
-        : 'bg-ub-gold text-white';
+
 
     return (
         <main className="min-h-screen bg-gray-50 pt-24 pb-20">
@@ -49,7 +46,7 @@ export default async function ArticleDetailPage({
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                    {/* ── MAIN CONTENT ─────────────────────────────── */}
+                    {/* MAIN CONTENT*/}
                     <div className="lg:col-span-2">
                         {/* Hero Image */}
                         {article.imageUrl && (
@@ -59,22 +56,13 @@ export default async function ArticleDetailPage({
                                     alt={article.title}
                                     className="w-full h-full object-cover"
                                 />
-                                {/* Type Badge over image */}
-                                <div className="absolute top-4 left-4">
-                                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg shadow ${typeColor}`}>
-                                        {typeLabel}
-                                    </span>
-                                </div>
+
                             </div>
                         )}
 
                         {/* Article Header */}
                         <header className="mb-8">
-                            {!article.imageUrl && (
-                                <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg inline-block mb-4 ${typeColor}`}>
-                                    {typeLabel}
-                                </span>
-                            )}
+
 
                             <h1 className="text-2xl sm:text-4xl font-black text-ub-navy leading-tight mb-6 uppercase">
                                 {article.title}
@@ -96,7 +84,7 @@ export default async function ArticleDetailPage({
                             </div>
 
                             {article.excerpt && (
-                                <p className="text-base text-gray-600 leading-relaxed mt-6 italic border-l-4 border-ub-gold pl-5 font-medium">
+                                <p className="text-base text-gray-600 leading-relaxed mt-6 italic border-l-4 border-ub-gold pl-5 font-medium whitespace-pre-wrap">
                                     {article.excerpt}
                                 </p>
                             )}
@@ -104,7 +92,7 @@ export default async function ArticleDetailPage({
 
                         {/* Article Content */}
                         <div
-                            className="prose prose-base max-w-none 
+                            className="prose prose-base max-w-none whitespace-pre-wrap text-gray-600
                                 prose-headings:font-black prose-headings:text-ub-navy 
                                 prose-p:text-gray-600 prose-p:leading-relaxed
                                 prose-a:text-ub-gold prose-a:no-underline hover:prose-a:underline 
@@ -123,17 +111,10 @@ export default async function ArticleDetailPage({
                                 <ArrowLeft className="w-4 h-4" />
                                 Kembali ke News
                             </Link>
-                            <span className="text-[10px] text-gray-400 font-medium flex items-center gap-1.5">
-                                <Clock className="w-3 h-3" />
-                                Terakhir diperbarui{' '}
-                                {new Date(article.updatedAt).toLocaleDateString('id-ID', {
-                                    day: 'numeric', month: 'short', year: 'numeric'
-                                })}
-                            </span>
                         </div>
                     </div>
 
-                    {/* ── SIDEBAR ───────────────────────────────────── */}
+                    {/*  SIDEBAR */}
                     <aside className="space-y-8">
                         {/* Recent Articles */}
                         <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden sticky top-28">
@@ -170,13 +151,7 @@ export default async function ArticleDetailPage({
                                             </div>
                                             {/* Info */}
                                             <div className="flex-1 min-w-0">
-                                                <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md inline-block mb-1 ${
-                                                    a.contentType === 'BERITA'
-                                                        ? 'bg-ub-navy/10 text-ub-navy'
-                                                        : 'bg-ub-gold/10 text-ub-gold'
-                                                }`}>
-                                                    {a.contentType === 'BERITA' ? 'Berita' : 'Artikel'}
-                                                </span>
+
                                                 <p className="text-[11px] font-black text-ub-navy leading-tight line-clamp-2 group-hover:text-ub-gold transition-colors">
                                                     {a.title}
                                                 </p>

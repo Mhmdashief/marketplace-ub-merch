@@ -13,7 +13,6 @@ interface ArticleData {
     excerpt: string | null;
     content: string;
     category: string | null;
-    contentType: 'BERITA' | 'ARTIKEL';
     isActive: boolean;
     imageUrl: string | null;
 }
@@ -26,7 +25,6 @@ export default function EditNewsForm({ article }: { article: ArticleData }) {
     const [excerpt, setExcerpt] = useState(article.excerpt || '');
     const [content, setContent] = useState(article.content);
     const [category, setCategory] = useState(article.category || '');
-    const [contentType, setContentType] = useState<'BERITA' | 'ARTIKEL'>(article.contentType);
     const [isActive, setIsActive] = useState(article.isActive);
     const [newImage, setNewImage] = useState<File | null>(null);
     const [existingImageUrl, setExistingImageUrl] = useState<string | null>(article.imageUrl);
@@ -49,7 +47,6 @@ export default function EditNewsForm({ article }: { article: ArticleData }) {
         formData.set('excerpt', excerpt.trim());
         formData.set('content', content.trim());
         formData.set('category', category.trim());
-        formData.set('contentType', contentType);
         formData.set('isActive', String(isActive));
         formData.set('removeImage', String(removeImage));
         if (newImage) formData.append('image', newImage);
@@ -73,7 +70,7 @@ export default function EditNewsForm({ article }: { article: ArticleData }) {
                         <span className="text-[10px] font-black text-ub-gold uppercase tracking-[0.3em]">Content</span>
                     </div>
                     <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">
-                        Edit <span className="text-white/10">/</span> {contentType === 'BERITA' ? 'Berita' : 'Artikel'}
+                        Edit <span className="text-white/10">/</span> Berita
                     </h1>
                 </div>
                 <button type="button" onClick={doSubmit} disabled={isPending}
@@ -129,24 +126,7 @@ export default function EditNewsForm({ article }: { article: ArticleData }) {
                     <div className="bg-[#001a33] rounded-[40px] shadow-2xl border border-white/5 p-8 space-y-6">
                         <h2 className="text-sm font-black text-gray-500 uppercase tracking-[0.2em]">Pengaturan</h2>
 
-                        {/* Type Selector */}
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-white uppercase tracking-widest ml-1">Tipe Konten *</label>
-                            <div className="grid grid-cols-2 gap-3">
-                                {(['BERITA', 'ARTIKEL'] as const).map((t) => (
-                                    <button key={t} type="button" onClick={() => setContentType(t)}
-                                        className={`py-4 px-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] border-2 transition-all ${
-                                            contentType === t
-                                                ? t === 'BERITA'
-                                                    ? 'bg-ub-navy/80 border-ub-navy text-white shadow-lg'
-                                                    : 'bg-ub-gold/80 border-ub-gold text-white shadow-lg'
-                                                : 'bg-black/20 border-white/10 text-gray-500 hover:border-white/30'
-                                        }`}>
-                                        {t === 'BERITA' ? '📰 Berita' : '📝 Artikel'}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                        {/* No longer showing Type Selector as we only use BERITA */}
 
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-white uppercase tracking-widest ml-1">Kategori</label>

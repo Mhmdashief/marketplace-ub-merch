@@ -44,7 +44,6 @@ export async function upsertMarketplaceLinks(
     return { success: true };
 }
 
-// ─── Get marketplace links untuk sebuah produk ──────────────────────────────
 export async function getMarketplaceLinksByProductId(productId: string) {
     return prisma.marketplaceLink.findMany({
         where: { productId, isActive: true },
@@ -52,7 +51,6 @@ export async function getMarketplaceLinksByProductId(productId: string) {
     });
 }
 
-// ─── Track klik ke marketplace ───────────────────────────────────────────────
 export async function trackMarketplaceClick(
     productId: string,
     platform: MarketplacePlatform,
@@ -67,7 +65,6 @@ export async function trackMarketplaceClick(
     });
 }
 
-// ─── Analytics: data klik 30 hari terakhir ──────────────────────────────────
 export async function getClickAnalytics() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -98,7 +95,6 @@ export async function getClickAnalytics() {
         }),
     ]);
 
-    // Ambil nama produk untuk top products
     const productIds = topProducts.map((p) => p.productId);
     const products = await prisma.product.findMany({
         where: { id: { in: productIds } },
@@ -115,7 +111,6 @@ export async function getClickAnalytics() {
         };
     });
 
-    // Build daily clicks chart data (last 7 days)
     const dailyClicks: { date: string; clicks: number }[] = [];
     for (let i = 6; i >= 0; i--) {
         const d = new Date();
@@ -138,7 +133,6 @@ export async function getClickAnalytics() {
     };
 }
 
-// ─── Produk tanpa marketplace link (untuk alert di dashboard) ─────────────────
 export async function getProductsWithoutMarketplaceLinks() {
     const products = await prisma.product.findMany({
         where: {

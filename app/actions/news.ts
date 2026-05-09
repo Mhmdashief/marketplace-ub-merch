@@ -2,7 +2,6 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { ContentType } from '@prisma/client';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -16,7 +15,7 @@ function slugify(text: string) {
         .replace(/\s+/g, '-');
 }
 
-export async function getAdminArticles(search?: string, contentType?: string) {
+export async function getAdminArticles(search?: string) {
     const articles = await prisma.article.findMany({
         where: {
             ...(search && {
@@ -25,9 +24,6 @@ export async function getAdminArticles(search?: string, contentType?: string) {
                     { id: { contains: search, mode: 'insensitive' } },
                 ],
             }),
-            ...(contentType && contentType !== 'ALL' && {
-                contentType: contentType as ContentType
-            }),
         },
         orderBy: { createdAt: 'desc' },
         select: {
@@ -35,7 +31,6 @@ export async function getAdminArticles(search?: string, contentType?: string) {
             title: true,
             slug: true,
             category: true,
-            contentType: true,
             author: true,
             isActive: true,
             createdAt: true,
@@ -50,11 +45,10 @@ export async function getAdminArticles(search?: string, contentType?: string) {
     }));
 }
 
-export async function getPublicArticles(search?: string, contentType?: ContentType) {
+export async function getPublicArticles(search?: string) {
     const articles = await prisma.article.findMany({
         where: {
             isActive: true,
-            ...(contentType && { contentType }),
             ...(search && {
                 OR: [
                     { title: { contains: search, mode: 'insensitive' } },
@@ -68,7 +62,6 @@ export async function getPublicArticles(search?: string, contentType?: ContentTy
             title: true,
             slug: true,
             category: true,
-            contentType: true,
             excerpt: true,
             author: true,
             createdAt: true,
@@ -92,7 +85,6 @@ export async function getArticleBySlug(slug: string) {
             excerpt: true,
             content: true,
             category: true,
-            contentType: true,
             author: true,
             isActive: true,
             imageMime: true,
@@ -119,7 +111,6 @@ export async function getArticleById(id: string) {
             excerpt: true,
             content: true,
             category: true,
-            contentType: true,
             isActive: true,
             imageMime: true,
         }
@@ -146,7 +137,6 @@ export async function getRecentArticles(excludeSlug?: string, limit = 5) {
             id: true,
             title: true,
             slug: true,
-            contentType: true,
             createdAt: true,
             imageMime: true,
         }
@@ -188,7 +178,6 @@ export async function createArticle(formData: FormData) {
     const content = formData.get('content') as string;
     const category = formData.get('category') as string | null;
     const isActive = formData.get('isActive') === 'true';
-    const contentType = (formData.get('contentType') as ContentType) || 'BERITA';
     const imageFile = formData.get('image') as File | null;
 
     if (!title || !content) {
@@ -210,7 +199,7 @@ export async function createArticle(formData: FormData) {
         const slug = `${slugify(title)}-${Date.now()}`;
 
         await prisma.article.create({
-            data: { title, slug, excerpt, content, category, contentType, isActive, imageBytes, imageMime }
+            data: { title, slug, excerpt, content, category, isActive, imageBytes, imageMime }
         });
 
         revalidatePath('/admin/news');
@@ -228,7 +217,6 @@ export async function updateArticle(id: string, formData: FormData) {
     const content = formData.get('content') as string;
     const category = formData.get('category') as string | null;
     const isActive = formData.get('isActive') === 'true';
-    const contentType = (formData.get('contentType') as ContentType) || 'BERITA';
     const imageFile = formData.get('image') as File | null;
     const removeImage = formData.get('removeImage') === 'true';
 
@@ -238,7 +226,7 @@ export async function updateArticle(id: string, formData: FormData) {
 
     try {
         let updateData: any = {
-            title, excerpt, content, category, contentType, isActive,
+            title, excerpt, content, category, isActive,
             slug: `${slugify(title)}-${Date.now()}`,
         };
 
