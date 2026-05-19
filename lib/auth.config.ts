@@ -16,14 +16,14 @@ const authConfig = {
                 sameSite: "lax",
                 path: "/",
                 secure: useSecureCookies,
-                maxAge: undefined, // Menjadikan ini browser session cookie (hilang saat browser ditutup)
+                maxAge: undefined,
             },
         },
     },
 
     session: {
         strategy: "jwt",
-        maxAge: 24 * 60 * 60, // JWT valid 1 hari, tetapi cookie akan hilang saat browser ditutup
+        maxAge: 24 * 60 * 60,
     },
 
     providers: [],

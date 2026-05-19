@@ -1,51 +1,53 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASSWORD,
+  },
+});
+
 export async function sendPasswordResetEmail(email: string, token: string) {
   const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
 
   try {
-    // Jika RESEND_API_KEY tidak ada, fallback ke console log (development)
-    if (!process.env.RESEND_API_KEY) {
+    // Jika konfigurasi SMTP belum lengkap, fallback ke console log (development)
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
       console.log("=".repeat(60));
       console.log("📧 PASSWORD RESET EMAIL (Development Mode)");
       console.log("=".repeat(60));
       console.log(`To: ${email}`);
       console.log(`Reset Link: ${resetUrl}`);
       console.log("=".repeat(60));
-      console.log("⚠️  RESEND_API_KEY not found. Add it to .env for production email sending.");
+      console.log("⚠️  SMTP Configuration not found or incomplete. Add it to .env for production email sending.");
       console.log("=".repeat(60));
       return { success: true, resetUrl };
     }
 
-    // Kirim email menggunakan Resend
-    console.log('📧 Attempting to send email via Resend...');
-    console.log('From:', process.env.EMAIL_FROM || 'UB Merch <onboarding@resend.dev>');
+    // Kirim email menggunakan Nodemailer
+    console.log('📧 Attempting to send email via SMTP...');
+    console.log('From:', process.env.EMAIL_FROM || 'UB Merch <admin@ubmerch.ac.id>');
     console.log('To:', email);
 
-    const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'UB Merch <onboarding@resend.dev>',
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_FROM || 'UB Merch <admin@ubmerch.ac.id>',
       to: email,
       subject: 'Reset Password - UB Merch',
       html: getEmailTemplate(resetUrl),
     });
 
-    if (error) {
-      console.error('❌ Resend API Error:');
-      console.error('Error object:', JSON.stringify(error, null, 2));
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      throw new Error(`Failed to send email: ${error.message || JSON.stringify(error)}`);
-    }
-
     console.log('✅ Email sent successfully!');
-    console.log('Email ID:', data?.id);
-    return { success: true, resetUrl, emailId: data?.id };
-  } catch (error: any) {
+    console.log('Message ID:', info.messageId);
+    return { success: true, resetUrl, emailId: info.messageId };
+  } catch (error: unknown) {
+    const err = error as Error;
     console.error('❌ Error in sendPasswordResetEmail:');
-    console.error('Error type:', error.constructor.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
+    console.error('Error type:', err.constructor?.name);
+    console.error('Error message:', err.message);
+    console.error('Error stack:', err.stack);
     throw error;
   }
 }
