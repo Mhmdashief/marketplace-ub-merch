@@ -71,21 +71,19 @@ export default function ContactForm() {
 
             <div className="bg-white rounded-[2rem] overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] border border-gray-100">
 
-                {/* Header Section */}
-                <div className="bg-[#0b1221] p-10 md:p-12 relative overflow-hidden text-center group">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-ub-gold via-yellow-400 to-ub-gold" />
-                    <div className="absolute -right-10 -bottom-20 w-64 h-64 bg-ub-gold rounded-full blur-[100px] opacity-10 group-hover:opacity-20 transition-opacity duration-1000" />
-
-                    <h3 className="text-3xl md:text-4xl font-black text-white mb-2 relative z-10">
-                        Let's Talk Business
+                {/* New Sleek Header inside form area to give context without redundant block */}
+                <div className="p-10 md:p-12 pb-4 md:pb-0">
+                    <span className="inline-block text-[10px] font-black tracking-[0.4em] text-ub-gold mb-3 uppercase">
+                        Send a message
+                    </span>
+                    <h3 className="text-2xl md:text-3xl font-black text-ub-navy">
+                        Mari Mulai Kolaborasi
                     </h3>
-                    <p className="text-gray-400 text-sm md:text-base max-w-sm mx-auto relative z-10">
-                        Isi form di bawah untuk konsultasi gratis mengenai kebutuhan merchandise Anda.
-                    </p>
+                    <div className="w-12 h-1 bg-ub-gold mt-4 rounded-full" />
                 </div>
 
                 {/* Form Body */}
-                <form onSubmit={handleSubmit} className="p-10 md:p-12 space-y-8">
+                <form onSubmit={handleSubmit} className="p-10 md:p-12 pt-8 md:pt-10 space-y-10">
 
                     {/* Input Group: Identity */}
                     <div className="space-y-6">
@@ -197,8 +195,8 @@ export default function ContactForm() {
                                 value={formData.message}
                                 onChange={handleChange}
                                 required
-                                rows={4}
-                                className="peer w-full px-0 py-4 border-b-2 border-gray-200 bg-transparent text-ub-navy font-bold text-lg placeholder-transparent focus:border-ub-navy focus:outline-none transition-colors resize-none"
+                                rows={6}
+                                className="peer w-full px-0 py-4 border-b-2 border-gray-200 bg-transparent text-ub-navy font-bold text-lg placeholder-transparent focus:border-ub-navy focus:outline-none transition-colors resize-none min-h-[150px]"
                                 placeholder="Message"
                             />
                             <label htmlFor="message" className="absolute left-0 -top-3.5 text-gray-400 text-xs font-bold uppercase tracking-widest transition-all peer-placeholder-shown:text-base peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4 peer-focus:-top-3.5 peer-focus:text-ub-gold peer-focus:text-xs peer-focus:font-bold">

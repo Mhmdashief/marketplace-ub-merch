@@ -21,7 +21,6 @@ export default function NewsCard({
     excerpt,
     image,
     date,
-    author,
     readTime,
     category,
     slug

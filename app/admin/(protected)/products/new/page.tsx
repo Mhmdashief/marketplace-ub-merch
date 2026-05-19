@@ -8,7 +8,8 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createProduct } from '@/app/actions/products';
+import { createProduct, getProductCategories } from '@/app/actions/products';
+import { useEffect } from 'react';
 import { upsertMarketplaceLinks } from '@/app/actions/marketplace';
 import MarketplaceLinksManager, { type LinkEntry } from '@/components/admin/MarketplaceLinksManager';
 
@@ -51,13 +52,36 @@ export default function NewProductPage() {
 
     // Marketplace links state
     const [marketplaceLinks, setMarketplaceLinks] = useState<LinkEntry[]>([]);
+    const [existingCategories, setExistingCategories] = useState<string[]>([]);
 
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
+    // Load dynamic categories on mount
+    useEffect(() => {
+        getProductCategories().then(setExistingCategories).catch(console.error);
+    }, []);
+
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            setImages((prev) => [...prev, ...Array.from(e.target.files!)]);
+            const files = Array.from(e.target.files);
+            const validFiles = files.filter(file => {
+                const isValidType = file.type === 'image/png' || file.type === 'image/webp';
+                const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB
+                
+                if (!isValidType) {
+                    setError('Format file hanya boleh PNG atau WEBP.');
+                } else if (!isValidSize) {
+                    setError('Ukuran file maksimal 2 MB.');
+                }
+                
+                return isValidType && isValidSize;
+            });
+            
+            if (validFiles.length > 0) {
+                setError('');
+                setImages((prev) => [...prev, ...validFiles]);
+            }
         }
     };
 
@@ -205,11 +229,17 @@ export default function NewProductPage() {
                                 <label className="text-[10px] font-black text-white uppercase tracking-widest ml-1">Category *</label>
                                 <input
                                     type="text"
+                                    list="category-suggestions"
                                     value={category}
-                                    onChange={(e) => setCategory(e.target.value)}
-                                    placeholder="ENTER CATEGORY EX: T-SHIRT..."
+                                    onChange={(e) => setCategory(e.target.value.toUpperCase())}
+                                    placeholder="SELECT OR TYPE CATEGORY..."
                                     className="w-full px-6 py-4 bg-black/20 text-white border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] focus:ring-2 focus:ring-ub-gold transition-all outline-none"
                                 />
+                                <datalist id="category-suggestions">
+                                    {existingCategories.map((cat) => (
+                                        <option key={cat} value={cat} />
+                                    ))}
+                                </datalist>
                             </div>
 
                             <div className="space-y-2">
@@ -267,15 +297,15 @@ export default function NewProductPage() {
                     <div className="bg-[#001a33] rounded-[40px] shadow-2xl border border-white/5 p-8 space-y-6">
                         <div>
                             <h2 className="text-sm font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Product Assets</h2>
-                            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">Upload gambar produk (PNG, JPG, WEBP — maks 5MB)</p>
+                            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">Upload gambar produk (PNG, WEBP — maks 2MB)</p>
                         </div>
                         <div className="border-2 border-dashed border-white/5 rounded-[32px] p-12 flex flex-col items-center justify-center hover:border-ub-gold hover:bg-white/5 transition-all cursor-pointer relative group">
-                            <input type="file" multiple accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} />
+                            <input type="file" multiple accept="image/png, image/webp" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} />
                             <div className="p-4 bg-white/5 group-hover:bg-white/10 rounded-2xl mb-4 transition-colors">
                                 <Upload className="h-8 w-8 text-gray-700 group-hover:text-ub-gold" />
                             </div>
                             <p className="text-[10px] font-black text-white uppercase tracking-widest">Drag & Drop or Click to Upload</p>
-                            <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-2">PNG, JPG, WEBP (Max 5MB each)</p>
+                            <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-2">PNG, WEBP (Max 2MB each)</p>
                         </div>
 
                         {images.length > 0 && (

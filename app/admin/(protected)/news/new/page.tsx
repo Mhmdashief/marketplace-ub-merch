@@ -20,7 +20,20 @@ export default function NewArticlePage() {
     const [success, setSuccess] = useState(false);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) setImage(e.target.files[0]);
+        const file = e.target.files?.[0];
+        if (file) {
+            const isValidType = file.type === 'image/png' || file.type === 'image/webp';
+            const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB
+            
+            if (!isValidType) {
+                setError('Format file hanya boleh PNG atau WEBP.');
+            } else if (!isValidSize) {
+                setError('Ukuran file maksimal 2 MB.');
+            } else {
+                setError('');
+                setImage(file);
+            }
+        }
     };
 
     const doSubmit = () => {
@@ -137,14 +150,14 @@ export default function NewArticlePage() {
                     <div className="bg-[#001a33] rounded-[40px] shadow-2xl border border-white/5 p-8 space-y-6">
                         <h2 className="text-sm font-black text-gray-500 uppercase tracking-[0.2em]">Cover Image</h2>
                         <div className="border-2 border-dashed border-white/5 rounded-[32px] p-8 flex flex-col items-center justify-center hover:border-ub-gold hover:bg-white/5 transition-all cursor-pointer relative group text-center">
-                            <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={handleImageChange} />
+                            <input type="file" accept="image/png, image/webp" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={handleImageChange} />
                             {!image ? (
                                 <>
                                     <div className="p-4 bg-white/5 group-hover:bg-white/10 rounded-2xl mb-4 transition-colors">
                                         <Upload className="h-8 w-8 text-gray-700 group-hover:text-ub-gold" />
                                     </div>
                                     <p className="text-[10px] font-black text-white uppercase tracking-widest">Click to Upload</p>
-                                    <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-2">PNG, JPG, WEBP — Maks 5MB</p>
+                                    <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-2">PNG, WEBP — Maks 2MB</p>
                                 </>
                             ) : (
                                 <div className="relative w-full aspect-video rounded-xl overflow-hidden">

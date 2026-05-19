@@ -22,7 +22,7 @@ const menuItems = [
         group: "Catalog",
         items: [
             { name: "Products", href: "/admin/products", icon: Package },
-            { name: "News/Articles", href: "/admin/news", icon: Newspaper },
+            { name: "News", href: "/admin/news", icon: Newspaper },
         ],
     },
 

@@ -8,7 +8,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { updateProduct } from '@/app/actions/products';
+import { updateProduct, getProductCategories } from '@/app/actions/products';
 import { upsertMarketplaceLinks } from '@/app/actions/marketplace';
 import MarketplaceLinksManager, { type LinkEntry } from '@/components/admin/MarketplaceLinksManager';
 
@@ -85,12 +85,36 @@ export default function EditProductForm({ product }: { product: ProductData }) {
         product.marketplaceLinks ?? []
     );
 
+    const [existingCategories, setExistingCategories] = useState<string[]>([]);
+
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
+    // Fetch active categories on mount to populate autocomplete options
+    useEffect(() => {
+        getProductCategories().then(setExistingCategories).catch(console.error);
+    }, []);
+
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            setNewImages((prev) => [...prev, ...Array.from(e.target.files!)]);
+            const files = Array.from(e.target.files);
+            const validFiles = files.filter(file => {
+                const isValidType = file.type === 'image/png' || file.type === 'image/webp';
+                const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB
+                
+                if (!isValidType) {
+                    setError('Format file hanya boleh PNG atau WEBP.');
+                } else if (!isValidSize) {
+                    setError('Ukuran file maksimal 2 MB.');
+                }
+                
+                return isValidType && isValidSize;
+            });
+            
+            if (validFiles.length > 0) {
+                setError('');
+                setNewImages((prev) => [...prev, ...validFiles]);
+            }
         }
     };
 
@@ -264,11 +288,17 @@ export default function EditProductForm({ product }: { product: ProductData }) {
                                 </label>
                                 <input
                                     type="text"
+                                    list="category-suggestions"
                                     value={category}
-                                    onChange={(e) => setCategory(e.target.value)}
-                                    placeholder="MASUKKAN KATEGORI EX: T-SHIRT..."
+                                    onChange={(e) => setCategory(e.target.value.toUpperCase())}
+                                    placeholder="SELECT OR TYPE CATEGORY..."
                                     className="w-full px-6 py-4 bg-black/20 text-white border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] focus:ring-2 focus:ring-ub-gold transition-all outline-none"
                                 />
+                                <datalist id="category-suggestions">
+                                    {existingCategories.map((cat) => (
+                                        <option key={cat} value={cat} />
+                                    ))}
+                                </datalist>
                             </div>
 
                             {/* Stock */}
@@ -348,7 +378,7 @@ export default function EditProductForm({ product }: { product: ProductData }) {
                             <input
                                 type="file"
                                 multiple
-                                accept="image/*"
+                                accept="image/png, image/webp"
                                 className="absolute inset-0 opacity-0 cursor-pointer"
                                 onChange={handleImageChange}
                             />
@@ -359,7 +389,7 @@ export default function EditProductForm({ product }: { product: ProductData }) {
                                 Upload Gambar Baru
                             </p>
                             <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-2">
-                                PNG, JPG, WEBP — max 10 MB per file
+                                PNG, WEBP — Maks 2MB per file
                             </p>
                         </div>
 

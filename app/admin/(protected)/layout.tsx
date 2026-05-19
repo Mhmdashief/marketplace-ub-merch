@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AdminLayoutClient from "@/components/admin/AdminLayoutClient";
+import SessionGuard from "@/components/admin/SessionGuard";
 
 export default async function AdminLayout({
     children,
@@ -17,8 +18,11 @@ export default async function AdminLayout({
     }
 
     return (
-        <AdminLayoutClient user={session.user}>
-            {children}
-        </AdminLayoutClient>
+        <>
+            <SessionGuard />
+            <AdminLayoutClient user={session.user}>
+                {children}
+            </AdminLayoutClient>
+        </>
     );
 }

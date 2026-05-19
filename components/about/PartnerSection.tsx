@@ -36,7 +36,7 @@ export default function PartnerSection() {
                     <span className="text-blue-600 font-medium tracking-widest uppercase text-xs mb-3 block">
                         Collaboration
                     </span>
-                    <h2 className="text-4xl md:text-5xl font-serif italic text-gray-900 mb-4">
+                    <h2 className="text-3xl md:text-5xl font-serif italic text-gray-900 mb-4">
                         Our Trusted Partners
                     </h2>
                     <div className="flex items-center justify-center gap-4">

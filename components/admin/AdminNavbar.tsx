@@ -15,6 +15,7 @@ interface AdminNavbarProps {
 
 export default function AdminNavbar({ user, onMenuClick }: AdminNavbarProps) {
     const handleSignOut = async () => {
+        sessionStorage.removeItem('admin_active_session');
         await signOut({ callbackUrl: "/admin/login" });
     };
 

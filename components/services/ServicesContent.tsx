@@ -123,7 +123,7 @@ export default function ServicesContent() {
                 />
 
                 <div className="max-w-6xl mx-auto px-6 md:px-8 relative z-10">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8">
                         {services.map((service, index) => (
                             <ServiceCard key={index} {...service} index={index} />
                         ))}

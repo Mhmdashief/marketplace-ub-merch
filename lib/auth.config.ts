@@ -1,26 +1,41 @@
 import type { NextAuthConfig } from "next-auth";
 
-export default {
-    providers: [],
+const useSecureCookies = process.env.NODE_ENV === "production";
+
+const authConfig = {
     pages: {
         signIn: "/admin/login",
         error: "/admin/login",
     },
+
+    cookies: {
+        sessionToken: {
+            name: useSecureCookies ? "__Secure-authjs.session-token" : "authjs.session-token",
+            options: {
+                httpOnly: true,
+                sameSite: "lax",
+                path: "/",
+                secure: useSecureCookies,
+                maxAge: undefined, // Menjadikan ini browser session cookie (hilang saat browser ditutup)
+            },
+        },
+    },
+
+    session: {
+        strategy: "jwt",
+        maxAge: 24 * 60 * 60, // JWT valid 1 hari, tetapi cookie akan hilang saat browser ditutup
+    },
+
+    providers: [],
     callbacks: {
-        async jwt({ token, user, trigger, session }) {
+        async jwt({ token, user }) {
             if (user) {
-                token.id = user.id as string;
-                token.role = user.role as string;
-                token.status = user.status as string;
+                token.id = user.id;
+                token.role = user.role;
+                token.status = user.status;
             }
-
-            if (trigger === "update" && session) {
-                token = { ...token, ...session };
-            }
-
             return token;
         },
-
         async session({ session, token }) {
             if (session.user) {
                 session.user.id = token.id as string;
@@ -31,3 +46,5 @@ export default {
         },
     },
 } satisfies NextAuthConfig;
+
+export default authConfig;

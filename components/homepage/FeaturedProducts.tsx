@@ -46,8 +46,7 @@ export default async function FeaturedProducts() {
                     {featuredProducts.map((product, index) => (
                         <div
                             key={product.id}
-                            className={`group relative flex flex-col transition-all duration-700 ${index % 2 === 1 ? 'lg:translate-y-16' : ''
-                                }`}
+                            className="group relative flex flex-col transition-all duration-700"
                         >
                             {/* Image */}
                             <div className="relative aspect-[4/5] sm:aspect-[4/5] lg:h-[600px] overflow-hidden rounded-3xl sm:rounded-[3rem] bg-[#F9F9F9] transition-all duration-700 group-hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)]">

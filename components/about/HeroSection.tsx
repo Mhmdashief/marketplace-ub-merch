@@ -15,7 +15,7 @@ export default function HeroSection() {
     const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
     return (
-        <section ref={containerRef} className="relative h-[90vh] flex items-center overflow-hidden bg-black">
+        <section ref={containerRef} className="relative h-[85vh] sm:h-[90vh] flex items-center overflow-hidden bg-black">
             {/* Background Image with Parallax */}
             <motion.div style={{ y }} className="absolute inset-0 z-0">
                 <Image
@@ -38,14 +38,14 @@ export default function HeroSection() {
                         transition={{ duration: 0.8 }}
                         className="space-y-8"
                     >
-                        <h1 className="text-5xl sm:text-6xl md:text-8xl font-black text-white leading-none tracking-tighter">
-                            Pusat Koleksi Otentik <br />
+                        <h1 className="text-4xl sm:text-6xl md:text-8xl font-black text-white leading-[1.1] md:leading-none tracking-tighter">
+                            Pusat Koleksi Otentik <br className="hidden sm:block" />
                             <span className="text-gradient-gold bg-gradient-to-r from-ub-gold via-yellow-400 to-ub-light-gold bg-clip-text text-transparent">
                                 Bumi Brawijaya
                             </span>
                         </h1>
 
-                        <p className="text-xl md:text-lg text-gray-300 max-w-2xl leading-relaxed font-medium">
+                        <p className="text-base md:text-lg text-gray-300 max-w-2xl leading-relaxed font-medium">
                             UB Merch & Creative adalah unit bisnis PT Brawijaya Multi Usaha (BMU) di bidang produk merchandise resmi Universitas Brawijaya dengan kualitas dan pelayanan terbaik.
                         </p>
 

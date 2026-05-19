@@ -5,19 +5,9 @@ import {
     ArrowLeft,
     Shield,
     Mail,
-    Calendar,
-    User,
-    Hash,
-    Phone,
-    MapPin,
     ShoppingBag,
-    Clock,
-    CheckCircle,
-    Ban,
     History
 } from "lucide-react";
-import Image from "next/image";
-
 export default async function UserDetailPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
     const { id } = params;
@@ -93,34 +83,13 @@ export default async function UserDetailPage(props: { params: Promise<{ id: stri
                         </div>
                     </div>
 
-                    {/* Contact details */}
-                    <div className="bg-[#001a33] rounded-[40px] shadow-2xl border border-white/5 p-8 space-y-6">
-                        <h3 className="text-[10px] font-black text-ub-gold uppercase tracking-[0.3em] mb-4">Contact Intelligence</h3>
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-4 group">
-                                <div className="p-3 bg-white/5 rounded-2xl group-hover:bg-ub-gold/10 transition-colors border border-white/5">
-                                    <Mail className="h-4 w-4 text-gray-500 group-hover:text-ub-gold" />
-                                </div>
-                                <div>
-                                    <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Primary Email</p>
-                                    <p className="text-[11px] font-bold text-white lowercase">{user.email}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 group">
-                                <div className="p-3 bg-white/5 rounded-2xl group-hover:bg-ub-gold/10 transition-colors border border-white/5">
-                                    <Shield className="h-4 w-4 text-gray-500 group-hover:text-ub-gold" />
-                                </div>
-                                <div>
-                                    <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Account Type</p>
-                                    <p className="text-[11px] font-bold text-white uppercase tracking-widest">{user.role}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
 
                 {/* Right Column - Tabs & Complex Data */}
                 <div className="lg:col-span-2 space-y-8">
+
+
                     {/* Stats Dashboard */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="bg-[#001a33] rounded-[40px] p-8 border border-white/5 shadow-2xl group hover:border-ub-gold/20 transition-all">
@@ -145,35 +114,26 @@ export default async function UserDetailPage(props: { params: Promise<{ id: stri
                         </div>
                     </div>
 
-                    {/* Timeline / Activity */}
-                    <div className="bg-[#001a33] rounded-[40px] shadow-2xl border border-white/5 p-8">
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Activity Stream</h3>
-                            <Clock className="h-4 w-4 text-gray-700" />
-                        </div>
-
-                        <div className="space-y-6">
-                            <div className="flex gap-4 group">
-                                <div className="flex flex-col items-center">
-                                    <div className="h-8 w-8 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center">
-                                        <CheckCircle className="h-3 w-3 text-emerald-500" />
-                                    </div>
-                                    <div className="w-[1.5px] h-12 bg-white/5"></div>
+                    {/* Contact details moved here to balance layout */}
+                    <div className="bg-[#001a33] rounded-[40px] shadow-2xl border border-white/5 p-8 space-y-6">
+                        <h3 className="text-[10px] font-black text-ub-gold uppercase tracking-[0.3em] mb-4">Contact Intelligence</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div className="flex items-center gap-4 group bg-white/[0.02] border border-white/5 p-4 rounded-3xl hover:bg-white/[0.04] transition-all">
+                                <div className="p-3 bg-white/5 rounded-2xl group-hover:bg-ub-gold/10 transition-colors border border-white/5">
+                                    <Mail className="h-4 w-4 text-gray-500 group-hover:text-ub-gold" />
                                 </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Account Created Successfully</p>
-                                    <p className="text-[9px] font-bold text-gray-600 uppercase mt-1">{new Date(user.createdAt).toLocaleDateString()} at {new Date(user.createdAt).toLocaleTimeString()}</p>
+                                <div className="overflow-hidden">
+                                    <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Primary Email</p>
+                                    <p className="text-[11px] font-bold text-white lowercase truncate">{user.email}</p>
                                 </div>
                             </div>
-                            <div className="flex gap-4 opacity-40">
-                                <div className="flex flex-col items-center">
-                                    <div className="h-8 w-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                                        <History className="h-3 w-3 text-gray-500" />
-                                    </div>
+                            <div className="flex items-center gap-4 group bg-white/[0.02] border border-white/5 p-4 rounded-3xl hover:bg-white/[0.04] transition-all">
+                                <div className="p-3 bg-white/5 rounded-2xl group-hover:bg-ub-gold/10 transition-colors border border-white/5">
+                                    <Shield className="h-4 w-4 text-gray-500 group-hover:text-ub-gold" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">No further activity logged</p>
-                                    <p className="text-[9px] font-bold text-gray-600 uppercase mt-1">Status: Operational</p>
+                                    <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Account Type</p>
+                                    <p className="text-[11px] font-bold text-white uppercase tracking-widest">{user.role}</p>
                                 </div>
                             </div>
                         </div>

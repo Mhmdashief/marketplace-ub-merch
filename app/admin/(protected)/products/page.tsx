@@ -18,9 +18,13 @@ export default async function ProductsPage({ searchParams }: PageProps) {
         distinct: ['category'],
     });
     
-    const uniqueCategories = categoriesData
-        .map(p => p.category)
-        .filter((c): c is string => c != null && c.trim() !== '');
+    const uniqueCategories = Array.from(
+        new Set(
+            categoriesData
+                .map((p) => p.category?.toUpperCase().trim())
+                .filter((c): c is string => c != null && c !== "")
+        )
+    ).sort();
 
     return (
         <div className="space-y-10 py-6 px-4 md:px-8 bg-[#000d1a] min-h-screen">

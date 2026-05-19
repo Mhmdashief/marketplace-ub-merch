@@ -11,9 +11,6 @@ export default auth((req) => {
     const isLoggedIn = !!req.auth;
     const userRole = req.auth?.user?.role;
     const userStatus = req.auth?.user?.status;
-
-    // ─── Halaman login admin: SELALU tampilkan form login ─────────────────────
-    // Kecuali jika sudah login sebagai admin valid → redirect ke dashboard
     if (pathname === "/admin/login") {
         if (
             isLoggedIn &&
@@ -23,11 +20,9 @@ export default auth((req) => {
         ) {
             return NextResponse.redirect(new URL("/admin/dashboard", req.url));
         }
-        // Belum login, atau session invalid/stale → tampilkan halaman login
         return NextResponse.next();
     }
 
-    // ─── Proteksi semua route /admin lainnya ─────────────────────────────────
     if (pathname.startsWith("/admin")) {
 
         // 1. Belum login → redirect ke halaman login admin

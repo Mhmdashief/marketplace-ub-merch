@@ -458,3 +458,16 @@ export async function toggleProductStatus(productId: string, currentStatus: bool
     revalidatePath('/merchandise');
     revalidatePath('/');
 }
+
+export async function getProductCategories() {
+    const data = await prisma.product.findMany({
+        where: { deletedAt: null },
+        select: { category: true },
+        distinct: ['category'],
+    });
+    
+    return data
+        .map(p => p.category)
+        .filter((c): c is string => c != null && c.trim() !== '')
+        .sort();
+}

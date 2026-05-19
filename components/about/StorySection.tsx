@@ -59,10 +59,10 @@ export default function StorySection() {
     };
 
     return (
-        <section className="py-32 bg-white overflow-hidden">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-12 md:py-32 bg-white overflow-hidden">
+            <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-8">
                 {/* Section Header */}
-                <div className="flex flex-col md:flex-row items-end justify-between mb-24 gap-8">
+                <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-12 md:mb-24 gap-6 md:gap-8">
                     <div className="max-w-2xl">
                         <motion.span
                             initial={{ opacity: 0 }}
@@ -74,9 +74,9 @@ export default function StorySection() {
                         <motion.h2
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            className="text-5xl md:text-7xl font-black text-gray-900 leading-[0.9] tracking-tighter"
+                            className="text-4xl sm:text-5xl md:text-7xl font-black text-gray-900 leading-[0.9] tracking-tighter"
                         >
-                            A JOURNEY OF <br />
+                            A JOURNEY OF <br className="hidden sm:block" />
                             <span className="italic font-serif font-normal text-ub-navy">Excellence.</span>
                         </motion.h2>
                     </div>
@@ -91,7 +91,7 @@ export default function StorySection() {
                 </div>
 
                 {/* Asymmetric Content Grid */}
-                <div className="space-y-32">
+                <div className="space-y-20 md:space-y-32">
                     {milestones.map((milestone, index) => (
                         <div key={index}>
                             {milestone.type === 'vision-mission' ? (
@@ -101,12 +101,12 @@ export default function StorySection() {
                                     <motion.div
                                         initial={{ opacity: 0, y: 30 }}
                                         whileInView={{ opacity: 1, y: 0 }}
-                                        className="text-center space-y-4"
+                                        className="text-center space-y-2 md:space-y-4 px-4"
                                     >
                                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">
                                             {milestone.subtitle}
                                         </span>
-                                        <h3 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
+                                        <h3 className="text-3xl md:text-5xl font-black text-gray-900 leading-tight">
                                             {milestone.title}
                                         </h3>
                                     </motion.div>
@@ -117,28 +117,28 @@ export default function StorySection() {
                                             initial={{ opacity: 0, y: 30 }}
                                             whileInView={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.2 }}
-                                            className="group relative bg-gradient-to-br from-ub-navy to-ub-dark-navy rounded-[2.5rem] p-10 overflow-hidden max-w-4xl mx-auto"
+                                            className="group relative bg-gradient-to-br from-ub-navy to-ub-dark-navy rounded-3xl md:rounded-[2.5rem] p-6 md:p-10 overflow-hidden max-w-4xl mx-auto"
                                         >
                                             {/* Decorative Elements */}
                                             <div className="absolute top-0 right-0 w-64 h-64 bg-ub-gold/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700" />
                                             <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
 
-                                            <div className="relative z-10 space-y-6">
-                                                <div className="inline-flex items-center gap-3 px-4 py-2 bg-ub-gold/20 border border-ub-gold/30 rounded-full">
+                                            <div className="relative z-10 space-y-4 md:space-y-6">
+                                                <div className="inline-flex items-center gap-2 md:gap-3 px-3 md:px-4 py-1.5 md:py-2 bg-ub-gold/20 border border-ub-gold/30 rounded-full">
                                                     <div className="w-2 h-2 bg-ub-gold rounded-full animate-pulse" />
-                                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-ub-gold">
+                                                    <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-ub-gold">
                                                         {milestone.vision.title}
                                                     </span>
                                                 </div>
 
-                                                <p className="text-xl text-white/90 leading-relaxed font-medium">
+                                                <p className="text-lg md:text-xl text-white/90 leading-relaxed font-medium text-center md:text-left">
                                                     {milestone.vision.content}
                                                 </p>
                                             </div>
                                         </motion.div>
 
-                                        {/* Mission Section - Full Width Dark Background */}
-                                        <div className="relative -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-16 bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-[2.5rem] overflow-hidden">
+                                        {/* Mission Section - Constrained inside parent grid on mobile, nicer containment */}
+                                        <div className="relative px-6 md:px-8 py-10 md:py-16 bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-3xl md:rounded-[2.5rem] overflow-hidden">
                                             {/* Background Pattern */}
                                             <div className="absolute inset-0 opacity-5">
                                                 <div className="absolute inset-0" style={{
@@ -147,20 +147,20 @@ export default function StorySection() {
                                                 }} />
                                             </div>
 
-                                            <div className="relative z-10 space-y-12">
+                                            <div className="relative z-10 space-y-8 md:space-y-12">
                                                 {/* Mission Title */}
                                                 <motion.div
                                                     initial={{ opacity: 0, y: 20 }}
                                                     whileInView={{ opacity: 1, y: 0 }}
                                                     className="text-center"
                                                 >
-                                                    <h4 className="text-4xl md:text-5xl font-black text-white mb-2">
+                                                    <h4 className="text-3xl md:text-5xl font-black text-white mb-2">
                                                         {milestone.mission.title}
                                                     </h4>
                                                 </motion.div>
 
                                                 {/* Mission Cards Grid */}
-                                                <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-8 max-w-6xl mx-auto">
                                                     {milestone.mission.items.map((item, idx) => (
                                                         <motion.div
                                                             key={idx}
@@ -172,8 +172,11 @@ export default function StorySection() {
                                                             {/* Icon Container */}
                                                             <div className="flex justify-center">
                                                                 <div className="relative">
-                                                                    <div className="w-24 h-24 rounded-full border-4 border-white/10 flex items-center justify-center text-white group-hover:border-ub-gold/50 transition-all duration-500 group-hover:scale-110">
-                                                                        {getIcon(item.icon)}
+                                                                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white/10 flex items-center justify-center text-white group-hover:border-ub-gold/50 transition-all duration-500 group-hover:scale-110">
+                                                                        {/* Smaller icons on mobile */}
+                                                                        <div className="scale-75 md:scale-100">
+                                                                            {getIcon(item.icon)}
+                                                                        </div>
                                                                     </div>
                                                                     {/* Glow effect */}
                                                                     <div className="absolute inset-0 rounded-full bg-ub-gold/0 group-hover:bg-ub-gold/20 blur-xl transition-all duration-500" />
@@ -186,7 +189,7 @@ export default function StorySection() {
                                                             </h5>
 
                                                             {/* Description */}
-                                                            <p className="text-gray-400 leading-relaxed font-medium group-hover:text-gray-300 transition-colors">
+                                                            <p className="text-gray-400 text-sm md:text-base leading-relaxed font-medium group-hover:text-gray-300 transition-colors max-w-sm mx-auto">
                                                                 {item.description}
                                                             </p>
                                                         </motion.div>
@@ -198,14 +201,14 @@ export default function StorySection() {
                                 </div>
                             ) : (
                                 // About Us Layout (existing)
-                                <div className={`flex flex-col ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-16 lg:gap-24`}>
+                                <div className={`flex flex-col ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-10 md:gap-16 lg:gap-24`}>
                                     {/* Image Placeholder/Graphic */}
                                     <motion.div
                                         initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
                                         whileInView={{ opacity: 1, x: 0 }}
-                                        className="relative flex-1 aspect-[4/5] w-full"
+                                        className="relative flex-1 aspect-square md:aspect-[4/5] w-full"
                                     >
-                                        <div className="absolute inset-0 bg-gray-100 rounded-[3rem] overflow-hidden">
+                                        <div className="absolute inset-0 bg-gray-100 rounded-3xl md:rounded-[3rem] overflow-hidden">
                                             <Image
                                                 src="/images/reusable/Ub merch.jpg"
                                                 alt="UB Merch Story"
@@ -225,10 +228,10 @@ export default function StorySection() {
                                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">
                                             {milestone.subtitle}
                                         </span>
-                                        <h3 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
+                                        <h3 className="text-3xl md:text-5xl font-black text-gray-900 leading-tight">
                                             {milestone.title}
                                         </h3>
-                                        <p className="text-lg text-gray-600 leading-relaxed font-medium">
+                                        <p className="text-base md:text-lg text-gray-600 leading-relaxed font-medium text-justify">
                                             {milestone.description}
                                         </p>
                                     </motion.div>

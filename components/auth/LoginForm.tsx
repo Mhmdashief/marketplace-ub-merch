@@ -35,6 +35,8 @@ export default function LoginForm() {
                 return;
             }
 
+            // ✅ Tandai sesi aktif di sessionStorage agar SessionGuard tahu ini bukan sesi kadaluwarsa
+            sessionStorage.setItem('admin_active_session', 'true');
             // ✅ Redirect ke admin panel setelah berhasil login
             router.push('/admin');
             router.refresh();
@@ -131,7 +133,7 @@ export default function LoginForm() {
                                     required
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className="block w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all duration-200"
+                                    className="block w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all duration-200 [&::-ms-reveal]:hidden"
                                     placeholder="••••••••"
                                 />
                                 <button
