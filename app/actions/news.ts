@@ -15,6 +15,27 @@ function slugify(text: string) {
         .replace(/\s+/g, '-');
 }
 
+async function generateUniqueArticleSlug(title: string, currentArticleId?: string): Promise<string> {
+    const baseSlug = slugify(title);
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+        const existing = await prisma.article.findUnique({
+            where: { slug }
+        });
+
+        if (!existing || (currentArticleId && existing.id === currentArticleId)) {
+            break;
+        }
+
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+    }
+
+    return slug;
+}
+
 export async function getAdminArticles(search?: string) {
     const articles = await prisma.article.findMany({
         where: {
@@ -196,7 +217,7 @@ export async function createArticle(formData: FormData) {
             imageMime = imageFile.type;
         }
 
-        const slug = `${slugify(title)}-${Date.now()}`;
+        const slug = await generateUniqueArticleSlug(title);
 
         await prisma.article.create({
             data: { title, slug, excerpt, content, category, isActive, imageBytes, imageMime }
@@ -225,9 +246,21 @@ export async function updateArticle(id: string, formData: FormData) {
     }
 
     try {
+        const existingArticle = await prisma.article.findUnique({
+            where: { id },
+            select: { title: true, slug: true }
+        });
+
+        let slug = existingArticle?.slug;
+        const hasTimestampSuffix = slug ? /-\d{10,}$/.test(slug) : false;
+
+        if (!existingArticle || existingArticle.title !== title || hasTimestampSuffix) {
+            slug = await generateUniqueArticleSlug(title, id);
+        }
+
         let updateData: any = {
             title, excerpt, content, category, isActive,
-            slug: `${slugify(title)}-${Date.now()}`,
+            slug,
         };
 
         if (removeImage) {

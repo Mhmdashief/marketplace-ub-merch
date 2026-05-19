@@ -35,7 +35,7 @@ export default function ContactHero() {
                         transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
                         className="md:max-w-xs pb-4"
                     >
-                        <p className="text-xl text-gray-500 leading-relaxed italic border-l-2 border-ub-gold pl-6">
+                        <p className="text-xl text-gray-700 leading-relaxed italic border-l-2 border-ub-gold pl-6">
                             Kami percaya setiap kolaborasi besar dimulai dengan satu percakapan sederhana. Mari wujudkan ide Anda.
                         </p>
                     </motion.div>

@@ -44,7 +44,7 @@ export default function MerchandisePage() {
 
                     {/* Signature Header - Logo Replacement */}
                     <h1 className="flex flex-col items-center mb-12">
-                        <span className="text-gray-500 text-[10px] font-black tracking-[0.6em] mb-10 translate-x-[0.3em]">ESTABLISHED 1963</span>
+                        <span className="text-gray-300 text-[10px] font-black tracking-[0.6em] mb-10 translate-x-[0.3em]">ESTABLISHED 1963</span>
                         <div className="relative w-[300px] sm:w-[450px] lg:w-[600px] aspect-[4/1] invert brightness-200">
                             <Image
                                 src="/images/reusable/Logo Ub Merch.png"
@@ -57,7 +57,7 @@ export default function MerchandisePage() {
                         <span className="sr-only">Brawijaya Collection - UB Merch Official Store</span>
                     </h1>
 
-                    <p className="max-w-2xl mx-auto text-gray-400 text-base sm:text-lg font-medium leading-relaxed mb-16 opacity-80">
+                    <p className="max-w-2xl mx-auto text-gray-300 text-base sm:text-lg font-medium leading-relaxed mb-16">
                         Elevating university pride through masterfully crafted merchandise. A fusion of heritage and contemporary luxury for the modern academic.
                     </p>
                 </div>

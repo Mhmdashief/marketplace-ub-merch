@@ -36,7 +36,6 @@ interface ProductDetail {
 }
 
 export default function ProductDetailClient({ product }: { product: ProductDetail }) {
-    const [activeTab, setActiveTab] = useState<'description' | 'specs'>('description');
     const [activeImage, setActiveImage] = useState(0);
     const [redirectingLinkId, setRedirectingLinkId] = useState<string | null>(null);
 
@@ -205,37 +204,32 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
                         </div>
 
                         {/* Stok Info */}
-                        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 px-6 py-5 rounded-3xl border transition-all duration-300 ${
-                            product.stock > 0 && product.stock <= 10 
-                                ? 'bg-orange-50/50 border-orange-100' 
-                                : product.stock > 0 
-                                    ? 'bg-emerald-50/50 border-emerald-100' 
+                        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 px-6 py-5 rounded-3xl border transition-all duration-300 ${product.stock > 0 && product.stock <= 10
+                                ? 'bg-orange-50/50 border-orange-100'
+                                : product.stock > 0
+                                    ? 'bg-emerald-50/50 border-emerald-100'
                                     : 'bg-rose-50/50 border-rose-100'
-                        }`}>
+                            }`}>
                             <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${
-                                    product.stock > 0 && product.stock <= 10 ? 'bg-orange-100 text-orange-600' : product.stock > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
-                                }`}>
+                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${product.stock > 0 && product.stock <= 10 ? 'bg-orange-100 text-orange-600' : product.stock > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
+                                    }`}>
                                     {product.stock > 0 && product.stock <= 10 ? <Zap className="w-5 h-5 animate-pulse" /> : product.stock > 0 ? <Package className="w-5 h-5" /> : <Info className="w-5 h-5" />}
                                 </div>
                                 <div>
                                     <h4 className="text-[10px] font-black text-black uppercase tracking-[0.2em] mb-1">Status Ketersediaan</h4>
-                                    <p className={`text-xs font-bold ${
-                                        product.stock > 0 && product.stock <= 10 ? 'text-orange-600' : product.stock > 0 ? 'text-emerald-600' : 'text-rose-600'
-                                    }`}>
+                                    <p className={`text-xs font-bold ${product.stock > 0 && product.stock <= 10 ? 'text-orange-600' : product.stock > 0 ? 'text-emerald-600' : 'text-rose-600'
+                                        }`}>
                                         {product.stock > 0 && product.stock <= 10 ? `Sisa ${product.stock} unit - Terbatas!` : product.stock > 0 ? `Ready Stock (${product.stock} Unit)` : 'Stok Habis Sementara'}
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <div className="flex items-center hidden sm:flex pr-2">
                                 <div className="relative flex h-3 w-3">
-                                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                                        product.stock > 0 && product.stock <= 10 ? 'bg-orange-400' : product.stock > 0 ? 'bg-emerald-400' : 'bg-rose-400'
-                                    }`}></span>
-                                    <span className={`relative inline-flex rounded-full h-3 w-3 ${
-                                        product.stock > 0 && product.stock <= 10 ? 'bg-orange-500' : product.stock > 0 ? 'bg-emerald-500' : 'bg-rose-500'
-                                    }`}></span>
+                                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${product.stock > 0 && product.stock <= 10 ? 'bg-orange-400' : product.stock > 0 ? 'bg-emerald-400' : 'bg-rose-400'
+                                        }`}></span>
+                                    <span className={`relative inline-flex rounded-full h-3 w-3 ${product.stock > 0 && product.stock <= 10 ? 'bg-orange-500' : product.stock > 0 ? 'bg-emerald-500' : 'bg-rose-500'
+                                        }`}></span>
                                 </div>
                             </div>
                         </div>
@@ -279,43 +273,20 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
                     </div>
                 </div>
 
-                {/* Description Tabs */}
+                {/* Description */}
                 <div className="mt-32 border-t border-gray-100 pt-16 max-w-4xl">
-                    <div className="flex gap-12 mb-12 overflow-x-auto pb-4">
-                        <button
-                            onClick={() => setActiveTab('description')}
-                            className={`text-[12px] font-black uppercase tracking-[0.3em] pb-4 transition-all whitespace-nowrap ${activeTab === 'description' ? 'text-black border-b-2 border-black' : 'text-gray-300 border-b-2 border-transparent hover:text-gray-500'}`}
-                        >
+                    <div className="mb-12">
+                        <h2 className="text-[12px] font-black uppercase tracking-[0.3em] pb-4 text-black border-b-2 border-black inline-block">
                             Deskripsi Produk
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('specs')}
-                            className={`text-[12px] font-black uppercase tracking-[0.3em] pb-4 transition-all whitespace-nowrap ${activeTab === 'specs' ? 'text-black border-b-2 border-black' : 'text-gray-300 border-b-2 border-transparent hover:text-gray-500'}`}
-                        >
-                            Spesifikasi
-                        </button>
+                        </h2>
                     </div>
 
                     <div className="animate-in fade-in duration-500">
-                        {activeTab === 'description' ? (
-                            <div className="space-y-6">
-                                <p className="text-xl text-gray-600 leading-relaxed font-medium italic">
-                                    {product.description || 'A masterpiece of university pride, this item embodies the enduring spirit and excellence of Universitas Brawijaya.'}
-                                </p>
-                                <p className="text-gray-500 leading-relaxed border-l-4 border-ub-gold pl-8 py-2">
-                                    Bagian dari koleksi resmi Brawijaya Heritage — merayakan komitmen institusi terhadap keunggulan akademik dan warisan komunitas.
-                                </p>
-                            </div>
-                        ) : (
-                            <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
-                                {['Material: Premium Quality', 'Authentic UB Licensed Product', 'Care: Cold Wash Recommended', 'Origin: Official UB Merchandise Workshop'].map((spec, i) => (
-                                    <li key={i} className="flex items-center gap-4 text-sm font-bold text-gray-700 uppercase tracking-wide">
-                                        <div className="w-2 h-2 bg-ub-gold rounded-full" />
-                                        {spec}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <div className="space-y-6">
+                            <p className="text-xl text-gray-600 leading-relaxed font-medium italic">
+                                {product.description || 'A masterpiece of university pride, this item embodies the enduring spirit and excellence of Universitas Brawijaya.'}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </main>

@@ -18,11 +18,10 @@ export default async function AdminLayout({
     }
 
     return (
-        <>
-            <SessionGuard />
+        <SessionGuard>
             <AdminLayoutClient user={session.user}>
                 {children}
             </AdminLayoutClient>
-        </>
+        </SessionGuard>
     );
 }

@@ -76,3 +76,33 @@ export async function deleteUser(userId: string) {
 
     revalidatePath("/admin/users");
 }
+
+export async function checkAdminEmail(email: string): Promise<{ success: boolean; error?: string }> {
+    if (!email) {
+        return { success: false, error: 'Email wajib diisi.' };
+    }
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { email },
+            select: { status: true, role: true }
+        });
+
+        if (!user) {
+            return { success: false, error: 'Email tidak terdaftar atau tidak memiliki akses admin.' };
+        }
+
+        if (user.status !== 'ACTIVE') {
+            return { success: false, error: 'Akun Anda sedang diblokir atau dinonaktifkan.' };
+        }
+
+        if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+            return { success: false, error: 'Akun Anda tidak memiliki akses untuk admin panel.' };
+        }
+
+        return { success: true };
+    } catch (err) {
+        console.error('[checkAdminEmail] Error:', err);
+        return { success: false, error: 'Terjadi kesalahan pada server.' };
+    }
+}

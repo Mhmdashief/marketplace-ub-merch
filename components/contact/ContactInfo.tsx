@@ -56,14 +56,14 @@ export default function ContactInfo() {
                             <item.icon className="w-5 h-5 md:w-7 md:h-7 text-ub-gold transition-colors duration-500 group-hover:text-ub-navy" />
                         </div>
 
-                        <span className="block text-[9px] md:text-[10px] font-black tracking-[0.4em] text-ub-gold mb-4 md:mb-6 opacity-60 group-hover:opacity-100 transition-opacity uppercase">
+                        <span className="block text-[9px] md:text-[10px] font-black tracking-[0.4em] text-ub-gold mb-4 md:mb-6 group-hover:opacity-100 transition-opacity uppercase">
                             {item.title}
                         </span>
 
                         <div className="space-y-4 md:space-y-6 mb-6 md:mb-10">
                             {item.details.map((detail: any, dIdx: number) => (
                                 <div key={dIdx} className="group/detail">
-                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-1 group-hover/detail:text-gray-400 transition-colors">
+                                    <p className="text-[9px] text-gray-300 font-bold uppercase tracking-widest mb-1 group-hover/detail:text-gray-200 transition-colors">
                                         {detail.label}
                                     </p>
                                     {detail.isStatic ? (
@@ -86,7 +86,7 @@ export default function ContactInfo() {
                         </div>
 
                         <div className="mt-auto">
-                            <p className="text-gray-500 group-hover:text-gray-400 transition-colors text-xs font-medium leading-relaxed italic border-l-2 border-white/10 pl-4 group-hover:border-ub-gold/40 text-balance">
+                            <p className="text-gray-400 group-hover:text-gray-300 transition-colors text-xs font-medium leading-relaxed italic border-l-2 border-white/10 pl-4 group-hover:border-ub-gold/40 text-balance">
                                 {item.desc}
                             </p>
                         </div>

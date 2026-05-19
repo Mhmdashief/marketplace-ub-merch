@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Calendar, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import NewsHero from '@/components/news/NewsHero';
 import { getPublicArticles } from '@/app/actions/news';
 
@@ -37,10 +38,12 @@ export default async function NewsPage() {
                                     {/* Ultra Clean Image Container */}
                                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-50 rounded-2xl mb-6">
                                         {article.imageUrl ? (
-                                            <img
+                                            <Image
                                                 src={article.imageUrl}
                                                 alt={article.title}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
+                                                fill
+                                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                                className="object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center">
@@ -49,7 +52,7 @@ export default async function NewsPage() {
                                         )}
                                         {/* Minimal Category Badge */}
                                         {article.category && (
-                                            <div className="absolute top-4 left-4">
+                                            <div className="absolute top-4 left-4 z-10">
                                                 <span className="px-3 py-1 bg-white/95 backdrop-blur-sm text-ub-navy text-[10px] font-black tracking-widest uppercase rounded-md shadow-sm">
                                                     {article.category}
                                                 </span>
@@ -59,7 +62,7 @@ export default async function NewsPage() {
 
                                     {/* Typography-focused Content */}
                                     <div className="flex flex-col flex-1">
-                                        <div className="flex items-center gap-3 text-gray-400 text-xs font-semibold mb-3">
+                                        <div className="flex items-center gap-3 text-gray-600 text-xs font-semibold mb-3">
                                             <time>{new Date(article.createdAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
                                         </div>
 
@@ -67,7 +70,7 @@ export default async function NewsPage() {
                                             {article.title}
                                         </h3>
 
-                                        <p className="text-gray-500 leading-relaxed line-clamp-2 mb-6">
+                                        <p className="text-gray-700 leading-relaxed line-clamp-2 mb-6">
                                             {article.excerpt || 'Baca selengkapnya mengenai berita ini di halaman artikel...'}
                                         </p>
 

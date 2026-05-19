@@ -17,6 +17,27 @@ function slugify(text: string) {
         .replace(/\s+/g, '-');
 }
 
+async function generateUniqueProductSlug(name: string, currentProductId?: string): Promise<string> {
+    const baseSlug = slugify(name);
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+        const existing = await prisma.product.findUnique({
+            where: { slug }
+        });
+
+        if (!existing || (currentProductId && existing.id === currentProductId)) {
+            break;
+        }
+
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+    }
+
+    return slug;
+}
+
 // ─── Helper: konversi File ke binary buffer ───────────────────────────────────
 async function fileToBuffer(file: File): Promise<Buffer> {
     const bytes = await file.arrayBuffer();
@@ -285,7 +306,17 @@ export async function updateProduct(id: string, formData: FormData) {
             }
         }
 
-        const slug = `${slugify(name)}-${Date.now()}`;
+        const existingProduct = await prisma.product.findUnique({
+            where: { id },
+            select: { name: true, slug: true }
+        });
+
+        let slug = existingProduct?.slug;
+        const hasTimestampSuffix = slug ? /-\d{10,}$/.test(slug) : false;
+
+        if (!existingProduct || existingProduct.name !== name || hasTimestampSuffix) {
+            slug = await generateUniqueProductSlug(name, id);
+        }
 
         await prisma.$transaction(async (tx) => {
             await tx.productAsset.deleteMany({
@@ -378,7 +409,7 @@ export async function createProduct(formData: FormData) {
             }
         }
 
-        const slug = `${slugify(name)}-${Date.now()}`;
+        const slug = await generateUniqueProductSlug(name);
 
         const product = await prisma.$transaction(async (tx) => {
             const newProduct = await tx.product.create({

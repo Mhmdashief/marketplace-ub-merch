@@ -17,14 +17,14 @@ export default function NewsHero() {
                         transition={{ duration: 0.8, delay: 0.1 }}
                         className="text-4xl sm:text-5xl md:text-7xl font-black text-ub-navy leading-[1.1] tracking-tight mb-6"
                     >
-                        Cerita, Tren <span className="font-serif italic font-medium text-gray-400 mx-1">&</span> Inspirasi Dari Official UB Merchandise
+                        Cerita, Tren <span className="font-serif italic font-medium text-gray-600 mx-1">&</span> Inspirasi Dari Official UB Merchandise
                     </motion.h1>
 
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.2 }}
-                        className="text-gray-500 text-sm md:text-base leading-relaxed max-w-xl"
+                        className="text-gray-700 text-sm md:text-base leading-relaxed max-w-xl"
                     >
                         Sumber informasi resmi, liputan acara eksklusif, dan cerita di balik karya-karya terbaru dari ekosistem UB Merchandise.
                     </motion.p>

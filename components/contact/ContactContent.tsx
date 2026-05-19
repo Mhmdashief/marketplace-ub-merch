@@ -45,14 +45,14 @@ export default function ContactContent() {
                                     ABOUT YOUR <br />
                                     <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-ub-gold to-yellow-500 pr-6 pb-2">AWESOME IDEAS</span>
                                 </h2>
-                                <p className="text-xl text-gray-500 leading-relaxed max-w-md">
+                                <p className="text-xl text-gray-700 leading-relaxed max-w-md">
                                     Terhubung dengan kami melalui media sosial atau kunjungi kantor kami. Kami siap membantu mewujudkan ide Anda.
                                 </p>
                             </motion.div>
 
                             {/* Social Interactive Links - Redesigned */}
                             <div className="space-y-6">
-                                <h3 className="text-xs font-black tracking-[0.3em] uppercase text-gray-400 border-l-2 border-ub-gold pl-4">
+                                <h3 className="text-xs font-black tracking-[0.3em] uppercase text-gray-600 border-l-2 border-ub-gold pl-4">
                                     Follow our journey
                                 </h3>
                                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -95,18 +95,20 @@ export default function ContactContent() {
                                 style={{ border: 0 }}
                                 allowFullScreen
                                 loading="lazy"
+                                title="Google Maps Lokasi UB Merchandise"
                                 className="w-full h-full object-cover grayscale-[0.2] contrast-[1.05]"
                             />
                             <div className="absolute inset-0 bg-ub-navy/5 pointer-events-none group-hover:bg-transparent transition-colors" />
                             <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6 p-4 sm:p-6 bg-white/95 backdrop-blur-md rounded-2xl flex items-center justify-between shadow-lg border border-white/20">
                                 <div>
-                                    <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Visit Our Store</p>
+                                    <p className="text-[10px] sm:text-xs font-bold text-gray-600 uppercase tracking-widest mb-1">Visit Our Store</p>
                                     <p className="text-ub-navy font-black text-base sm:text-lg">Malang, Indonesia</p>
                                 </div>
                                 <a 
                                     href="https://www.google.com/maps/place/UB+Merchandise+and+Creative+(UB+Merch)/" 
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    aria-label="Buka peta Google Maps ke toko UB Merchandise"
                                     className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-ub-navy text-white flex items-center justify-center hover:bg-ub-gold hover:text-ub-navy transition-colors shadow-md flex-shrink-0"
                                 >
                                     <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />

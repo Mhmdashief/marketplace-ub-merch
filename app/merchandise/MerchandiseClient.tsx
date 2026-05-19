@@ -168,12 +168,14 @@ export default function MerchandiseClient({
                             <div className="hidden sm:flex bg-gray-100/50 p-1.5 rounded-[2rem] border border-gray-100">
                                 <button
                                     onClick={() => setGridView('3')}
+                                    aria-label="Tampilan grid 3 kolom"
                                     className={`p-3 md:p-3.5 rounded-2xl transition-all ${gridView === '3' ? 'bg-white shadow-lg text-black scale-105' : 'text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <Grid3x3 className="w-4 md:w-5 h-4 md:h-5" />
                                 </button>
                                 <button
                                     onClick={() => setGridView('4')}
+                                    aria-label="Tampilan grid 4 kolom"
                                     className={`p-3 md:p-3.5 rounded-2xl transition-all ${gridView === '4' ? 'bg-white shadow-lg text-black scale-105' : 'text-gray-400 hover:text-gray-600'}`}
                                 >
                                     <LayoutGrid className="w-4 md:w-5 h-4 md:h-5" />

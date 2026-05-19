@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT) || 587,
-  secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+  secure: process.env.SMTP_SECURE === 'true',
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASSWORD,
@@ -11,37 +11,35 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendPasswordResetEmail(email: string, token: string) {
-  const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
-
   try {
     // Jika konfigurasi SMTP belum lengkap, fallback ke console log (development)
     if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
       console.log("=".repeat(60));
-      console.log("📧 PASSWORD RESET EMAIL (Development Mode)");
+      console.log("📧 PASSWORD RESET OTP (Development Mode)");
       console.log("=".repeat(60));
       console.log(`To: ${email}`);
-      console.log(`Reset Link: ${resetUrl}`);
+      console.log(`OTP Code: ${token}`);
       console.log("=".repeat(60));
       console.log("⚠️  SMTP Configuration not found or incomplete. Add it to .env for production email sending.");
       console.log("=".repeat(60));
-      return { success: true, resetUrl };
+      return { success: true, otp: token };
     }
 
     // Kirim email menggunakan Nodemailer
-    console.log('📧 Attempting to send email via SMTP...');
+    console.log('📧 Attempting to send OTP email via SMTP...');
     console.log('From:', process.env.EMAIL_FROM || 'UB Merch <admin@ubmerch.ac.id>');
     console.log('To:', email);
 
     const info = await transporter.sendMail({
       from: process.env.EMAIL_FROM || 'UB Merch <admin@ubmerch.ac.id>',
       to: email,
-      subject: 'Reset Password - UB Merch',
-      html: getEmailTemplate(resetUrl),
+      subject: 'Kode OTP Reset Password - UB Merch',
+      html: getOTPEmailTemplate(token),
     });
 
-    console.log('✅ Email sent successfully!');
+    console.log('✅ OTP Email sent successfully!');
     console.log('Message ID:', info.messageId);
-    return { success: true, resetUrl, emailId: info.messageId };
+    return { success: true, otp: token, emailId: info.messageId };
   } catch (error: unknown) {
     const err = error as Error;
     console.error('❌ Error in sendPasswordResetEmail:');
@@ -53,16 +51,16 @@ export async function sendPasswordResetEmail(email: string, token: string) {
 }
 
 /**
- * HTML Email Template untuk Reset Password
+ * HTML Email Template untuk Reset Password dengan OTP
  */
-function getEmailTemplate(resetUrl: string): string {
+function getOTPEmailTemplate(otp: string): string {
   return `
     <!DOCTYPE html>
     <html lang="id">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Reset Password - UB Merch</title>
+      <title>Kode OTP Reset Password - UB Merch</title>
     </head>
     <body style="margin: 0; padding: 0; background-color: #f4f4f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
       <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f7; padding: 40px 0;">
@@ -75,7 +73,7 @@ function getEmailTemplate(resetUrl: string): string {
               <tr>
                 <td style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 40px 30px; text-align: center;">
                   <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
-                    🔐 Reset Password
+                    🔐 Reset Password OTP
                   </h1>
                   <p style="margin: 10px 0 0 0; color: #e0e7ff; font-size: 16px;">
                     UB Merch - Marketplace Universitas Brawijaya
@@ -91,34 +89,24 @@ function getEmailTemplate(resetUrl: string): string {
                   </h2>
                   
                   <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
-                    Kami menerima permintaan untuk mereset password akun UB Merch Anda. Jika Anda yang melakukan permintaan ini, silakan klik tombol di bawah untuk melanjutkan.
+                    Kami menerima permintaan untuk mereset password akun UB Merch Anda. Gunakan kode OTP di bawah ini untuk melanjutkan proses penyetelan ulang sandi:
                   </p>
 
-                  <!-- CTA Button -->
+                  <!-- OTP Box -->
                   <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                     <tr>
                       <td align="center">
-                        <a href="${resetUrl}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);">
-                          Reset Password Saya
-                        </a>
+                        <div style="display: inline-block; padding: 18px 40px; background-color: #f3f4f6; border: 2px dashed #3b82f6; border-radius: 12px; font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #1e3a8a; font-family: monospace; box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);">
+                          ${otp}
+                        </div>
                       </td>
                     </tr>
                   </table>
 
-                  <p style="margin: 20px 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
-                    Atau copy dan paste link berikut ke browser Anda:
-                  </p>
-                  
-                  <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; word-break: break-all;">
-                    <a href="${resetUrl}" style="color: #3b82f6; text-decoration: none; font-size: 14px;">
-                      ${resetUrl}
-                    </a>
-                  </div>
-
                   <!-- Warning Box -->
                   <div style="margin-top: 30px; padding: 16px; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 6px;">
                     <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.6;">
-                      ⚠️ <strong>Penting:</strong> Link ini akan kadaluarsa dalam <strong>1 jam</strong>. Jika Anda tidak meminta reset password, abaikan email ini dan password Anda akan tetap aman.
+                      ⚠️ <strong>Penting:</strong> Kode OTP ini hanya berlaku selama <strong>2 menit</strong>. Jangan bagikan kode ini kepada siapa pun demi keamanan akun Anda. Jika Anda tidak merasa melakukan permintaan ini, silakan abaikan email ini.
                     </p>
                   </div>
                 </td>
