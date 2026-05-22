@@ -3,8 +3,19 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { $Enums } from '@prisma/client';
+import { auth } from '@/lib/auth';
 
 type MarketplacePlatform = $Enums.MarketplacePlatform;
+
+// Helper: cek apakah user adalah admin yang sah
+async function requireAdmin() {
+    const session = await auth();
+    if (!session?.user) throw new Error('Unauthorized: Anda harus login terlebih dahulu.');
+    if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
+        throw new Error('Unauthorized: Akses ditolak.');
+    }
+    return session;
+}
 
 export type MarketplaceLinkInput = {
     platform: MarketplacePlatform;
@@ -15,6 +26,8 @@ export async function upsertMarketplaceLinks(
     productId: string,
     links: MarketplaceLinkInput[]
 ) {
+    await requireAdmin();
+
     const platforms = links.map((l) => l.platform);
     await prisma.marketplaceLink.deleteMany({
         where: { productId, platform: { notIn: platforms } },

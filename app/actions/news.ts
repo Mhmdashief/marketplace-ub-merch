@@ -2,6 +2,17 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { auth } from '@/lib/auth';
+
+// Helper: cek apakah user adalah admin yang sah
+async function requireAdmin() {
+    const session = await auth();
+    if (!session?.user) throw new Error('Unauthorized: Anda harus login terlebih dahulu.');
+    if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
+        throw new Error('Unauthorized: Akses ditolak.');
+    }
+    return session;
+}
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -170,6 +181,7 @@ export async function getRecentArticles(excludeSlug?: string, limit = 5) {
 }
 
 export async function deleteArticle(id: string) {
+    await requireAdmin();
     await prisma.article.delete({ where: { id } });
     revalidatePath('/admin/news');
     revalidatePath('/news');
@@ -177,6 +189,7 @@ export async function deleteArticle(id: string) {
 }
 
 export async function bulkDeleteArticles(ids: string[]) {
+    await requireAdmin();
     await prisma.article.deleteMany({ where: { id: { in: ids } } });
     revalidatePath('/admin/news');
     revalidatePath('/news');
@@ -184,6 +197,7 @@ export async function bulkDeleteArticles(ids: string[]) {
 }
 
 export async function toggleArticleStatus(id: string, currentStatus: boolean) {
+    await requireAdmin();
     await prisma.article.update({
         where: { id },
         data: { isActive: !currentStatus },
@@ -194,6 +208,8 @@ export async function toggleArticleStatus(id: string, currentStatus: boolean) {
 }
 
 export async function createArticle(formData: FormData) {
+    await requireAdmin();
+
     const title = formData.get('title') as string;
     const excerpt = formData.get('excerpt') as string;
     const content = formData.get('content') as string;
@@ -233,6 +249,8 @@ export async function createArticle(formData: FormData) {
 }
 
 export async function updateArticle(id: string, formData: FormData) {
+    await requireAdmin();
+
     const title = formData.get('title') as string;
     const excerpt = formData.get('excerpt') as string;
     const content = formData.get('content') as string;

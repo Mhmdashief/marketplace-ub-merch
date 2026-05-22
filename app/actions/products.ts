@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache';
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-// ─── Helper: buat slug dari nama produk ─────────────────────────────────────
+// Helper: buat slug dari nama produk
 function slugify(text: string) {
     return text
         .toLowerCase()
@@ -38,18 +38,18 @@ async function generateUniqueProductSlug(name: string, currentProductId?: string
     return slug;
 }
 
-// ─── Helper: konversi File ke binary buffer ───────────────────────────────────
+// Helper: konversi File ke binary buffer
 async function fileToBuffer(file: File): Promise<Buffer> {
     const bytes = await file.arrayBuffer();
     return Buffer.from(bytes);
 }
 
-// ─── Helper: URL asset dari asset ID ─────────────────────────────────────────
+// Helper: URL asset dari asset ID
 function assetUrl(assetId: string): string {
     return `/api/assets/${assetId}`;
 }
 
-// ─── Helper: map raw prisma product → public-facing shape ────────────────────
+// Helper: map raw prisma product → public-facing shape
 function mapPublicProduct(p: any) {
     const regPrice = Number(p.regularPrice);
     const discPrice = p.discountPrice ? Number(p.discountPrice) : null;
@@ -81,8 +81,8 @@ const ASSET_SELECT_FOR_LIST = {
     orderBy: { sortOrder: 'asc' as const },
 };
 
-// ─── LIST products untuk halaman publik (user-facing) ──────────────────────
-export async function getPublicProducts(search?: string) {
+// LIST products untuk halaman publik (user-facing)
+export async function getPublicProducts(search?: string, limit = 100, offset = 0) {
     const products = await prisma.product.findMany({
         where: {
             isActive: true,
@@ -93,12 +93,14 @@ export async function getPublicProducts(search?: string) {
         },
         include: { assets: ASSET_SELECT_FOR_LIST },
         orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset,
     });
 
     return products.map(mapPublicProduct);
 }
 
-// ─── Scoped homepage queries ─────────────────────────────────────────────────
+// Scoped homepage queries
 
 export async function getFeaturedProducts(limit = 2) {
     const products = await prisma.product.findMany({
@@ -150,7 +152,7 @@ export async function getKoleksiPilihanProducts(limit = 8) {
     return products.map(mapPublicProduct);
 }
 
-// ─── LIST products (untuk tabel admin) ──────────────────────────────────────
+// LIST products (untuk tabel admin)
 export async function getAdminProducts(search?: string, category?: string) {
     const products = await prisma.product.findMany({
         where: {
@@ -271,7 +273,7 @@ export async function getProductById(id: string) {
     };
 }
 
-// ─── UPDATE produk ────────────────────────────────────────────────────────────
+// UPDATE produk
 export async function updateProduct(id: string, formData: FormData) {
     const name = formData.get('name') as string;
     const description = formData.get('description') as string;
@@ -289,7 +291,9 @@ export async function updateProduct(id: string, formData: FormData) {
 
     const keptAssetIds = formData.getAll('keptImages') as string[];
     const files = formData.getAll('images') as File[];
-    console.log('[updateProduct] received files:', files.map(f => typeof f === 'object' ? { name: f.name, size: f.size, type: f.type } : typeof f));
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('[updateProduct] received files:', files.map(f => typeof f === 'object' ? { name: f.name, size: f.size, type: f.type } : typeof f));
+    }
 
     if (!name || !description || !regularPrice || stock === undefined) {
         return { error: 'Field nama, deskripsi, harga, dan stok wajib diisi.' };
@@ -392,7 +396,10 @@ export async function createProduct(formData: FormData) {
     const isKoleksiPilihan = formData.get('isKoleksiPilihan') === 'true';
 
     const files = formData.getAll('images') as File[];
-    console.log('[createProduct] received files:', files.map(f => typeof f === 'object' ? { name: f.name, size: f.size, type: f.type } : typeof f));
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('[createProduct] received files:', files.map(f => typeof f === 'object' ? { name: f.name, size: f.size, type: f.type } : typeof f));
+    }
+
 
     if (!name || !description || !regularPrice || stock === undefined) {
         return { error: 'Field nama, deskripsi, harga, dan stok wajib diisi.' };
@@ -496,7 +503,7 @@ export async function getProductCategories() {
         select: { category: true },
         distinct: ['category'],
     });
-    
+
     return data
         .map(p => p.category)
         .filter((c): c is string => c != null && c.trim() !== '')

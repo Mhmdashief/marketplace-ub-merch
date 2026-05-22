@@ -11,10 +11,31 @@ export async function generateMetadata({
 }): Promise<Metadata> {
     const { slug } = await params;
     const article = await getArticleBySlug(slug);
-    if (!article) return {};
+    if (!article) return { title: 'Artikel Tidak Ditemukan - UB Merch' };
+
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ubmerch.co.id';
+    const imageUrl = article.imageUrl
+        ? `${baseUrl}${article.imageUrl}`
+        : `${baseUrl}/images/reusable/Logo Ub Merch.png`;
+
     return {
         title: `${article.title} - UB Merchandise`,
         description: article.excerpt || article.title,
+        openGraph: {
+            title: `${article.title} - UB Merchandise`,
+            description: article.excerpt || article.title,
+            images: [{ url: imageUrl, width: 1200, height: 630, alt: article.title }],
+            type: 'article',
+            locale: 'id_ID',
+            publishedTime: article.createdAt.toISOString(),
+            modifiedTime: article.updatedAt.toISOString(),
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: `${article.title} - UB Merchandise`,
+            description: article.excerpt || article.title,
+            images: [imageUrl],
+        },
     };
 }
 

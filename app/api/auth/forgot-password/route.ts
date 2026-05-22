@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createPasswordResetToken } from "@/lib/password-reset";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { z } from "zod";
+import { rateLimit } from "@/lib/rate-limit";
 
 const forgotPasswordSchema = z.object({
     email: z.string().email("Format email tidak valid"),
@@ -11,6 +12,17 @@ const forgotPasswordSchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
+        // Rate limit: max 3 request per 15 menit per IP untuk cegah email bombing
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
+        const limit = await rateLimit(`forgot_password:${ip}`, 3, 15 * 60 * 1000);
+
+        if (!limit.success) {
+            return NextResponse.json(
+                { success: false, error: 'Terlalu banyak permintaan. Coba lagi dalam 15 menit.' },
+                { status: 429 }
+            );
+        }
+
         const body = await request.json();
         const { email } = forgotPasswordSchema.parse(body);
         const user = await prisma.user.findUnique({

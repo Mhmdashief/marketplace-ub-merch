@@ -1,6 +1,7 @@
 generator client {
-  provider   = "prisma-client-js"
-  engineType = "binary"
+  provider = "prisma-client-js"
+  // engineType default (library) lebih optimal untuk serverless/Vercel
+  // dibanding "binary" yang harus spawn subprocess terpisah
 }
 
 datasource db {

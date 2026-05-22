@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcrypt";
-import { UserStatus, Role } from "@prisma/client";
+import { UserStatus } from "@prisma/client";
 import { auth } from "@/lib/auth";
 
 export async function createUser(formData: FormData) {

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, Grid3x3, LayoutGrid, ArrowRight, Package, ChevronDown, Filter, SlidersHorizontal, Check } from 'lucide-react';
 
 interface Product {
@@ -27,11 +27,19 @@ export default function MerchandiseClient({
     initialProducts,
 }: MerchandiseClientProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const queryParam = searchParams ? searchParams.get('q') : '';
 
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(queryParam || '');
     const [sortBy, setSortBy] = useState('newest');
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [gridView, setGridView] = useState<'3' | '4'>('4');
+
+    useEffect(() => {
+        if (queryParam !== null) {
+            setSearchQuery(queryParam);
+        }
+    }, [queryParam]);
 
     const [isSortOpen, setIsSortOpen] = useState(false);
     const sortRef = useRef<HTMLDivElement>(null);

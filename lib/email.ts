@@ -11,24 +11,21 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendPasswordResetEmail(email: string, token: string) {
-  try {
+    try {
     // Jika konfigurasi SMTP belum lengkap, fallback ke console log (development)
     if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
-      console.log("=".repeat(60));
-      console.log("📧 PASSWORD RESET OTP (Development Mode)");
-      console.log("=".repeat(60));
-      console.log(`To: ${email}`);
-      console.log(`OTP Code: ${token}`);
-      console.log("=".repeat(60));
-      console.log("⚠️  SMTP Configuration not found or incomplete. Add it to .env for production email sending.");
-      console.log("=".repeat(60));
+      if (process.env.NODE_ENV !== 'production') {
+        console.log("=".repeat(60));
+        console.log("📧 PASSWORD RESET OTP (Development Mode)");
+        console.log("=".repeat(60));
+        console.log(`To: ${email}`);
+        console.log(`OTP Code: ${token}`);
+        console.log("=".repeat(60));
+        console.log("⚠️  SMTP Configuration not found. Add it to .env for production.");
+        console.log("=".repeat(60));
+      }
       return { success: true, otp: token };
     }
-
-    // Kirim email menggunakan Nodemailer
-    console.log('📧 Attempting to send OTP email via SMTP...');
-    console.log('From:', process.env.EMAIL_FROM || 'UB Merch <admin@ubmerch.ac.id>');
-    console.log('To:', email);
 
     const info = await transporter.sendMail({
       from: process.env.EMAIL_FROM || 'UB Merch <admin@ubmerch.ac.id>',
@@ -37,15 +34,14 @@ export async function sendPasswordResetEmail(email: string, token: string) {
       html: getOTPEmailTemplate(token),
     });
 
-    console.log('✅ OTP Email sent successfully!');
-    console.log('Message ID:', info.messageId);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[EMAIL] OTP sent. Message ID:', info.messageId);
+    }
+
     return { success: true, otp: token, emailId: info.messageId };
   } catch (error: unknown) {
     const err = error as Error;
-    console.error('❌ Error in sendPasswordResetEmail:');
-    console.error('Error type:', err.constructor?.name);
-    console.error('Error message:', err.message);
-    console.error('Error stack:', err.stack);
+    console.error('[EMAIL_ERROR]', err.message);
     throw error;
   }
 }

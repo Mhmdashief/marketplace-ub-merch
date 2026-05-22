@@ -10,7 +10,7 @@ export default function StorySection() {
         {
             title: 'About Us',
             subtitle: 'THE BEGINNING',
-            description: 'Awal mulanya UB Merch & Creative yang telah didirikan pada tahun 2019 adalah hasil inisiasi kerjasama antara BUNA UB (sekarang di bawah PT Brawijaya Multi Usaha), Mahasiswa, dan Alumni UB. Kemudian, secara resmi tercantum dalam Peraturan Rektor Universitas Brawijaya Nomor 66 Tahun 2020 tentang Struktur Organisasi dan Tata Kerja Badan Usaha Non Akademik. Beberapa produk yang dijual merupakan produk merchandise dan souvenir seperti t-shirt, hoodie, jaket, tas, tumbler, mug dan produk lainnya. Sedangkan untuk produk kreatif, melayani pembuatan berbagai macam jasa seperti pembuatan video profil, virtual tour, dokumentasi, foto produk, desain logo, branding dan jasa lainnya.',
+            description: 'Awal mulanya UB Merch & Creative yang telah didirikan pada tahun 2019 adalah hasil inisiasi kerja sama antara BUNA UB (sekarang berada di bawah PT Brawijaya Multi Usaha). Kemudian, secara resmi tercantum dalam Peraturan Rektor Universitas Brawijaya Nomor 66 Tahun 2020 tentang Struktur Organisasi dan Tata Kerja Badan Usaha Non Akademik. UB Merch & Creative juga berada dalam naungan unit cluster Brawijaya Business and Innovation sebagai bagian dari pengembangan unit bisnis dan kreativitas Universitas Brawijaya. Beberapa produk yang dijual merupakan produk merchandise dan souvenir seperti t-shirt, hoodie, jaket, tas, tumbler, mug, dan produk lainnya. Sedangkan untuk produk kreatif, UB Merch & Creative melayani pembuatan berbagai macam jasa seperti pembuatan video profil, dokumentasi, foto produk, desain logo, branding, dan jasa kreatif lainnya.',
             align: 'left'
         },
         {
@@ -19,7 +19,7 @@ export default function StorySection() {
             type: 'vision-mission',
             vision: {
                 title: 'Our Goals',
-                content: 'Menjadi role model unit bisnis Badan Usaha Non Akademik Universitas Brawijaya (BUNA UB) yang kreatif, profesional, mandiri, dan berorientasi strategi jangka panjang.'
+                content: 'Menjadi role model unit bisnis Brawijaya Multi Usaha (BMU) yang kreatif, profesional, mandiri, dan berorientasi strategi jangka panjang.'
             },
             mission: {
                 title: 'Our Values',
@@ -210,7 +210,7 @@ export default function StorySection() {
                                     >
                                         <div className="absolute inset-0 bg-gray-100 rounded-3xl md:rounded-[3rem] overflow-hidden">
                                             <Image
-                                                src="/images/reusable/Ub merch.jpg"
+                                                src="/images/reusable/Ub merch.webp"
                                                 alt="UB Merch Story"
                                                 fill
                                                 className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-700"
