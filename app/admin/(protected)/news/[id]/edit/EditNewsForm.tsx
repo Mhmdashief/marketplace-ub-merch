@@ -36,12 +36,12 @@ export default function EditNewsForm({ article }: { article: ArticleData }) {
         const file = e.target.files?.[0];
         if (file) {
             const isValidType = file.type === 'image/png' || file.type === 'image/webp';
-            const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB
+            const isValidSize = file.size <= 1 * 1024 * 1024; // 1MB
             
             if (!isValidType) {
-                setError('Format file hanya boleh PNG atau WEBP.');
+                setError('Format file hanya boleh PNG atau WebP.');
             } else if (!isValidSize) {
-                setError('Ukuran file maksimal 2 MB.');
+                setError('Ukuran file maksimal 1 MB.');
             } else {
                 setError('');
                 setNewImage(file);
@@ -174,7 +174,7 @@ export default function EditNewsForm({ article }: { article: ArticleData }) {
                                         <Upload className="h-8 w-8 text-gray-700 group-hover:text-ub-gold" />
                                     </div>
                                     <p className="text-[10px] font-black text-white uppercase tracking-widest">Click to Upload</p>
-                                    <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-2">PNG, WEBP — Maks 2MB</p>
+                                    <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-2">PNG, WebP — Maks 1 MB</p>
                                 </>
                             ) : (
                                 <div className="relative w-full aspect-video rounded-xl overflow-hidden">

@@ -94,7 +94,6 @@ model Product {
   assets           ProductAsset[]
   marketplaceLinks MarketplaceLink[]
   clickTrackings   ClickTracking[]
-  wishlists        Wishlist[]
 
   @@index([deletedAt])
   @@index([isActive])
@@ -136,21 +135,6 @@ model MarketplaceLink {
   @@unique([productId, platform])
   @@index([productId])
   @@map("marketplace_links")
-}
-
-model Wishlist {
-  id        String   @id @default(cuid())
-  userId    String
-  productId String
-
-  createdAt DateTime @default(now())
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, productId])
-  @@index([userId])
-  @@index([productId])
-  @@map("wishlists")
 }
 
 model ClickTracking {

@@ -34,7 +34,7 @@ export default function NewProductPage() {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('');
-    const [stock, setStock] = useState('');
+    const [stock, setStock] = useState('9999');
     const [regularPrice, setRegularPrice] = useState('');
     const [discountPrice, setDiscountPrice] = useState('');
     const [isActive, setIsActive] = useState(true);
@@ -67,12 +67,12 @@ export default function NewProductPage() {
             const files = Array.from(e.target.files);
             const validFiles = files.filter(file => {
                 const isValidType = file.type === 'image/png' || file.type === 'image/webp';
-                const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB
+                const isValidSize = file.size <= 1 * 1024 * 1024; // 1MB
                 
                 if (!isValidType) {
-                    setError('Format file hanya boleh PNG atau WEBP.');
+                    setError('Format file hanya boleh PNG atau WebP.');
                 } else if (!isValidSize) {
-                    setError('Ukuran file maksimal 2 MB.');
+                    setError('Ukuran file maksimal 1 MB.');
                 }
                 
                 return isValidType && isValidSize;
@@ -223,7 +223,7 @@ export default function NewProductPage() {
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 gap-6">
                             {/* Category Input */}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-white uppercase tracking-widest ml-1">Category *</label>
@@ -240,18 +240,6 @@ export default function NewProductPage() {
                                         <option key={cat} value={cat} />
                                     ))}
                                 </datalist>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white uppercase tracking-widest ml-1">Stock Quantity *</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    value={stock}
-                                    onChange={(e) => setStock(e.target.value)}
-                                    placeholder="0"
-                                    className="w-full px-6 py-4 bg-black/20 text-white border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] focus:ring-2 focus:ring-ub-gold transition-all outline-none"
-                                />
                             </div>
                         </div>
                     </div>
@@ -297,7 +285,7 @@ export default function NewProductPage() {
                     <div className="bg-[#001a33] rounded-[40px] shadow-2xl border border-white/5 p-8 space-y-6">
                         <div>
                             <h2 className="text-sm font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Product Assets</h2>
-                            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">Upload gambar produk (PNG, WEBP — maks 2MB)</p>
+                            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">Upload gambar produk (PNG, WebP — maks 1 MB)</p>
                         </div>
                         <div className="border-2 border-dashed border-white/5 rounded-[32px] p-12 flex flex-col items-center justify-center hover:border-ub-gold hover:bg-white/5 transition-all cursor-pointer relative group">
                             <input type="file" multiple accept="image/png, image/webp" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} />
@@ -305,7 +293,7 @@ export default function NewProductPage() {
                                 <Upload className="h-8 w-8 text-gray-700 group-hover:text-ub-gold" />
                             </div>
                             <p className="text-[10px] font-black text-white uppercase tracking-widest">Drag & Drop or Click to Upload</p>
-                            <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-2">PNG, WEBP (Max 2MB each)</p>
+                            <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-2">PNG, WebP — Maks 1 MB per file</p>
                         </div>
 
                         {images.length > 0 && (

@@ -14,8 +14,8 @@ async function requireAdmin() {
     return session;
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_FILE_SIZE = 1 * 1024 * 1024;
+const ALLOWED_MIME_TYPES = ['image/png', 'image/webp'];
 
 function slugify(text: string) {
     return text
@@ -226,8 +226,8 @@ export async function createArticle(formData: FormData) {
         let imageMime = null;
 
         if (imageFile && imageFile.size > 0) {
-            if (imageFile.size > MAX_FILE_SIZE) return { error: 'Ukuran gambar maksimal 5MB.' };
-            if (!ALLOWED_MIME_TYPES.includes(imageFile.type)) return { error: 'Format gambar tidak didukung.' };
+            if (imageFile.size > MAX_FILE_SIZE) return { error: 'Ukuran gambar maksimal 1 MB.' };
+            if (!ALLOWED_MIME_TYPES.includes(imageFile.type)) return { error: 'Format gambar tidak didukung. Gunakan PNG atau WebP.' };
             const bytes = await imageFile.arrayBuffer();
             imageBytes = Buffer.from(bytes);
             imageMime = imageFile.type;
@@ -285,8 +285,8 @@ export async function updateArticle(id: string, formData: FormData) {
             updateData.imageBytes = null;
             updateData.imageMime = null;
         } else if (imageFile && imageFile.size > 0) {
-            if (imageFile.size > MAX_FILE_SIZE) return { error: 'Ukuran gambar maksimal 5MB.' };
-            if (!ALLOWED_MIME_TYPES.includes(imageFile.type)) return { error: 'Format gambar tidak didukung.' };
+            if (imageFile.size > MAX_FILE_SIZE) return { error: 'Ukuran gambar maksimal 1 MB.' };
+            if (!ALLOWED_MIME_TYPES.includes(imageFile.type)) return { error: 'Format gambar tidak didukung. Gunakan PNG atau WebP.' };
             const bytes = await imageFile.arrayBuffer();
             updateData.imageBytes = Buffer.from(bytes);
             updateData.imageMime = imageFile.type;

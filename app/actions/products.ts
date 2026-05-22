@@ -3,9 +3,9 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
-// Ukuran maksimum per file: 5 MB
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+// Ukuran maksimum per file: 1 MB
+const MAX_FILE_SIZE = 1 * 1024 * 1024;
+const ALLOWED_MIME_TYPES = ['image/png', 'image/webp'];
 
 // Helper: buat slug dari nama produk
 function slugify(text: string) {
@@ -303,10 +303,10 @@ export async function updateProduct(id: string, formData: FormData) {
         for (const file of files) {
             if (!file || file.size === 0) continue;
             if (file.size > MAX_FILE_SIZE) {
-                return { error: `File "${file.name}" melebihi batas 5 MB.` };
+                return { error: `File "${file.name}" melebihi batas 1 MB.` };
             }
             if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-                return { error: `Tipe file "${file.type}" tidak didukung. Gunakan JPEG, PNG, atau WebP.` };
+                return { error: `Format "${file.type}" tidak didukung. Gunakan PNG atau WebP.` };
             }
         }
 
@@ -409,10 +409,10 @@ export async function createProduct(formData: FormData) {
         for (const file of files) {
             if (!file || file.size === 0) continue;
             if (file.size > MAX_FILE_SIZE) {
-                return { error: `File "${file.name}" melebihi batas 5 MB.` };
+                return { error: `File "${file.name}" melebihi batas 1 MB.` };
             }
             if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-                return { error: `Tipe file "${file.type}" tidak didukung.` };
+                return { error: `Format "${file.type}" tidak didukung. Gunakan PNG atau WebP.` };
             }
         }
 

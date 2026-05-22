@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronLeft, ShieldCheck, Truck, ArrowRight, Zap, Package, Info, ExternalLink, Loader2 } from 'lucide-react';
+import { ChevronLeft, ShieldCheck, Truck, ArrowRight, ExternalLink, Loader2 } from 'lucide-react';
 
 interface ProductDetail {
     id: string;
@@ -122,14 +122,7 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
                                 className="object-cover transition-transform duration-1000 group-hover:scale-105"
                                 priority
                             />
-                            {product.stock <= 0 && (
-                                <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center">
-                                    <div className="px-6 py-3 bg-black text-white text-sm font-black uppercase tracking-widest rounded-2xl flex items-center gap-2">
-                                        <Package className="w-4 h-4" />
-                                        <span>Stok Habis</span>
-                                    </div>
-                                </div>
-                            )}
+
                         </div>
 
                         {/* Thumbnail Strip (if multiple images) */}
@@ -203,36 +196,7 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
                             )}
                         </div>
 
-                        {/* Stok Info */}
-                        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 px-6 py-5 rounded-3xl border transition-all duration-300 ${product.stock > 0 && product.stock <= 10
-                                ? 'bg-orange-50/50 border-orange-100'
-                                : product.stock > 0
-                                    ? 'bg-emerald-50/50 border-emerald-100'
-                                    : 'bg-rose-50/50 border-rose-100'
-                            }`}>
-                            <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${product.stock > 0 && product.stock <= 10 ? 'bg-orange-100 text-orange-600' : product.stock > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
-                                    }`}>
-                                    {product.stock > 0 && product.stock <= 10 ? <Zap className="w-5 h-5 animate-pulse" /> : product.stock > 0 ? <Package className="w-5 h-5" /> : <Info className="w-5 h-5" />}
-                                </div>
-                                <div>
-                                    <h4 className="text-[10px] font-black text-black uppercase tracking-[0.2em] mb-1">Status Ketersediaan</h4>
-                                    <p className={`text-xs font-bold ${product.stock > 0 && product.stock <= 10 ? 'text-orange-600' : product.stock > 0 ? 'text-emerald-600' : 'text-rose-600'
-                                        }`}>
-                                        {product.stock > 0 && product.stock <= 10 ? `Sisa ${product.stock} unit - Terbatas!` : product.stock > 0 ? `Ready Stock (${product.stock} Unit)` : 'Stok Habis Sementara'}
-                                    </p>
-                                </div>
-                            </div>
 
-                            <div className="flex items-center hidden sm:flex pr-2">
-                                <div className="relative flex h-3 w-3">
-                                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${product.stock > 0 && product.stock <= 10 ? 'bg-orange-400' : product.stock > 0 ? 'bg-emerald-400' : 'bg-rose-400'
-                                        }`}></span>
-                                    <span className={`relative inline-flex rounded-full h-3 w-3 ${product.stock > 0 && product.stock <= 10 ? 'bg-orange-500' : product.stock > 0 ? 'bg-emerald-500' : 'bg-rose-500'
-                                        }`}></span>
-                                </div>
-                            </div>
-                        </div>
 
                         {/* CTA Buttons - Marketplace Links */}
                         <div className="flex flex-col gap-4 mb-12">
@@ -282,10 +246,15 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
                     </div>
 
                     <div className="animate-in fade-in duration-500">
-                        <div className="space-y-6">
-                            <p className="text-xl text-gray-600 leading-relaxed font-medium italic">
-                                {product.description || 'A masterpiece of university pride, this item embodies the enduring spirit and excellence of Universitas Brawijaya.'}
-                            </p>
+                        <div className="space-y-4">
+                            {(product.description || 'A masterpiece of university pride, this item embodies the enduring spirit and excellence of Universitas Brawijaya.')
+                                .split('\n\n')
+                                .map((paragraph, i) => (
+                                    <p key={i} className="text-base text-gray-700 leading-relaxed font-medium whitespace-pre-wrap">
+                                        {paragraph}
+                                    </p>
+                                ))
+                            }
                         </div>
                     </div>
                 </div>

@@ -23,8 +23,8 @@ export default function NewArticlePage() {
         const file = e.target.files?.[0];
         if (file) {
             const isValidType = file.type === 'image/png' || file.type === 'image/webp';
-            const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB
-            
+            const isValidSize = file.size <= 2 * 1024 * 1024;
+
             if (!isValidType) {
                 setError('Format file hanya boleh PNG atau WEBP.');
             } else if (!isValidSize) {
@@ -135,9 +135,8 @@ export default function NewArticlePage() {
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-white uppercase tracking-widest ml-1">Status Publikasi</label>
                             <button type="button" onClick={() => setIsActive(!isActive)}
-                                className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all border ${
-                                    isActive ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-white/5 border-white/10 text-gray-400'
-                                }`}>
+                                className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all border ${isActive ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-white/5 border-white/10 text-gray-400'
+                                    }`}>
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isActive ? 'PUBLISHED' : 'DRAFT'}</span>
                                 <div className={`w-8 h-4 rounded-full transition-colors relative ${isActive ? 'bg-emerald-500' : 'bg-gray-600'}`}>
                                     <div className={`absolute top-0.5 bottom-0.5 w-3 bg-white rounded-full transition-all ${isActive ? 'right-0.5' : 'left-0.5'}`} />

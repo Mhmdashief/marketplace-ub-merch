@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import {
     ArrowLeft, Upload, X, Star, Zap,
-    TrendingUp, ShieldCheck, Heart, Save, ChevronDown, Check, AlertCircle, Loader2,
+    TrendingUp, ShieldCheck, Heart, Save, Check, AlertCircle, Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -12,7 +12,6 @@ import { updateProduct, getProductCategories } from '@/app/actions/products';
 import { upsertMarketplaceLinks } from '@/app/actions/marketplace';
 import MarketplaceLinksManager, { type LinkEntry } from '@/components/admin/MarketplaceLinksManager';
 
-// Map showcase label names → formData key
 const SHOWCASE_LABELS = [
     { name: 'Featured Product', key: 'isFeatured', icon: <Star className="h-4 w-4" />, color: 'ub-gold' },
     { name: 'New Arrivals', key: 'isNewArrival', icon: <Zap className="h-4 w-4" />, color: 'blue-400' },
@@ -40,13 +39,11 @@ interface ProductData {
     isActive: boolean;
     images?: ProductImage[];
     sizes?: string | null;
-    // Showcase flags
     isFeatured?: boolean;
     isNewArrival?: boolean;
     isBestSeller?: boolean;
     isExclusiveShowcase?: boolean;
     isKoleksiPilihan?: boolean;
-    // Marketplace links
     marketplaceLinks?: LinkEntry[];
 }
 
@@ -101,16 +98,16 @@ export default function EditProductForm({ product }: { product: ProductData }) {
             const validFiles = files.filter(file => {
                 const isValidType = file.type === 'image/png' || file.type === 'image/webp';
                 const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB
-                
+
                 if (!isValidType) {
                     setError('Format file hanya boleh PNG atau WEBP.');
                 } else if (!isValidSize) {
                     setError('Ukuran file maksimal 2 MB.');
                 }
-                
+
                 return isValidType && isValidSize;
             });
-            
+
             if (validFiles.length > 0) {
                 setError('');
                 setNewImages((prev) => [...prev, ...validFiles]);
@@ -280,7 +277,7 @@ export default function EditProductForm({ product }: { product: ProductData }) {
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 gap-6">
                             {/* Category Input */}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-white uppercase tracking-widest ml-1">
@@ -299,21 +296,6 @@ export default function EditProductForm({ product }: { product: ProductData }) {
                                         <option key={cat} value={cat} />
                                     ))}
                                 </datalist>
-                            </div>
-
-                            {/* Stock */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white uppercase tracking-widest ml-1">
-                                    Jumlah Stok *
-                                </label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    value={stock}
-                                    onChange={(e) => setStock(e.target.value)}
-                                    placeholder="0"
-                                    className="w-full px-6 py-4 bg-black/20 text-white border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] focus:ring-2 focus:ring-ub-gold transition-all outline-none"
-                                />
                             </div>
                         </div>
                     </div>
@@ -483,8 +465,8 @@ export default function EditProductForm({ product }: { product: ProductData }) {
                                         type="button"
                                         onClick={() => toggleFlag(key)}
                                         className={`w-full flex items-center justify-between p-5 rounded-2xl cursor-pointer transition-all border ${isChecked
-                                                ? 'bg-ub-gold/10 border-ub-gold/30'
-                                                : 'bg-white/5 hover:bg-white/10 border-white/5'
+                                            ? 'bg-ub-gold/10 border-ub-gold/30'
+                                            : 'bg-white/5 hover:bg-white/10 border-white/5'
                                             }`}
                                     >
                                         <div className="flex items-center gap-4">
@@ -496,8 +478,8 @@ export default function EditProductForm({ product }: { product: ProductData }) {
                                             </span>
                                         </div>
                                         <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${isChecked
-                                                ? 'bg-ub-gold border-ub-gold shadow-lg shadow-ub-gold/20'
-                                                : 'bg-white/5 border-white/10'
+                                            ? 'bg-ub-gold border-ub-gold shadow-lg shadow-ub-gold/20'
+                                            : 'bg-white/5 border-white/10'
                                             }`}>
                                             {isChecked && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                                         </div>

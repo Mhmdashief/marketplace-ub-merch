@@ -203,7 +203,6 @@ export default function ProductsTable({ products, categories, initialSearch, ini
                                 </th>
                                 <th className="px-8 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Product</th>
                                 <th className="px-8 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Status</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Stock</th>
                                 <th className="px-8 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Price</th>
                                 <th className="px-8 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-right">Actions</th>
                             </tr>
@@ -211,7 +210,7 @@ export default function ProductsTable({ products, categories, initialSearch, ini
                         <tbody>
                             {products.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="text-center py-20">
+                                    <td colSpan={5} className="text-center py-20">
                                         <div className="flex flex-col items-center gap-4 text-gray-600">
                                             <ImageIcon className="h-10 w-10" />
                                             <p className="text-[11px] font-black uppercase tracking-widest">No products found</p>
@@ -269,14 +268,7 @@ export default function ProductsTable({ products, categories, initialSearch, ini
                                             </button>
                                         </td>
 
-                                        <td className="px-8 py-6 bg-white/[0.02] group-hover:bg-white/[0.05] transition-colors border-y border-white/5">
-                                            <span className={`text-xs font-black font-mono ${product.stock < 20 ? 'text-rose-500' : 'text-white'}`}>
-                                                {product.stock}
-                                                {product.stock < 20 && (
-                                                    <span className="ml-2 text-[8px] bg-rose-500/10 px-2 py-0.5 rounded-full text-rose-400 border border-rose-500/20">LOW</span>
-                                                )}
-                                            </span>
-                                        </td>
+
 
                                         <td className="px-8 py-6 bg-white/[0.02] group-hover:bg-white/[0.05] transition-colors border-y border-white/5">
                                             <div className="flex flex-col font-mono">
