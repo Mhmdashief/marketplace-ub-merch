@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import FaqAccordion from '@/app/components/faq/FaqAccordion'; // Absolute path just to be safe, or relative '../components/faq/FaqAccordion'
+import FaqAccordion from '@/components/faq/FaqAccordion';
 import { MessageCircleQuestion, Search } from 'lucide-react';
 
 export const metadata: Metadata = {

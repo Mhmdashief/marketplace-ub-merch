@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import ContactHero from '../components/contact/ContactHero';
-import ContactContent from '../components/contact/ContactContent';
+import ContactHero from '@/components/contact/ContactHero';
+import ContactContent from '@/components/contact/ContactContent';
 
 export const metadata: Metadata = {
     title: 'Hubungi Kami - UB Merchandise',

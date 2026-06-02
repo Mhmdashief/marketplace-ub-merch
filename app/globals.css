@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   /* Primary Black & White Theme */
@@ -15,11 +16,13 @@
   --gray-800: #262626;
   --gray-900: #171717;
 
-  /* UB Brand Colors (as accents) */
+  /* UB Brand Colors*/
   --ub-navy: #003366;
   --ub-gold: #D4AF37;
   --ub-light-gold: #F4E4C1;
   --ub-dark-navy: #001a33;
+  --ub-red: #FF0000;
+  --ub-blue: #0000FF;
 
   /* Theme Colors */
   --background: #ffffff;
@@ -128,4 +131,31 @@ html {
       #f3f4f6 40%,
       #f3f4f6 100%);
   background-size: 1000px 100%;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 60s linear infinite;
+  will-change: transform;
+}
+
+.group:hover .animate-marquee {
+  animation-play-state: paused;
+}
+
+.mask-fade-edges {
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.mask-fade-edges-small {
+  mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
 }
